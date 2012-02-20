@@ -1,0 +1,157 @@
+# SQLassie - database firewall
+# Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+# 
+# This file is part of SQLassie.
+#
+# SQLassie is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# SQLassie is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
+
+AlwaysSomethingNode.o:	AlwaysSomethingNode.cpp AlwaysSomethingNode.hpp \
+	ComparisonNode.hpp
+
+AstNode.o:	AstNode.cpp AstNode.hpp nullptr.hpp
+
+AttackProbabilities.o:	AttackProbabilities.cpp AttackProbabilities.hpp
+
+ComparisonNode.o:	ComparisonNode.cpp ComparisonNode.hpp ExpressionNode.hpp \
+	Logger.hpp MySqlConstants.hpp QueryRisk.hpp nullptr.hpp
+
+ConditionalListNode.o:	ConditionalListNode.cpp AstNode.hpp \
+	ConditionalListNode.hpp ConditionalNode.hpp Logger.hpp nullptr.hpp
+
+ConditionalNode.o:	ConditionalNode.cpp AstNode.hpp ConditionalNode.hpp
+
+DlibProbabilities.o:	DlibProbabilities.cpp AttackProbabilities.hpp \
+	BayesException.hpp DlibProbabilities.hpp Logger.hpp QueryRisk.hpp \
+	clearStack.hpp dlib/bayes_utils.h dlib/directed_graph.h dlib/graph.h \
+	dlib/graph_utils.h huginParser.tab.hpp huginScanner.yy.hpp \
+	nullptr.hpp
+
+ExpressionNode.o:	ExpressionNode.cpp AstNode.hpp ExpressionNode.hpp \
+	Logger.hpp nullptr.hpp
+
+InSubselectNode.o:	InSubselectNode.cpp InSubselectNode.hpp \
+	InValuesListNode.hpp QueryRisk.hpp
+
+InValuesListNode.o:	InValuesListNode.cpp ConditionalNode.hpp \
+	ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp nullptr.hpp
+
+ListenSocket.o:	ListenSocket.cpp ListenSocket.hpp Logger.hpp \
+	MessageHandler.hpp SocketException.hpp
+
+Logger.o:	Logger.cpp Logger.hpp nullptr.hpp
+
+MessageHandler.o:	MessageHandler.cpp Logger.hpp MessageHandler.hpp Socket.hpp \
+	SocketException.hpp
+
+MySqlConstants.o:	MySqlConstants.cpp Logger.hpp MySqlConstants.hpp
+
+MySqlErrorMessageBlocker.o:	MySqlErrorMessageBlocker.cpp Logger.hpp \
+	MySqlConstants.hpp MySqlErrorMessageBlocker.hpp MySqlSocket.hpp \
+	ProxyHalf.hpp QueryRisk.hpp Socket.hpp nullptr.hpp
+
+MySqlGuard.o:	MySqlGuard.cpp Logger.hpp MySqlConstants.hpp \
+	MySqlErrorMessageBlocker.hpp MySqlGuard.hpp \
+	MySqlGuardObjectContainer.hpp MySqlLoginCheck.hpp MySqlSocket.hpp \
+	ParserInterface.hpp ProxyHalf.hpp QueryRisk.hpp QueryWhitelist.hpp \
+	Socket.hpp nullptr.hpp
+
+MySqlGuardListenSocket.o:	MySqlGuardListenSocket.cpp ListenSocket.hpp \
+	Logger.hpp MySqlErrorMessageBlocker.hpp MySqlGuard.hpp \
+	MySqlGuardListenSocket.hpp MySqlLoginCheck.hpp MySqlSocket.hpp \
+	Proxy.hpp Socket.hpp SocketException.hpp nullptr.hpp
+
+MySqlGuardObjectContainer.o:	MySqlGuardObjectContainer.cpp \
+	AttackProbabilities.hpp DescribedException.hpp DlibProbabilities.hpp \
+	Logger.hpp MySqlGuardObjectContainer.hpp nullptr.hpp
+
+MySqlLogger.o:	MySqlLogger.cpp Logger.hpp MySqlConstants.hpp MySqlLogger.hpp \
+	ProxyHalf.hpp
+
+MySqlLoggerListenSocket.o:	MySqlLoggerListenSocket.cpp ListenSocket.hpp \
+	Logger.hpp MySqlLogger.hpp MySqlLoggerListenSocket.hpp Proxy.hpp \
+	Socket.hpp SocketException.hpp
+
+MySqlLoginCheck.o:	MySqlLoginCheck.cpp MySqlConstants.hpp MySqlLoginCheck.hpp \
+	nullptr.hpp
+
+MySqlPrinter.o:	MySqlPrinter.cpp Logger.hpp MySqlConstants.hpp \
+	MySqlPrinter.hpp ProxyHalf.hpp
+
+MySqlSocket.o:	MySqlSocket.cpp MySqlConstants.hpp MySqlSocket.hpp Socket.hpp
+
+NegationNode.o:	NegationNode.cpp ExpressionNode.hpp Logger.hpp \
+	MySqlConstants.hpp NegationNode.hpp QueryRisk.hpp nullptr.hpp
+
+ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp clearStack.hpp \
+	nullptr.hpp parser.tab.hpp scanner.yy.hpp
+
+Proxy.o:	Proxy.cpp AutoPtrWithOperatorParens.hpp Logger.hpp Proxy.hpp \
+	ProxyHalf.hpp Socket.hpp
+
+ProxyHalf.o:	ProxyHalf.cpp Logger.hpp ProxyHalf.hpp Socket.hpp \
+	SocketException.hpp
+
+ProxyListenSocket.o:	ProxyListenSocket.cpp MySqlPrinter.hpp \
+	ProxyListenSocket.hpp nullptr.hpp
+
+QueryRisk.o:	QueryRisk.cpp Logger.hpp QueryRisk.hpp
+
+QueryWhitelist.o:	QueryWhitelist.cpp DescribedException.hpp Logger.hpp \
+	ParserInterface.hpp QueryWhitelist.hpp nullptr.hpp
+
+SimpleProxy.o:	SimpleProxy.cpp SimpleProxy.hpp Socket.hpp SocketException.hpp
+
+Socket.o:	Socket.cpp Logger.hpp Socket.hpp SocketException.hpp nullptr.hpp
+
+demo.o:	demo.cpp AttackProbabilities.hpp DlibProbabilities.hpp Logger.hpp \
+	MySqlGuard.hpp ParserInterface.hpp QueryRisk.hpp nullptr.hpp
+
+logger.o:	logger.cpp MySqlLoggerListenSocket.hpp
+
+parser.o:	parser.cpp AstNode.hpp ParserInterface.hpp QueryRisk.hpp
+
+probabilities.o:	probabilities.cpp csvParse.hpp
+
+queryStatistics.o:	queryStatistics.cpp Logger.hpp ParserInterface.hpp \
+	QueryRisk.hpp
+
+riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
+	DlibProbabilities.hpp ParserInterface.hpp QueryRisk.hpp nullptr.hpp
+
+scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp scanner.yy.hpp
+
+sqlassie.o:	sqlassie.cpp DescribedException.hpp Logger.hpp \
+	MySqlGuardListenSocket.hpp MySqlGuardObjectContainer.hpp \
+	QueryWhitelist.hpp accumulator.hpp getpass.h nullptr.hpp version.h
+
+tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
+	accumulator.hpp nullptr.hpp
+
+tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp nullptr.hpp \
+	tests/testMySqlConstants.hpp tests/testNode.hpp tests/testParser.hpp \
+	tests/testQueryWhitelist.hpp
+
+tests/testMySqlConstants.o:	tests/testMySqlConstants.cpp MySqlConstants.hpp \
+	tests/testMySqlConstants.hpp
+
+tests/testNode.o:	tests/testNode.cpp AlwaysSomethingNode.hpp AstNode.hpp \
+	ComparisonNode.hpp ConditionalListNode.hpp ConditionalNode.hpp \
+	ExpressionNode.hpp InValuesListNode.hpp tests/testNode.hpp
+
+tests/testParser.o:	tests/testParser.cpp ParserInterface.hpp QueryRisk.hpp \
+	tests/testParser.hpp
+
+tests/testQueryWhitelist.o:	tests/testQueryWhitelist.cpp ParserInterface.hpp \
+	QueryRisk.hpp QueryWhitelist.hpp
+

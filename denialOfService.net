@@ -1,0 +1,125 @@
+net
+{
+	propagationenginegenerator1791944048146838126L = "edu.ucla.belief.approx.BeliefPropagationSettings@1c8132a";
+	recoveryenginegenerator6944530267470113528l = "edu.ucla.util.SettingsImpl@623592";
+	node_size = (130.0 55.0);
+}
+
+node AlwaysTrue
+{
+	states = ("alwaysTrue" "benign" );
+	position = (516 -35);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable4";
+	label = "AlwaysTrue";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node SlowRegex
+{
+	states = ("slowRegex" "none" );
+	position = (379 -156);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable2";
+	label = "SlowRegex";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node Benchmark
+{
+	states = ("benchmark" "none" );
+	position = (156 -95);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable1";
+	label = "Benchmark";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node Joins
+{
+	states = ("none" "one" "two" "three" "four" "fiveOrMore" );
+	position = (95 -35);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable0";
+	label = "Joins";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node DenialOfService
+{
+	states = ("denialOfService" "benign" );
+	position = (314 10);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable6";
+	label = "DenialOfService";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node CrossJoin
+{
+	states = ("crossJoin" "none" );
+	position = (239 -156);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable5";
+	label = "CrossJoin";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node RegexLength
+{
+	states = ("fewerThanFive" "fewerThanTen" "fewerThanFifteen" "fewerThanTwenty" "fewerThanTwentyFive" "twentyFiveOrMore" );
+	position = (459 -97);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable3";
+	label = "RegexLength";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+potential ( AlwaysTrue | DenialOfService )
+{
+	data = ((	0.2	0.8	)
+		(	0.3	0.7	));
+}
+potential ( SlowRegex | DenialOfService )
+{
+	data = ((	0.2	0.8	)
+		(	0.05	0.95	));
+}
+potential ( Benchmark | DenialOfService )
+{
+	data = ((	0.2	0.8	)
+		(	0.0010	0.999	));
+}
+potential ( Joins | DenialOfService )
+{
+	data = ((	0.2	0.1	0.1	0.1	0.15	0.35	)
+		(	0.7889	0.1	0.1	0.01	0.0010	1.0E-4	));
+}
+potential ( DenialOfService | )
+{
+	data = (	0.01	0.99	);
+}
+potential ( CrossJoin | DenialOfService )
+{
+	data = ((	0.2	0.8	)
+		(	0.0010	0.999	));
+}
+potential ( RegexLength | DenialOfService )
+{
+	data = ((	0.3	0.1	0.1	0.1	0.15	0.25	)
+		(	0.339	0.2	0.2	0.25	0.01	0.0010	));
+}

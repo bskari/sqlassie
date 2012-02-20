@@ -1,0 +1,40 @@
+# SQLassie - database firewall
+# Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+# 
+# This file is part of SQLassie.
+#
+# SQLassie is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# SQLassie is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
+
+# Default version; this is overridable on the command line by typing:
+# make VERSION=[RELEASE|DEBUG|PROFILE]
+
+# Custom platform specific options
+-include Makefile.custom
+
+VERSION = DEBUG
+WARNING_CXXFLAGS = -Wall -Wextra -Weffc++ -Wfloat-equal -Wshadow\
+	-Wpointer-arith -Wcast-align -Wstrict-overflow=5\
+	-Wwrite-strings -Wswitch-default -Wswitch-enum -Wparentheses\
+	-Woverloaded-virtual -pedantic
+DEBUG_CXXFLAGS = -g -ftrapv $(CUSTOM_DEBUG_CXXFLAGS)
+PROFILE_CXXFLAGS = -pg -O3 -march=native -fexpensive-optimizations -pipe\
+	-DNDEBUG -ffast-math $(CUSTOM_PROFILE_CXXFLAGS)
+RELEASE_CXXFLAGS = -O3 -march=native -fexpensive-optimizations\
+	-fomit-frame-pointer -pipe -DNDEBUG -ffast-math $(CUSTOM_RELEASE_CXXFLAGS)
+
+# Use the GNU C/C++:
+CXX = g++
+CC = gcc
+
+include Makefile.common

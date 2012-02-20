@@ -1,0 +1,6 @@
+# Deviations from this shouldn't be blocked, e.g.:
+# they don't union against password
+# they don't have an always true statement
+# they don't comment out quotes
+# etc., because the query risk will have changed
+SELECT * FROM something WHERE age > '21' OR 1 = 1 UNION SELECT username, password FROM user -- '

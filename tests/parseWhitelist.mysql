@@ -1,0 +1,8 @@
+# Empty query
+;
+
+# Weird queries
+SELECT select FROM from WHERE where = not AND and = or
+
+# Any string should be parsed just fine
+SELECT "foo" FROM "bar" JOIN "baz"

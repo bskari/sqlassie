@@ -1,0 +1,255 @@
+net
+{
+	propagationenginegenerator1791944048146838126L = "edu.ucla.belief.approx.BeliefPropagationSettings@192deaf";
+	recoveryenginegenerator6944530267470113528l = "edu.ucla.util.SettingsImpl@159f498";
+	node_size = (130.0 55.0);
+}
+
+node DetectionEvasion
+{
+	states = ("evasion" "benign" );
+	position = (747 -136);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable1";
+	label = "DetectionEvasion";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node HexStrings
+{
+	states = ("hexStrings" "none" );
+	position = (675 -297);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable18";
+	label = "HexStrings";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node StringStmts
+{
+	states = ("strings" "none" );
+	position = (633 -223);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable20";
+	label = "StringStmts";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node DataModification
+{
+	states = ("modification" "benign" );
+	position = (413 28);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable6";
+	label = "DataModification";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node Insert
+{
+	states = ("insert" "update" );
+	position = (140 17);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable0";
+	label = "Insert";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node ConditionalModification
+{
+	states = ("modification" "benign" );
+	position = (142 -130);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable3";
+	label = "ConditionalModification";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node GlobalVariables
+{
+	states = ("globals" "none" );
+	position = (744 -373);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable0";
+	label = "GlobalVariables";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node BruteForce
+{
+	states = ("bruteForce" "benign" );
+	position = (849 -219);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable4";
+	label = "BruteForce";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node OrStmts
+{
+	states = ("or" "none" );
+	position = (264 -422);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable0";
+	label = "OrStmts";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node AlwaysTrue
+{
+	states = ("alwaysTrue" "benign" );
+	position = (125 -326);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable1";
+	label = "AlwaysTrue";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node StringManipulation
+{
+	states = ("none" "one" "two" "three" "more" );
+	position = (813 -298);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable18";
+	label = "StringManipulation";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node CommentedConditionals
+{
+	states = ("commented" "benign" );
+	position = (-6 -422);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable6";
+	label = "CommentedConditionals";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node CommentedQuotes
+{
+	states = ("commented" "benign" );
+	position = (316 -205);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable10";
+	label = "CommentedQuotes";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node SensitiveTables
+{
+	states = ("sensitive" "benign" );
+	position = (521 -116);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable0";
+	label = "SensitiveTables";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+potential ( DetectionEvasion | DataModification )
+{
+	data = ((	0.6	0.4	)
+		(	0.01	0.99	));
+}
+potential ( HexStrings | DetectionEvasion )
+{
+	data = ((	0.8	0.2	)
+		(	0.0010	0.999	));
+}
+potential ( StringStmts | DetectionEvasion )
+{
+	data = ((	0.7	0.3	)
+		(	0.0010	0.999	));
+}
+potential ( DataModification | )
+{
+	data = (	0.05	0.95	);
+}
+potential ( Insert | )
+{
+	data = (	0.43	0.57	);
+}
+potential ( ConditionalModification | DataModification Insert )
+{
+	data = (((	0.0	1.0	)
+		(	0.99	0.01	))
+		((	0.0	1.0	)
+		(	0.0010	0.999	)));
+}
+potential ( GlobalVariables | DetectionEvasion )
+{
+	data = ((	0.1	0.9	)
+		(	0.01	0.99	));
+}
+potential ( BruteForce | DetectionEvasion )
+{
+	data = ((	0.6	0.4	)
+		(	0.0010	0.999	));
+}
+potential ( OrStmts | ConditionalModification AlwaysTrue )
+{
+	data = (((	0.999	0.0010	)
+		(	0.9	0.1	))
+		((	5.0E-5	0.99995	)
+		(	0.02	0.98	)));
+}
+potential ( AlwaysTrue | ConditionalModification )
+{
+	data = ((	0.5	0.5	)
+		(	0.1	0.9	));
+}
+potential ( StringManipulation | DetectionEvasion )
+{
+	data = ((	0.30000000000000004	0.15000000000000002	0.2	0.2	0.15000000000000002	)
+		(	0.835	0.1	0.05	0.01	0.0050	));
+}
+potential ( CommentedConditionals | ConditionalModification AlwaysTrue )
+{
+	data = (((	0.5	0.5	)
+		(	0.3	0.7	))
+		((	1.0E-4	0.9999	)
+		(	5.0E-4	0.9995	)));
+}
+potential ( CommentedQuotes | ConditionalModification DataModification Insert )
+{
+	data = ((((	0.2	0.8	)
+		(	0.3	0.7	))
+		((	0.05	0.95	)
+		(	0.05	0.95	)))
+		(((	0.9	0.1	)
+		(	0.5	0.5	))
+		((	0.0050	0.995	)
+		(	0.01	0.99	))));
+}
+potential ( SensitiveTables | DataModification )
+{
+	data = ((	0.6	0.4	)
+		(	0.2	0.8	));
+}

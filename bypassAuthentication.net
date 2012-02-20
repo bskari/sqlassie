@@ -1,0 +1,266 @@
+net
+{
+	propagationenginegenerator1791944048146838126L = "edu.ucla.belief.approx.BeliefPropagationSettings@12e5c94";
+	jenginegenerator6060830225489488864L = "edu.ucla.belief.inference.JoinTreeSettings@7ee9eb";
+	recoveryenginegenerator6944530267470113528l = "edu.ucla.util.SettingsImpl@bffc3a";
+	node_size = (130.0 55.0);
+}
+
+node OrAlwaysTrue
+{
+	states = ("orAlwaysTrue" "benign" );
+	position = (-560 -75);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable12";
+	label = "OrAlwaysTrue";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node BypassAuthentication
+{
+	states = ("bypass" "benign" );
+	position = (-127 254);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable6";
+	label = "BypassAuthentication";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node HexStrings
+{
+	states = ("hexStrings" "none" );
+	position = (119 -81);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable18";
+	label = "HexStrings";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node BruteForce
+{
+	states = ("bruteForce" "benign" );
+	position = (295 -4);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable4";
+	label = "BruteForce";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node DetectionEvasion
+{
+	states = ("evasion" "benign" );
+	position = (192 78);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable1";
+	label = "DetectionEvasion";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node CommentedQuotes
+{
+	states = ("commented" "benign" );
+	position = (-356 -192);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable10";
+	label = "CommentedQuotes";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node StringStmts
+{
+	states = ("strings" "none" );
+	position = (77 -8);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable20";
+	label = "StringStmts";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node GlobalVariables
+{
+	states = ("globals" "none" );
+	position = (190 -158);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable0";
+	label = "GlobalVariables";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node UnionStmts
+{
+	states = ("unions" "none" );
+	position = (-62 70);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable13";
+	label = "UnionStmts";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node AlwaysTrueConditional
+{
+	states = ("true" "none" );
+	position = (-745 -142);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable23";
+	label = "AlwaysTrueConditional";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node OrStmts
+{
+	states = ("ors" "none" );
+	position = (-504 -188);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable14";
+	label = "OrStmts";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node StringManipulation
+{
+	states = ("none" "one" "two" "three" "more" );
+	position = (260 -83);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable18";
+	label = "StringManipulation";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node EmptyPassword
+{
+	states = ("empty" "notEmpty" );
+	position = (-217 68);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable21";
+	label = "EmptyPassword";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node ConditionalModification
+{
+	states = ("modification" "benign" );
+	position = (-441 66);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable3";
+	label = "ConditionalModification";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+node CommentedConditionals
+{
+	states = ("commented" "benign" );
+	position = (-286 -119);
+	excludepolicy = "include whole CPT";
+	ismapvariable = "false";
+	ID = "variable6";
+	label = "CommentedConditionals";
+	DSLxSUBMODEL = "Root Submodel";
+	DSLxEXTRA_DEFINITIONxDIAGNOSIS_TYPE = "AUXILIARY";
+	diagnosistype = "AUXILIARY";
+}
+potential ( OrAlwaysTrue | ConditionalModification )
+{
+	data = ((	0.6	0.4	)
+		(	0.001	0.999	));
+}
+potential ( BypassAuthentication | )
+{
+	data = (	0.05	0.95	);
+}
+potential ( HexStrings | DetectionEvasion )
+{
+	data = ((	0.8	0.2	)
+		(	0.001	0.999	));
+}
+potential ( BruteForce | DetectionEvasion )
+{
+	data = ((	0.6	0.4	)
+		(	0.001	0.999	));
+}
+potential ( DetectionEvasion | BypassAuthentication )
+{
+	data = ((	0.6	0.4	)
+		(	0.01	0.99	));
+}
+potential ( CommentedQuotes | ConditionalModification )
+{
+	data = ((	0.2	0.8	)
+		(	0.0025	0.9975	));
+}
+potential ( StringStmts | DetectionEvasion )
+{
+	data = ((	0.7	0.3	)
+		(	0.001	0.999	));
+}
+potential ( GlobalVariables | DetectionEvasion )
+{
+	data = ((	0.1	0.9	)
+		(	0.01	0.99	));
+}
+potential ( UnionStmts | BypassAuthentication )
+{
+	data = ((	0.1	0.9	)
+		(	2.0E-4	0.9998	));
+}
+potential ( AlwaysTrueConditional | ConditionalModification OrAlwaysTrue )
+{
+	data = (((	1.0	0.0	)
+		(	0.2	0.8	))
+		((	1.0	0.0	)
+		(	0.8	0.2	)));
+}
+potential ( OrStmts | ConditionalModification OrAlwaysTrue )
+{
+	data = (((	1.0	0.0	)
+		(	0.35	0.65	))
+		((	1.0	0.0	)
+		(	0.15	0.85	)));
+}
+potential ( StringManipulation | DetectionEvasion )
+{
+	data = ((	0.3	0.15	0.19999999999999998	0.19999999999999998	0.15	)
+		(	0.835	0.1	0.05	0.01	0.005	));
+}
+potential ( EmptyPassword | BypassAuthentication )
+{
+	data = ((	0.8	0.2	)
+		(	0.25	0.75	));
+}
+potential ( ConditionalModification | BypassAuthentication )
+{
+	data = ((	0.99	0.01	)
+		(	0.001	0.999	));
+}
+potential ( CommentedConditionals | ConditionalModification )
+{
+	data = ((	0.3	0.7	)
+		(	5.0E-4	0.9995	));
+}

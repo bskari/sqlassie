@@ -28,62 +28,58 @@
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
 
+#include <boost/thread/mutex.hpp>
+#include <boost/function.hpp>
+#include <cassert>
 #include "dlib/bayes_utils.h"
 #include "dlib/graph_utils.h"
 #include "dlib/graph.h"
 #include "dlib/directed_graph.h"
 #include <string>
 #include <fstream>
+#include <functional>
 #include <exception>
 #include <stack>
-#include <cassert>
 
-using std::string;
-using std::ifstream;
-using std::bad_alloc;
-using std::stack;
+using boost::bind;
+using boost::function;
+using boost::lock_guard;
+using boost::mutex;
 using dlib::bayes_node_utils::set_node_value;
 using dlib::bayes_node_utils::set_node_as_evidence;
 using dlib::bayesian_network_join_tree;
+using std::bad_alloc;
+using std::ifstream;
+using std::stack;
+using std::string;
 
 // Stuff from the parser
 extern int hugin_parse(DlibProbabilities::bayes_net* network, bool firstTime, void* scanner);
 extern stack<string> identifiers;
 extern stack<string> numbers;
 
-
+// Constants
 static const int CACHE_SIZE = 5;
+
+// Parameters used for computing values for LruCache.
+// The LruCache is designed so that, if a variable is not stored in the cache,
+// it will call a function to compute value then store it. The cache assumes
+// that the only thing that's necessary to compute the value is the key, which
+// isn't true in this case. To facilitate sending these extra parameters to
+// the compute function, I'm going to use some globals. This is terrible, and
+// I'm sorry.
+static int computeParameter_attackType;
+static int computeParameter_node;
+static int computeParameter_state;
+static const int* computeParameter_evidenceNodes;
+static const int* computeParameter_evidenceStates;
+static int computeParameter_evidenceSize;
 
 
 DlibProbabilities::DlibProbabilities() :
-	dataAccessJt_(),
-	bypassAuthenticationJt_(),
-	dataModificationJt_(),
-	fingerprintingJt_(),
-	schemaJt_(),
-	denialOfServiceJt_(),
-	dataAccessNet_(),
-	bypassAuthenticationNet_(),
-	dataModificationNet_(),
-	fingerprintingNet_(),
-	schemaNet_(),
-	denialOfServiceNet_(),
-	dataAccessMap_(CACHE_SIZE),
-	bypassAuthenticationMap_(CACHE_SIZE),
-	dataModificationMap_(CACHE_SIZE),
-	fingerprintingMap_(CACHE_SIZE),
-	schemaMap_(CACHE_SIZE),
-	denialOfServiceMap_(CACHE_SIZE)
+	 computeMutex_()
 {
-	DlibProbabilities::bayes_net* bayesNets[6] = {
-		&dataAccessNet_,
-		&bypassAuthenticationNet_,
-		&dataModificationNet_,
-		&fingerprintingNet_,
-		&schemaNet_,
-		&denialOfServiceNet_
-	};
-	const char* netFileNames[6] = {
+	const char* netFileNames[numAttackTypes] = {
 		"dataAccess.net",
 		"bypassAuthentication.net",
 		"dataModification.net",
@@ -91,58 +87,52 @@ DlibProbabilities::DlibProbabilities() :
 		"schema.net",
 		"denialOfService.net"
 	};
-	join_tree_type* joinTrees[6] = {
-		&dataAccessJt_,
-		&bypassAuthenticationJt_,
-		&dataModificationJt_,
-		&fingerprintingJt_,
-		&schemaJt_,
-		&denialOfServiceJt_
-	};
-	const size_t expectedNodes[6] = {19, 15, 14, 24, 21, 7};
-	
-	assert(
-		sizeof(bayesNets) / sizeof(bayesNets[0]) ==
-		sizeof(netFileNames) / sizeof(netFileNames[0]) &&
-		sizeof(netFileNames) / sizeof(netFileNames[0]) ==
-		sizeof(joinTrees) / sizeof(joinTrees[0]) &&
-		sizeof(joinTrees) / sizeof(joinTrees[0]) ==
-		sizeof(expectedNodes) / sizeof(expectedNodes[6]) &&
-		"Arrays used for initialization should be the same size"
-	);
-	
-	const int SIZE = sizeof(bayesNets) / sizeof(bayesNets[0]);
-	
-	for (int i = 0; i < SIZE; ++i)
+	const size_t expectedNodes[numAttackTypes] = {19, 15, 14, 24, 21, 7};
+
+	for (int i = 0; i < numAttackTypes; ++i)
 	{
-		if (0 != loadNetwork(netFileNames[i], bayesNets[i]))
+		function<double (const Evidence&)> f = boost::bind(
+			&DlibProbabilities::computeEvidence,
+			this,
+			_1
+		);
+		caches_[i] = new EvidenceCache(f, CACHE_SIZE);
+	}
+	
+	for (int i = 0; i < numAttackTypes; ++i)
+	{
+		if (0 != loadNetwork(netFileNames[i], &bayesNets_[i]))
 		{
 			throw BayesException(
 				string("Unable to load Bayesian network file: ") + netFileNames[i]
 			);
 		}
 		
-		// Populate the join_tree with data from the Bayesian network.
-		create_moral_graph(*bayesNets[i], *joinTrees[i]);
+		// Populate the join_tree with data from the Bayesian network
+		create_moral_graph(bayesNets_[i], joinTrees_[i]);
 		
 		// This needs to be checked before calling create_join_tree because the
 		// expectedNodes has the total number of nodes, but calling
 		// number_of_nodes after create_join_tree returns the number of
 		// non-internal nodes
-		if (expectedNodes[i] != joinTrees[i]->number_of_nodes())
+		if (expectedNodes[i] != joinTrees_[i].number_of_nodes())
 		{
 			throw BayesException(
 				string(netFileNames[i]) + " has an incorrect number of nodes"
 			);
 		}
 		
-		create_join_tree(*joinTrees[i], *joinTrees[i]);
+		create_join_tree(joinTrees_[i], joinTrees_[i]);
 	}
 }
 
 
 DlibProbabilities::~DlibProbabilities()
 {
+	for (int i = 0; i < numAttackTypes; ++i)
+	{
+		delete caches_[i];
+	}
 }
 
 
@@ -172,7 +162,7 @@ double DlibProbabilities::getProbabilityOfAccessAttack(const QueryRisk& qr)
 		OrStmts
 	};
 	assert(
-		static_cast<int>(OrStmts) + 1 == dataAccessNet_.number_of_nodes() &&
+		static_cast<int>(OrStmts) + 1 == bayesNets_[ATTACK_DATA_ACCESS].number_of_nodes() &&
 		"The number of nodes loaded from file and the number of states in the nodes enum should match"
 	);
 	
@@ -254,7 +244,7 @@ double DlibProbabilities::getProbabilityOfBypassAttack(const QueryRisk& qr)
 		CommentedConditionals
 	};
 	assert(
-		static_cast<int>(CommentedConditionals) + 1 == bypassAuthenticationNet_.number_of_nodes() &&
+		static_cast<int>(CommentedConditionals) + 1 == bayesNets_[ATTACK_BYPASS_AUTHENTICATION].number_of_nodes() &&
 		"The number of nodes loaded from file and the number of states in the nodes enum should match"
 	);
 	
@@ -383,7 +373,7 @@ double DlibProbabilities::getProbabilityOfModificationAttack(const QueryRisk& qr
 	};
 	assert(
 		static_cast<int>(SensitiveTables) + 1 == 
-			dataModificationNet_.number_of_nodes() &&
+			bayesNets_[ATTACK_DATA_MODIFICATION].number_of_nodes() &&
 		"The number of nodes loaded from file and the number of states in the nodes enum should match"
 	);
 	
@@ -465,7 +455,7 @@ double DlibProbabilities::getProbabilityOfFingerprintingAttack(const QueryRisk& 
 	};
 	assert(
 		static_cast<int>(OrAlwaysTrue) + 1 == 
-			fingerprintingNet_.number_of_nodes() &&
+			bayesNets_[ATTACK_FINGERPRINTING].number_of_nodes() &&
 		"The number of nodes loaded from file and the number of states in the nodes enum should match"
 	);
 	
@@ -563,7 +553,7 @@ double DlibProbabilities::getProbabilityOfSchemaAttack(const QueryRisk& qr)
 		Select
 	};
 	assert(
-		static_cast<int>(Select) + 1 == schemaNet_.number_of_nodes() &&
+		static_cast<int>(Select) + 1 == bayesNets_[ATTACK_SCHEMA].number_of_nodes() &&
 		"The number of nodes loaded from file and the number of states in the nodes enum should match"
 	);
 	
@@ -641,7 +631,7 @@ double DlibProbabilities::getProbabilityOfDenialAttack(const QueryRisk& qr)
 		RegexLength
 	};
 	assert(
-		static_cast<int>(RegexLength) + 1 == denialOfServiceNet_.number_of_nodes() &&
+		static_cast<int>(RegexLength) + 1 == bayesNets_[ATTACK_DENIAL_OF_SERVICE].number_of_nodes() &&
 		"The number of nodes loaded from file and the number of states in the nodes enum should match"
 	);
 	
@@ -682,10 +672,8 @@ int DlibProbabilities::loadNetwork(
 	bayes_net* network
 )
 {
-	assert(
-		nullptr != fileName &&
-		"fileName should not be null"
-	);
+	assert(nullptr != fileName);
+	assert(nullptr != network);
 	
 	ifstream fin(fileName);
 	if (!fin)
@@ -755,70 +743,21 @@ double DlibProbabilities::computeProbabilityOfState(
 	const int evidenceSize
 )
 {
-	bayes_net* net = nullptr;
-	join_tree_type* joinTree = nullptr;
-	DlibProbabilities::EvidenceMap* Map = nullptr;
-	
-	switch (type)
-	{
-		case ATTACK_DATA_ACCESS:
-			net = &dataAccessNet_;
-			joinTree = &dataAccessJt_;
-			Map = &dataAccessMap_;
-			break;
-		case ATTACK_BYPASS_AUTHENTICATION:
-			net = &bypassAuthenticationNet_;
-			joinTree = &bypassAuthenticationJt_;
-			Map = &bypassAuthenticationMap_;
-			break;
-		case ATTACK_DATA_MODIFICATION:
-			net = &dataModificationNet_;
-			joinTree = &dataModificationJt_;
-			Map = &dataModificationMap_;
-			break;
-		case ATTACK_FINGERPRINTING:
-			net = &fingerprintingNet_;
-			joinTree = &fingerprintingJt_;
-			Map = &fingerprintingMap_;
-			break;
-		case ATTACK_SCHEMA:
-			net = &schemaNet_;
-			joinTree = &schemaJt_;
-			Map = &schemaMap_;
-			break;
-		case ATTACK_DENIAL_OF_SERVICE:
-			net = &denialOfServiceNet_;
-			joinTree = &denialOfServiceJt_;
-			Map = &denialOfServiceMap_;
-			break;
-		default:
-			Logger::log(Logger::ERROR) << "Unexpected attack type " << type;
-			assert(false);
-			return 0.0;
-	}
-	
-	// Check to see if the data is cached
+	assert(type >= 0 && type < numAttackTypes && "Invalid attack type");
 	const Evidence encodedEvidence =
 		encodeEvidence(evidenceNodes, evidenceStates, evidenceSize);
-	if (Map->exists(encodedEvidence))
-	{
-		return (*Map)[encodedEvidence];
-	}
-	
-	// if it's not cached then compute it
-	for (int i = 0; i < evidenceSize; ++i)
-	{
-		const int NODE_NUMBER = evidenceNodes[i];
-		set_node_value(*net, NODE_NUMBER, evidenceStates[NODE_NUMBER]);
-		set_node_as_evidence(*net, NODE_NUMBER);
-	}
-	
-	// Compute the probabilities of the nodes given what we know
-	bayesian_network_join_tree computed(*net, *joinTree);
 
-	const double probability = computed.probability(node)(state);
-	(*Map)[encodedEvidence] = probability;
-	return probability;
+	// Set some static variables so that we can compute the probability if necessary
+	lock_guard<mutex> lg(computeMutex_);
+	computeParameter_attackType = type;
+	computeParameter_node = node;
+	computeParameter_state = state;
+	computeParameter_evidenceNodes = evidenceNodes;
+	computeParameter_evidenceStates = evidenceStates;
+	computeParameter_evidenceSize = evidenceSize;
+
+	EvidenceCache& evidenceCache = *caches_[type];
+	return evidenceCache(encodedEvidence);
 }
 
 
@@ -845,4 +784,27 @@ DlibProbabilities::Evidence DlibProbabilities::encodeEvidence(
 		e = (e << 3) | (states[NODE_NUMBER]);
 	}
 	return e;
+}
+
+
+double DlibProbabilities::computeEvidence(const Evidence&)
+{
+	bayes_net& net = bayesNets_[computeParameter_attackType];
+	join_tree_type& joinTree = joinTrees_[computeParameter_attackType];
+
+	for (int i = 0; i < computeParameter_evidenceSize; ++i)
+	{
+		const int NODE_NUMBER = computeParameter_evidenceNodes[i];
+		set_node_value(
+			net,
+			NODE_NUMBER,
+			computeParameter_evidenceStates[NODE_NUMBER]
+		);
+		set_node_as_evidence(net, NODE_NUMBER);
+	}
+
+	// Compute the probabilities of the nodes given what we know
+	bayesian_network_join_tree computed(net, joinTree);
+
+	return computed.probability(computeParameter_node)(computeParameter_state);
 }

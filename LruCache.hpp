@@ -78,7 +78,8 @@ LruCache<KeyType, ValueType>::LruCache(
 	const size_t size
 ) :
 	func_(func),
-	capacity_(size)
+	capacity_(size),
+	container_()
 {
 	assert(size > 0);
 }

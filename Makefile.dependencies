@@ -117,9 +117,9 @@ Socket.o:	Socket.cpp Logger.hpp Socket.hpp SocketException.hpp nullptr.hpp
 demo.o:	demo.cpp AttackProbabilities.hpp DlibProbabilities.hpp Logger.hpp \
 	MySqlGuard.hpp ParserInterface.hpp QueryRisk.hpp nullptr.hpp
 
-logger.o:	logger.cpp MySqlLoggerListenSocket.hpp
+logger.o:	logger.cpp Logger.hpp MySqlLoggerListenSocket.hpp
 
-parser.o:	parser.cpp AstNode.hpp ParserInterface.hpp QueryRisk.hpp
+parser.o:	parser.cpp AstNode.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp
 
 probabilities.o:	probabilities.cpp csvParse.hpp
 

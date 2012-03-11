@@ -22,15 +22,16 @@
 #define DLIB_PROBABILITIES_HPP
 
 #include "AttackProbabilities.hpp"
-#include "CacheMap.hpp"
+#include "LruCache.hpp"
 #include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
-#include "dlib/bayes_utils.h"
-#include "dlib/graph_utils.h"
-#include "dlib/graph.h"
-#include "dlib/directed_graph.h"
 #include <boost/cstdint.hpp>
+#include <boost/thread/mutex.hpp>
+#include "dlib/bayes_utils.h"
+#include "dlib/graph.h"
+#include "dlib/graph_utils.h"
+#include "dlib/directed_graph.h"
 
 /**
  * Implementation of AttackProbabilities that uses Bayesian networks and the
@@ -68,7 +69,7 @@ public:
 	typedef dlib::directed_graph<dlib::bayes_node>::kernel_1a_c bayes_net;
 	
 	typedef uint64_t Evidence;
-	typedef CacheMap<Evidence, double> EvidenceMap;
+	typedef LruCache<Evidence, double> EvidenceCache;
 	
 protected:
 	/**
@@ -80,27 +81,6 @@ protected:
 	static int loadNetwork(const char* fileName, bayes_net* network);
 	
 private:
-
-	typedef dlib::set<unsigned long>::compare_1b_c set_type;
-	typedef dlib::graph<set_type, set_type>::kernel_1a_c join_tree_type;
-	///@{
-	join_tree_type dataAccessJt_;
-	join_tree_type bypassAuthenticationJt_;
-	join_tree_type dataModificationJt_;
-	join_tree_type fingerprintingJt_;
-	join_tree_type schemaJt_;
-	join_tree_type denialOfServiceJt_;
-	///@}
-	
-	///@{
-	bayes_net dataAccessNet_;
-	bayes_net bypassAuthenticationNet_;
-	bayes_net dataModificationNet_;
-	bayes_net fingerprintingNet_;
-	bayes_net schemaNet_;
-	bayes_net denialOfServiceNet_;
-	///@}
-	
 	enum ATTACK_TYPE
 	{
 		ATTACK_DATA_ACCESS,
@@ -108,8 +88,15 @@ private:
 		ATTACK_DATA_MODIFICATION,
 		ATTACK_FINGERPRINTING,
 		ATTACK_SCHEMA,
-		ATTACK_DENIAL_OF_SERVICE
+		ATTACK_DENIAL_OF_SERVICE,
+		numAttackTypes
 	};
+
+	typedef dlib::set<unsigned long>::compare_1b_c set_type;
+	typedef dlib::graph<set_type, set_type>::kernel_1a_c join_tree_type;
+
+	join_tree_type joinTrees_[numAttackTypes];
+	bayes_net bayesNets_[numAttackTypes];
 	
 	/**
 	 * Convenvience function to compute the probability of a given node having
@@ -134,24 +121,20 @@ private:
 	 * Caches the probabilities from the Bayesian networks so they don't have
 	 * to be calculated all the time.
 	 */
-	///@{
-	EvidenceMap dataAccessMap_;
-	EvidenceMap bypassAuthenticationMap_;
-	EvidenceMap dataModificationMap_;
-	EvidenceMap fingerprintingMap_;
-	EvidenceMap schemaMap_;
-	EvidenceMap denialOfServiceMap_;
-	///@}
+	EvidenceCache* caches_[numAttackTypes];
 	
 	/**
 	 * Encodes the evidence into an integral type so that I can use my
-	 * CacheMap for lookup.
+	 * LruCache for lookup.
 	 */
 	static Evidence encodeEvidence(
 		const int nodeNumbers[],
 		const int states[],
 		const int size
 	);
+
+	boost::mutex computeMutex_;
+	double computeEvidence(const Evidence&);
 };
 
 #endif

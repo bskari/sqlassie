@@ -58,8 +58,21 @@ static void quit();
 static options::options_description getCommandLineOptions();
 static options::options_description getConfigurationOptions();
 static options::options_description getFileOptions();
-static void checkOptions(const options::variables_map& opts);
+static bool optionsAreValid(
+	const options::variables_map& commandLineVm,
+	const options::variables_map& fileVm,
+	string* const error
+);
 static void setVerbosityLevel(const int level);
+static void printErrorAndUsage(
+	const std::string& error,
+	const options::options_description& visibleOptions
+);
+static const options::variable_value& getOption(
+	const string& option,
+	const options::variables_map& vm1,
+	const options::variables_map& vm2
+);
 
 
 int main(int argc, char* argv[])
@@ -68,7 +81,8 @@ int main(int argc, char* argv[])
 	Logger::initialize();
 	MySqlGuardObjectContainer::initialize();
 	
-	options::variables_map vm;
+	options::variables_map commandLineVm;
+	options::variables_map fileVm;
 	options::options_description visibleOptions("Options");
 	try
 	{
@@ -76,65 +90,62 @@ int main(int argc, char* argv[])
 		visibleOptions.add(getCommandLineOptions());
 		visibleOptions.add(getConfigurationOptions());
 
-		store(options::command_line_parser(argc, argv).options(visibleOptions).run(), vm);
-		notify(vm);
+		store(
+			options::command_line_parser(argc, argv).options(visibleOptions).run(),
+			commandLineVm
+		);
+		// Notify any functions for user-specified notify functions and store
+		// the options into regular variables, if needed
+		notify(commandLineVm);
 		
 		// Read options from file
-		ifstream optionsFile(vm["config"].as<string>().c_str());
+		ifstream optionsFile(commandLineVm["config"].as<string>().c_str());
 		if (optionsFile.is_open())
 		{
-			Logger::log(Logger::INFO) << "Reading configuration from file " << vm["config"].as<string>();
+			Logger::log(Logger::INFO) << "Reading configuration from file " << commandLineVm["config"].as<string>();
 			options::options_description fileOptions("File options");
 			fileOptions.add(getConfigurationOptions());
 			fileOptions.add(getFileOptions());
-			store(parse_config_file(optionsFile, fileOptions), vm);
+			store(parse_config_file(optionsFile, fileOptions), fileVm);
+			// Notify any functions for user-specified notify functions and
+			// store the options into regular variables, if needed
+			notify(fileVm);
 		}
 		// Ignore unable to find the file if it's set to default
-		else if (vm["config"].as<string>() != DEFAULT_CONFIG_FILE)
+		else if (commandLineVm["config"].as<string>() != DEFAULT_CONFIG_FILE)
 		{
-			cerr << "Unable to open config file: " << vm["config"].as<string>() << endl;
+			cerr << "Unable to open config file: " << commandLineVm["config"].as<string>() << endl;
 			exit(EXIT_FAILURE);
 		}
 
-		if (vm.count("help"))
+		if (commandLineVm.count("help"))
 		{
 			cout << visibleOptions << endl;
 			exit(EXIT_SUCCESS);
 		}
-		if (vm.count("version"))
+		if (commandLineVm.count("version"))
 		{
-			cout << sqlassieName() << ' ' << sqlassieVersion() << endl;
-			cout << sqlassieCopyright() << endl;
-			cout << sqlassieShortLicense() << endl;
+			cout << sqlassieName() << ' ' << sqlassieVersion() << '\n'
+				<< sqlassieCopyright() << '\n'
+				<< sqlassieShortLicense() << endl;
 			exit(EXIT_SUCCESS);
 		}
-
-		checkOptions(vm);
 	}
 	catch (std::exception& e)
 	{
-		const int error_len = strlen(e.what());
-		cerr << '\t';
-		for (int i = 0; i < error_len; ++i)
-		{
-			cerr << '*';
-		}
-		cerr << endl;
-
-		cerr << '\t' << e.what() << endl;
-
-		cerr << '\t';
-		for (int i = 0; i < error_len; ++i)
-		{
-			cerr << '*';
-		}
-		cerr << endl;
-
-		cerr << visibleOptions << endl;
+		printErrorAndUsage(string(e.what()), visibleOptions);
 		exit(EXIT_FAILURE);
 	}
 
-	if (vm["quiet"].as<bool>())
+	string error;
+	if(!optionsAreValid(commandLineVm, fileVm, &error))
+	{
+		printErrorAndUsage(error, visibleOptions);
+		exit(EXIT_FAILURE);
+	}
+
+	// Use the parameters
+	if (getOption("quiet", commandLineVm, fileVm).as<bool>())
 	{
 		verbosityLevel = -1;
 	}
@@ -162,9 +173,9 @@ int main(int argc, char* argv[])
 	
 	// Override logging level in debug builds
 	#ifndef NDEBUG
-		cout << "This is a testing/debug build of SQLassie." << endl;
-		cout << "Log level is being set to ALL." << endl;
 		Logger::setLevel(Logger::ALL);
+		Logger::log(Logger::INFO) << "This is a testing/debug build of SQLassie.";
+		Logger::log(Logger::INFO) << "Log level is being set to ALL.";
 	#endif
 	
 	// Register signal handler
@@ -186,10 +197,10 @@ int main(int argc, char* argv[])
 		++i
 	)
 	{
-		if (!vm[optionNames[i]].as<string>().empty())
+		if (!getOption(optionNames[i], commandLineVm, fileVm).as<string>().empty())
 		{
 			whitelistFilenames[i] = new string(
-				vm[optionNames[i]].as<string>()
+				getOption(optionNames[i], commandLineVm, fileVm).as<string>()
 			);
 		}
 	}
@@ -208,31 +219,47 @@ int main(int argc, char* argv[])
 		try
 	#endif
 	{
-		const bool useListenPort = (vm["listen-port"].as<int>() != UNSPECIFIED_OPTION);
-		const bool useConnectPort = (vm["connect-port"].as<int>() != UNSPECIFIED_OPTION);
+		const bool useListenPort = (
+			!getOption(
+				"listen-port",
+				commandLineVm,
+				fileVm
+			).defaulted()
+		);
+		const bool useConnectPort = (
+			!getOption(
+				"connect-port",
+				commandLineVm,
+				fileVm
+			).defaulted()
+		);
 		
-		const string connectHost = (vm["host"].as<string>() != "") ? vm["host"].as<string>() : DEFAULT_HOST;
+		const string connectHost = (
+			getOption("host", commandLineVm, fileVm).defaulted()
+			? DEFAULT_HOST
+			: getOption("host", commandLineVm, fileVm).as<string>()
+		);
 
-		const string username = vm["user"].as<string>();
-		const string password = vm["password"].as<string>();
+		const string username = getOption("user", commandLineVm, fileVm).as<string>();
+		const string password = getOption("password", commandLineVm, fileVm).as<string>();
 		
 		if (useListenPort)
 		{
 			Logger::log(Logger::WARN) << "Listening on a port causes a large performance penalty.";
 			Logger::log(Logger::WARN) << "Listening on a domain socket (using -d) is strongly recommended.";
 			
-			const uint16_t listenPort = vm["listen-port"].as<int>();
+			const uint16_t listenPort = getOption("listen-port", commandLineVm, fileVm).as<int>();
 			Logger::log(Logger::DEBUG) << "Listening on port " << listenPort;
 			if (useConnectPort)
 			{
-				const uint16_t connectPort = vm["connect-port"].as<int>();
+				const uint16_t connectPort = getOption("connect-port", commandLineVm, fileVm).as<int>();
 				Logger::log(Logger::DEBUG) << "Connecting to port " << connectPort;
 				mysqlGuard = new MySqlGuardListenSocket(listenPort,
 					connectPort, connectHost, username, password);
 			}
 			else
 			{
-				const string domainSocket(vm["connect-socket"].as<string>());
+				const string domainSocket(getOption("connect-socket", commandLineVm, fileVm).as<string>());
 				Logger::log(Logger::DEBUG) << "Connecting to socket " << domainSocket;
 				mysqlGuard = new MySqlGuardListenSocket(listenPort,
 					domainSocket, username, password);
@@ -240,18 +267,18 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			const string listenDomain(vm["listen-socket"].as<string>());
+			const string listenDomain(getOption("listen-socket", commandLineVm, fileVm).as<string>());
 			Logger::log(Logger::DEBUG) << "Listening on socket " << listenDomain;
 			if (useConnectPort)
 			{
-				const uint16_t connectPort = vm["connect-port"].as<int>();
+				const uint16_t connectPort = getOption("connect-port", commandLineVm, fileVm).as<int>();
 				Logger::log(Logger::DEBUG) << "Connecting to port" << connectPort;
 				mysqlGuard = new MySqlGuardListenSocket(listenDomain,
 					connectPort, connectHost, username, password);
 			}
 			else
 			{
-				const string connectDomain(vm["connect-socket"].as<string>());
+				const string connectDomain(getOption("connect-socket", commandLineVm, fileVm).as<string>());
 				Logger::log(Logger::DEBUG) << "Connecting to socket " << connectDomain;
 				mysqlGuard = new MySqlGuardListenSocket(listenDomain,
 					connectDomain, username, password);
@@ -415,66 +442,153 @@ options::options_description getFileOptions()
 }
 
 
-
-
 /**
  * Checks to make sure all the parameters are in the expected range, and no
- * conflicting paramters are specified.
- * @throw DescribedException Error in parsing the command line arguments.
+ * conflicting paramters are specified. Command line options will override
+ * options specified in the configuration file.
+ * @param commandLineVm Variables from the command line.
+ * @param fileVm Variables from the configuration file.
  */
-void checkOptions(const options::variables_map& opts)
+bool optionsAreValid(
+	const options::variables_map& commandLineVm,
+	const options::variables_map& fileVm,
+	string* error
+)
 {
-	// The user should have exactly one of each of these pairs
-	const bool listenPort = (opts["listen-port"].as<int>() != UNSPECIFIED_OPTION);
-	const bool listenSocket = (opts["listen-socket"].as<string>() != "");
-	if (listenPort == listenSocket)
+	const bool clListenPort = !commandLineVm["listen-port"].defaulted();
+	const bool fListenPort = !fileVm["listen-port"].defaulted();
+	const bool clListenSocket = !commandLineVm["listen-socket"].defaulted();
+	const bool fListenSocket = !fileVm["listen-socket"].defaulted();
+	// The user needs to specify one way to connect, but command line options
+	// override anything from the file
+	if (
+		(clListenPort && clListenSocket)
+		|| (!clListenPort && !clListenSocket && !fListenPort && !fListenSocket)
+	)
 	{
-		throw DescribedException("You must specify one method for listening");
+		*error = "You must specify one method for listening";
+		return false;
 	}
 	
-	const bool connectPort = (opts["connect-port"].as<int>() != UNSPECIFIED_OPTION);
-	const bool connectSocket = (opts["connect-socket"].as<string>() != "");
-	if (connectPort == connectSocket)
+	const bool clConnectPort = !commandLineVm["connect-port"].defaulted();
+	const bool fConnectPort = !fileVm["connect-port"].defaulted();
+	const bool clConnectSocket = !commandLineVm["connect-socket"].defaulted();
+	const bool fConnectSocket = !fileVm["connect-socket"].defaulted();
+	if (
+		(clConnectPort && clConnectSocket)
+		|| (!clConnectPort && !clConnectSocket && !fConnectPort && !fConnectSocket)
+	)
 	{
-		throw DescribedException("You must specify one method for connecting");
+		*error = "You must specify one method for connecting";
+		return false;
 	}
-	
+
 	// Make sure that port numbers are in a valid range
-	if (listenPort)
+	if (clListenPort || fListenPort)
 	{
-		const int portNumber = opts["listen-port"].as<int>();
+		const options::variables_map& vm = (clListenPort ? commandLineVm : fileVm);
+		const int portNumber = vm["listen-port"].as<int>();
 		if (portNumber < 1 || portNumber > 65535)
 		{
-			throw DescribedException("Port number is out of range; valid values are 1-65535");
+			*error = "Port number ("; 
+			*error += boost::lexical_cast<string>(portNumber);
+			*error += ") is out of range; valid values are 1-65535";
+			return false;
 		}
 	}
+	const bool connectPort = clConnectPort || fConnectPort;
 	if (connectPort)
 	{
-		const int portNumber = opts["connect-port"].as<int>();
+		const options::variables_map& vm = (clConnectPort ? commandLineVm : fileVm);
+		const int portNumber = vm["connect-port"].as<int>();
 		if (portNumber < 1 || portNumber > 65535)
 		{
-			throw DescribedException("Port number is out of range; valid values are 1-65535");
+			*error = "Port number ("; 
+			*error += boost::lexical_cast<string>(portNumber);
+			*error += ") is out of range; valid values are 1-65535";
+			return false;
 		}
 	}
 	
 	// Host is only valid if connecting to a port
-	const bool host = (opts["host"].as<string>() != "");
+	const bool clHost = (commandLineVm["host"].as<string>() != "");
+	const bool fHost = (fileVm["host"].as<string>() != "");
+	const bool host = clHost || fHost;
 	if (host && !connectPort)
 	{
-		throw DescribedException("Host is only valid when connecting using ports");
+		*error = "Host is only valid when connecting using ports";
+		return false;
 	}
 	
 	// Password is only valid if a user is specified
-	const bool user = (opts["user"].as<string>() != "");
-	const bool password = (opts["password"].as<string>() != "");
+	const bool clUser = (commandLineVm["user"].as<string>() != "");
+	const bool fUser = (fileVm["user"].as<string>() != "");
+	const bool user = clUser || fUser;
+	const bool clPassword = (commandLineVm["password"].as<string>() != "");
+	const bool fPassword = (fileVm["password"].as<string>() != "");
+	const bool password = clPassword || fPassword;
 	if (password && !user)
 	{
-		throw DescribedException("Password can only be used if a username is specified");
+		*error = "Password can only be used if a username is specified";
+		return false;
 	}
 
 	// Quiet can't be specified with verbose
-	if (opts["quiet"].as<bool>() && verbosityLevel > 0)
+	const bool clQuiet = commandLineVm["quiet"].as<bool>();
+	const bool fQuiet = fileVm["quiet"].as<bool>();
+	const bool quiet = clQuiet || fQuiet;
+	if (quiet && verbosityLevel > 0)
 	{
-		throw DescribedException("Quiet can only be used without verbose options");
+		*error = "Quiet can only be used without verbose options";
+		return false;
 	}
+	return true;
+}
+
+
+void printErrorAndUsage(
+	const std::string& error,
+	const options::options_description& visibleOptions
+)
+{
+	const int error_len = error.size();
+	cerr << '\t';
+	for (int i = 0; i < error_len; ++i)
+	{
+		cerr << '*';
+	}
+	cerr << endl;
+
+	cerr << '\t' << error << endl;
+
+	cerr << '\t';
+	for (int i = 0; i < error_len; ++i)
+	{
+		cerr << '*';
+	}
+	cerr << endl;
+
+	cerr << visibleOptions << endl;
+}
+
+
+/**
+ * Returns the correct variable_map for an option, where the first
+ * variable_map overrides the second. So if an option is specified in both
+ * maps, the first map is returned; if the option is only in the second, the
+ * second is returned. If the option is in neither, the first is returned.
+ */
+const options::variable_value& getOption(
+	const string& option,
+	const options::variables_map& vm1,
+	const options::variables_map& vm2
+)
+{
+	const options::variable_value& v1 = vm1[option];
+	const options::variable_value& v2 = vm2[option];
+	if (!v1.empty() && !v1.defaulted())
+	{
+		return v1;
+	}
+	return v2;
 }

@@ -11,6 +11,9 @@
 *.la
 *.a
 
+# Vim swap files
+*.swp
+
 # Makefile is just a symlink
 Makefile
 

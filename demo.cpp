@@ -147,6 +147,7 @@ void setProbabilities(QueryRisk& qr, AttackProbabilities* probs, double probabil
 
 int main(int argc, char* argv[])
 {
+    Logger::initialize();
 	if (argc < 2)
 	{
 		// If no input is provided, print an error

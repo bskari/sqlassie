@@ -38,6 +38,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+    Logger::initialize();
 	assert(34 == sizeof(QueryRisk) &&
 "QueryStatistics size has changed; did you add more features?\n\
 If so, you need to update queryStatistics.cpp");

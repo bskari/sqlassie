@@ -18,8 +18,9 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ParserInterface.hpp"
 #include "AstNode.hpp"
+#include "Logger.hpp"
+#include "ParserInterface.hpp"
 #include "QueryRisk.hpp"
 
 #include <iostream>
@@ -37,6 +38,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+    Logger::initialize();
 	bool file = false;
 	
 	ifstream fin;

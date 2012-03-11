@@ -51,6 +51,7 @@ void loadTokensFromFile(const char* fileName);
 
 int main()
 {
+    Logger::initialize();
 	loadTokensFromFile("parser.tab.hpp");
 	
 	string x;

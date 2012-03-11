@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Logger.hpp"
 #include "MySqlLoggerListenSocket.hpp"
 
 #include <iostream>
@@ -28,6 +29,7 @@ using namespace boost;
 
 int main(int argc, char* argv[])
 {
+	Logger::initialize();
 	if (argc < 4)
 	{
 		cerr << "Usage: " << argv[0] << " listenPort MySQL-port MySQL-host" << endl;

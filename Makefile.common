@@ -107,9 +107,10 @@ riskAnalyzer:	riskAnalyzer.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 		NegationNode.o \
 		-lboost_regex -lboost_thread -o riskAnalyzer
 
-scanner:	scanner.o scanner.yy.o QueryRisk.o parser.tab.hpp Logger.o
+scanner:	scanner.o scanner.yy.o QueryRisk.o parser.tab.hpp Logger.o \
+	ScannerContext.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) scanner.o scanner.yy.o QueryRisk.o \
-		Logger.o \
+		Logger.o ScannerContext.o \
 		-lboost_regex -lboost_thread -o scanner
 
 # SQLassie Makefile is separate so that downloading is easy

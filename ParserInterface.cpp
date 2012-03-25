@@ -20,7 +20,6 @@
 
 #include "clearStack.hpp"
 #include "nullptr.hpp"
-#include "parser.tab.hpp"
 #include "ParserInterface.hpp"
 #include "scanner.yy.hpp"
 
@@ -38,7 +37,6 @@ using std::stack;
 using std::string;
 
 // Methods from the parser
-//extern int yylex(QueryRisk* const qrPtr, ParserInterface* const pi);
 extern int yyparse(QueryRisk* const qrPtr, ParserInterface* const pi);
 // Stacks from the parser
 extern stack<string> identifiers;
@@ -133,7 +131,7 @@ int ParserInterface::parse(QueryRisk* const qrPtr)
 	if (parserStatus != 0)
 	{
 		const int MIN_VALID_TOKEN = 255;
-		while(yylex(qrPtr, this) > MIN_VALID_TOKEN);
+		while(yylex(NULL, qrPtr, this) > MIN_VALID_TOKEN);
 	}
 	
 	return parserStatus;
@@ -205,7 +203,7 @@ ParserInterfaceScannerMembers::~ParserInterfaceScannerMembers()
  * @param pi ParserInterface reference so that we can call the real sql_lex
  * and so that we can store the hash of the query's tokens.
  */
-int yylex(QueryRisk* const qr, ParserInterface* const pi);
+int yylex(YYSTYPE* lvalp, QueryRisk* const qr, ParserInterface* const pi);
 
 /**
  * Calculates the partial sdbm hash, given a new lexeme.
@@ -218,14 +216,14 @@ static ParserInterface::hashType sdbmHash(
 );
 
 
-extern int sql_lex(QueryRisk* const qrPtr, yyscan_t const scanner);
+extern int sql_lex(YYSTYPE* lvalp, QueryRisk* const qrPtr, yyscan_t const scanner);
 
-int yylex(QueryRisk* const qr, ParserInterface* const pi)
+int yylex(YYSTYPE* lvalp, QueryRisk* const qr, ParserInterface* const pi)
 {
 	assert(nullptr != qr);
 	assert(nullptr != pi);
 
-	int lexCode = sql_lex(qr, pi->scannerPimpl_->scanner_);
+	int lexCode = sql_lex(lvalp, qr, pi->scannerPimpl_->scanner_);
 	// Don't calculate the hash anymore once we've hit the end of the buffer
 	if (lexCode > 255)
 	{

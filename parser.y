@@ -1,4 +1,3 @@
-%{
 /*
  * SQLassie - database firewall
  * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
@@ -26,52 +25,12 @@
  * @date October 15 2010
  */
 
-#include "AlwaysSomethingNode.hpp"
-#include "AstNode.hpp"
-#include "ComparisonNode.hpp"
-#include "ConditionalListNode.hpp"
-#include "ConditionalNode.hpp"
-#include "ExpressionNode.hpp"
-#include "InSubselectNode.hpp"
-#include "InValuesListNode.hpp"
-#include "NegationNode.hpp"
-class ParserInterface;
-#include "QueryRisk.hpp"
-
-#include <stack>
-#include <string>
-
-typedef void* yyscan_t;
-
-/* These declarations are needed so the compiler doesn't barf */
-int yylex(QueryRisk* qr, ParserInterface* pi);
-void yyerror(QueryRisk* qr, yyscan_t scanner, const char* s);
-void checkIdentifierComparison(
-	AstNode** const node,
-	const AstNode* const expr,
-	const int compareType,
-	const AstNode* const field,
-	QueryRisk* const qr
-);
-extern char* yytext;
-
-extern std::stack<std::string> identifiers;
-extern std::stack<std::string> numbers;
-extern std::stack<std::string> quotedStrings;
-std::stack<AstNode*> valuesList;
-std::stack<bool> isValuesListStack;
-
-const int OTHER_COMPARISON = 0;
-const int LIKE_COMPARISON = 1;
-const int NOT_LIKE_COMPARISON = 2;
-
-%}
-
 %parse-param { QueryRisk* const qr }
 %parse-param { ParserInterface* const pi }
 %lex-param { QueryRisk* const qr }
 %lex-param { ParserInterface* const pi }
 %glr-parser
+%pure-parser
 
 // Include this before defining the union
 %code requires
@@ -223,6 +182,47 @@ const int NOT_LIKE_COMPARISON = 2;
 %left BITWISE_OR
 %left BITWISE_XOR
 %left UNARY
+
+%{
+#include "AlwaysSomethingNode.hpp"
+#include "AstNode.hpp"
+#include "ComparisonNode.hpp"
+#include "ConditionalListNode.hpp"
+#include "ConditionalNode.hpp"
+#include "ExpressionNode.hpp"
+#include "InSubselectNode.hpp"
+#include "InValuesListNode.hpp"
+#include "NegationNode.hpp"
+class ParserInterface;
+#include "QueryRisk.hpp"
+
+#include <stack>
+#include <string>
+
+typedef void* yyscan_t;
+
+/* These declarations are needed so the compiler doesn't barf */
+int yylex(YYSTYPE* lvalp, QueryRisk* qr, ParserInterface* pi);
+void yyerror(QueryRisk* qr, yyscan_t scanner, const char* s);
+void checkIdentifierComparison(
+	AstNode** const node,
+	const AstNode* const expr,
+	const int compareType,
+	const AstNode* const field,
+	QueryRisk* const qr
+);
+extern char* yytext;
+
+extern std::stack<std::string> identifiers;
+extern std::stack<std::string> numbers;
+extern std::stack<std::string> quotedStrings;
+std::stack<AstNode*> valuesList;
+std::stack<bool> isValuesListStack;
+
+const int OTHER_COMPARISON = 0;
+const int LIKE_COMPARISON = 1;
+const int NOT_LIKE_COMPARISON = 2;
+%}
 
 %%
 

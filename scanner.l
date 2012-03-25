@@ -26,7 +26,7 @@
 
 %{
 	#define YY_EXTRA_TYPE QueryRisk*
-	#define YY_DECL int yylex(QueryRisk* qr, yyscan_t yyscanner)
+	#define YY_DECL int yylex(YYSTYPE* lvalp, QueryRisk* qr, yyscan_t yyscanner)
 	
 	#include "AstNode.hpp"
 	#include "Logger.hpp"

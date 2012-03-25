@@ -22,6 +22,7 @@
 #define PARSER_INTERFACE_HPP
 
 #include "AstNode.hpp"
+#include "parser.tab.hpp"
 class ParserInterfaceScannerMembers;
 #include "QueryRisk.hpp"
 
@@ -65,7 +66,7 @@ public:
 	};
 	QueryHash getHash() const;
 
-	friend int yylex(QueryRisk* const qrPtr, ParserInterface* const pi);
+	friend int yylex(YYSTYPE* lvalp, QueryRisk* const qrPtr, ParserInterface* const pi);
 
 private:
 	bool parsed_;

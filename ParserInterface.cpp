@@ -68,14 +68,31 @@ private:
 };
 
 
+/**
+ * Customized yylex so that we can fool the parser into not calling the real
+ * sql_lex directly. This way, we can keep track of the tokens from the query
+ * and get all of the tokens even if parsing fails, so that we can do things
+ * like whitelist queries. This should be a friend of ParserInterface (see
+ * TODO in Parserinterface.hpp).
+ * @param qr The QueryRisk attributes of the parsed query.
+ * @param pi ParserInterface reference so that we can call the real sql_lex
+ * and so that we can store the hash of the query's tokens.
+ */
+int yylex(
+	YYSTYPE* const lvalp,
+	QueryRisk* const qr,
+	ParserInterface* const pi
+);
+
+
 ParserInterface::ParserInterface(const string& buffer) :
 	scannerContext_(),
+	scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str())),
+	tokensHash_(),
 	parsed_(false),
 	qr_(),
 	parserStatus_(0),
-	bufferLen_(buffer.size()),
-	tokensHash_(),
-	scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str()))
+	bufferLen_(buffer.size())
 {
 }
 
@@ -129,7 +146,7 @@ int ParserInterface::parse(QueryRisk* const qrPtr)
 	if (parserStatus != 0)
 	{
 		const int MIN_VALID_TOKEN = 255;
-		while(yylex(NULL, qrPtr, this) > MIN_VALID_TOKEN);
+		while (yylex(nullptr, qrPtr, this) > MIN_VALID_TOKEN);
 	}
 	
 	return parserStatus;
@@ -193,17 +210,6 @@ ParserInterfaceScannerMembers::~ParserInterfaceScannerMembers()
 
 
 /**
- * Customized yylex so that we can fool the parser into not calling the real
- * sql_lex directly. This way, we can keep track of the tokens from the query
- * and get all of the tokens even if parsing fails, so that we can do things
- * like whitelist queries. This is a friend of ParserInterface.
- * @param qr The QueryRisk attributes of the parsed query.
- * @param pi ParserInterface reference so that we can call the real sql_lex
- * and so that we can store the hash of the query's tokens.
- */
-int yylex(YYSTYPE* lvalp, QueryRisk* const qr, ParserInterface* const pi);
-
-/**
  * Calculates the partial sdbm hash, given a new lexeme.
  * @param lexCode The new lexeme from the buffer stream.
  * @param ht The previous hash.
@@ -214,14 +220,39 @@ static ParserInterface::hashType sdbmHash(
 );
 
 
-extern int sql_lex(YYSTYPE* lvalp, QueryRisk* const qrPtr, yyscan_t const scanner);
+extern int sql_lex(
+	YYSTYPE* const lvalp,
+	ScannerContext* const context,
+	QueryRisk* const qr,
+	yyscan_t const yyscanner
+);
 
-int yylex(YYSTYPE* lvalp, QueryRisk* const qr, ParserInterface* const pi)
+
+/**
+ * Customized yylex so that we can fool the parser into not calling the real
+ * sql_lex directly. This way, we can keep track of the tokens from the query
+ * and get all of the tokens even if parsing fails, so that we can do things
+ * like whitelist queries. This should be a friend of ParserInterface (see
+ * TODO in Parserinterface.hpp).
+ * @param qr The QueryRisk attributes of the parsed query.
+ * @param pi ParserInterface reference so that we can call the real sql_lex
+ * and so that we can store the hash of the query's tokens.
+ */
+int yylex(
+	YYSTYPE* const lvalp,
+	QueryRisk* const qr,
+	ParserInterface* const pi
+)
 {
 	assert(nullptr != qr);
 	assert(nullptr != pi);
 
-	int lexCode = sql_lex(lvalp, qr, pi->scannerPimpl_->scanner_);
+	int lexCode = sql_lex(
+		lvalp,
+		&pi->scannerContext_,
+		qr,
+		pi->scannerPimpl_->scanner_
+	);
 	// Don't calculate the hash anymore once we've hit the end of the buffer
 	if (lexCode > 255)
 	{

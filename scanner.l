@@ -26,13 +26,13 @@
 
 %{
 	#define YY_EXTRA_TYPE QueryRisk*
-	#define YY_DECL int yylex( \
+	#define YY_DECL int sql_lex( \
 		YYSTYPE* const lvalp, \
 		ScannerContext* const context, \
 		QueryRisk* const qr, \
 		yyscan_t yyscanner \
 	)
-	
+
 	#include "AstNode.hpp"
 	#include "Logger.hpp"
 	// Include file produced by Bison

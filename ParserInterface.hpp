@@ -66,19 +66,26 @@ public:
 	};
 	QueryHash getHash() const;
 
-	friend int yylex(YYSTYPE* lvalp, QueryRisk* const qrPtr, ParserInterface* const pi);
-
 	ScannerContext scannerContext_;
+
+    /**
+     * @TODO Declare yylex as a friend so that I can make these private. I
+     * tried to do it here, but yylex takes a YYSTYPE* parameter, which
+     * means I have to include parser.tab.hpp for the definition, but
+     * parser.tab.hpp includes this file, which creates a circular dependency.
+     */
+    //@{
+	ParserInterfaceScannerMembers* scannerPimpl_;
+	// Used to tokenize the string before parsing, so that I can do things
+	// like whitelist queries that fail to parse until I fix the parser.
+	QueryHash tokensHash_;
+    //@}
 
 private:
 	bool parsed_;
 	QueryRisk qr_;
 	int parserStatus_;
 	const int bufferLen_;
-	// Used to tokenize the string before parsing, so that I can do things
-	// like whitelist queries that fail to parse until I fix the parser.
-	QueryHash tokensHash_;
-	ParserInterfaceScannerMembers* scannerPimpl_;
 	
 	static boost::mutex parserMutex_;
 	

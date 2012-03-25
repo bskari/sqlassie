@@ -69,12 +69,12 @@ parser:	parser.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
 	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
-	NegationNode.o
+	NegationNode.o ScannerContext.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) parser.o parser.tab.o scanner.yy.o \
 		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
 		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
 		AlwaysSomethingNode.o ParserInterface.o MySqlConstants.o \
-		Logger.o InSubselectNode.o NegationNode.o \
+		Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
 		-lboost_regex -lboost_thread -lm -o parser
 
 probabilities:	probabilities.o csvParse.hpp

@@ -55,8 +55,8 @@ using std::string;
 
 // Stuff from the parser
 extern int hugin_parse(DlibProbabilities::bayes_net* network, bool firstTime, void* scanner);
-extern stack<string> identifiers;
-extern stack<string> numbers;
+extern stack<string> hugin_identifiers;
+extern stack<string> hugin_numbers;
 
 // Constants
 static const int CACHE_SIZE = 5;
@@ -715,14 +715,14 @@ int DlibProbabilities::loadNetwork(
 			if (0 == status)
 			{
 				assert(
-					identifiers.empty() &&
-					numbers.empty() &&
+					hugin_identifiers.empty() &&
+					hugin_numbers.empty() &&
 					"After parsing a Hugins network file, stacks should be empty"
 				);
 			}
 		#endif
-		clearStack(&identifiers);
-		clearStack(&numbers);
+		clearStack(&hugin_identifiers);
+		clearStack(&hugin_numbers);
 		
 		// Quit early if parsing failed
 		if (0 != status)

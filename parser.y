@@ -27,6 +27,7 @@
 
 %parse-param { QueryRisk* const qr }
 %parse-param { ParserInterface* const pi }
+%lex-param { ScannerContext* context }
 %lex-param { QueryRisk* const qr }
 %lex-param { ParserInterface* const pi }
 %glr-parser
@@ -193,17 +194,21 @@
 #include "InSubselectNode.hpp"
 #include "InValuesListNode.hpp"
 #include "NegationNode.hpp"
-class ParserInterface;
+#include "ParserInterface.hpp"
 #include "QueryRisk.hpp"
+class ScannerContext;
 
 #include <stack>
 #include <string>
 
-typedef void* yyscan_t;
+typedef void* const yyscan_t;
 
 /* These declarations are needed so the compiler doesn't barf */
-int yylex(YYSTYPE* lvalp, QueryRisk* qr, ParserInterface* pi);
-void yyerror(QueryRisk* qr, yyscan_t scanner, const char* s);
+void yyerror(
+	QueryRisk* const qr,
+	yyscan_t scanner,
+	const char* const s
+);
 void checkIdentifierComparison(
 	AstNode** const node,
 	const AstNode* const expr,
@@ -213,9 +218,6 @@ void checkIdentifierComparison(
 );
 extern char* yytext;
 
-extern std::stack<std::string> identifiers;
-extern std::stack<std::string> numbers;
-extern std::stack<std::string> quotedStrings;
 std::stack<AstNode*> valuesList;
 std::stack<bool> isValuesListStack;
 
@@ -371,7 +373,7 @@ selectItem:
 		{}
 	| tableWild AS identifier
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| expression
 		{
@@ -379,12 +381,13 @@ selectItem:
 		}
 	| expression AS identifier
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 			delete $1;
 		}
 	| GLOBAL_VARIABLE DOT identifier
 		{
 			++qr->globalVariables;
+			std::stack<std::string>& identifiers = pi->scannerContext_.identifiers;
 			identifiers.pop();
 			identifiers.pop();
 		}
@@ -392,7 +395,7 @@ selectItem:
 		{}
 	| subSelect AS identifier
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| comparison
 		{
@@ -401,7 +404,7 @@ selectItem:
 	| comparison AS identifier
 		{
 			delete $1;
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	;
 
@@ -427,7 +430,7 @@ subSelect2:
 		}
 	| SELECT expression AS identifier FROM tableList optionalWhere
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 			delete $2;
 		}
 	;
@@ -442,10 +445,11 @@ tableOptionalWildList:
 tableOptionalWild:
 	identifier optionalWild optionalTableAlias
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| identifier DOT identifier optionalWild optionalTableAlias
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			identifiers.pop();
 			identifiers.pop();
 		}
@@ -461,10 +465,11 @@ optionalWild:
 tableWild:
 	identifier DOT ASTERISK
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| identifier DOT identifier DOT ASTERISK
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			identifiers.pop();
 			identifiers.pop();
 		}
@@ -473,11 +478,13 @@ tableWild:
 table:
 	identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
 		}
 	| identifier DOT identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			// It's a stack, so check in reverse order
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
@@ -486,15 +493,16 @@ table:
 		}
 	| identifier DOT ASTERISK
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| DOT identifier
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| /* aliased */
 		identifier identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			identifiers.pop();
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
@@ -506,22 +514,24 @@ optionalTableAlias:
 		{}
 	| AS identifier
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| EQUAL identifier
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	;
 
 simpleIdentifier:
 	identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			$$ = new ExpressionNode(identifiers.top(), true);
 			identifiers.pop();
 		}
 	| identifier DOT identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			const std::string field(identifiers.top());
 			identifiers.pop();
 			const std::string fullIdentifier(identifiers.top() + "." + field);
@@ -530,6 +540,7 @@ simpleIdentifier:
 		}
 	| DOT identifier DOT identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			const std::string field(identifiers.top());
 			identifiers.pop();
 			const std::string fullIdentifier(identifiers.top() + "." + field);
@@ -538,6 +549,7 @@ simpleIdentifier:
 		}
 	| identifier DOT identifier DOT identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			const std::string field(identifiers.top());
 			identifiers.pop();
 			const std::string table(identifiers.top());
@@ -557,15 +569,15 @@ identifier:
 		}
 	| LANGUAGE
 		{
-			identifiers.push("language");
+			pi->scannerContext_.identifiers.push("language");
 		}
 	| QUERY
 		{
-			identifiers.push("query");
+			pi->scannerContext_.identifiers.push("query");
 		}
 	| TABLES
 		{
-			identifiers.push("tables");
+			pi->scannerContext_.identifiers.push("tables");
 		}
 	;
 
@@ -821,6 +833,7 @@ simpleExpression:
 	| /* function */
 		identifier LEFT_PARENTHESE optionalDistinct expressionList RIGHT_PARENTHESE
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			/// @TODO I should probably handle a bunch of possible functions here
 			/// Like, IF (1, 1, 0) should always be true
 			$$ = new ExpressionNode(" ", false);
@@ -830,6 +843,7 @@ simpleExpression:
 	| /* function, such as VERSION() */
 		identifier LEFT_PARENTHESE RIGHT_PARENTHESE
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			/// @TODO I should probably handle a bunch of possible functions here
 			/// Like, IF (1, 1, 0) should always be true
 			$$ = new ExpressionNode(" ", false);
@@ -839,6 +853,7 @@ simpleExpression:
 	| /* function, such as COUNT(*) */
 		identifier LEFT_PARENTHESE ASTERISK RIGHT_PARENTHESE
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			/// @TODO I should probably handle a bunch of possible functions here
 			/// Like, IF (1, 1, 0) should always be true
 			$$ = new ExpressionNode(" ", false);
@@ -855,6 +870,7 @@ simpleExpression:
 		}
 	| GLOBAL_VARIABLE
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			++qr->globalVariables;
 			$$ = new ExpressionNode(identifiers.top(), false);
 			identifiers.pop();
@@ -864,7 +880,7 @@ simpleExpression:
 		{
 			delete $2;
 			$$ = NULL;
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| simpleIdentifier
 		{
@@ -882,21 +898,25 @@ optionalDistinct:
 number:
 	NUMBER
 		{
+			std::stack<std::string> numbers = pi->scannerContext_.numbers;
 			$$ = new ExpressionNode(numbers.top(), false);
 			numbers.pop();
 		}
 	| PLUS %prec UNARY NUMBER
 		{
+			std::stack<std::string> numbers = pi->scannerContext_.numbers;
 			$$ = new ExpressionNode(numbers.top(), false);
 			numbers.pop();
 		}
 	| MINUS %prec UNARY NUMBER
 		{
+			std::stack<std::string> numbers = pi->scannerContext_.numbers;
 			$$ = new ExpressionNode("-" + numbers.top(), false);
 			numbers.pop();
 		}
 	| BITWISE_NEGATION %prec UNARY NUMBER
 		{
+			std::stack<std::string> numbers = pi->scannerContext_.numbers;
 			$$ = new ExpressionNode("~" + numbers.top(), false);
 			numbers.pop();
 		}
@@ -1033,13 +1053,13 @@ tableList:
 		{}
 	| table AS identifier
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| table COMMA tableList
 		{}
 	| table AS identifier COMMA tableList
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| LEFT_PARENTHESE select RIGHT_PARENTHESE
 		{
@@ -1056,11 +1076,11 @@ joins:
 		{}
 	| normalJoin table AS identifier ON joinConditional joins
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| normalJoin table AS identifier ON joinConditional
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| /* Cross joins don't have any join conditionals */ 
 		CROSS JOIN table
@@ -1258,11 +1278,11 @@ optionalMatchModifier:
 indexList:
 	identifier RIGHT_PARENTHESE
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	| identifier COMMA indexList
 		{
-			identifiers.pop();
+			pi->scannerContext_.identifiers.pop();
 		}
 	;
 
@@ -1271,10 +1291,11 @@ optionalLimit:
 		{}
 	| LIMIT NUMBER
 		{
-			numbers.pop();
+			pi->scannerContext_.numbers.pop();
 		}
 	| LIMIT NUMBER COMMA NUMBER
 		{
+			std::stack<std::string> numbers = pi->scannerContext_.numbers;
 			numbers.pop();
 			numbers.pop();
 		}
@@ -1336,6 +1357,7 @@ selectInto:
 string:
 	QUOTED_STRING
 		{
+			std::stack<std::string> quotedStrings = pi->scannerContext_.quotedStrings;
 			$$ = new ExpressionNode(quotedStrings.top(), false);
 			quotedStrings.pop();
 		}
@@ -1343,6 +1365,7 @@ string:
 	  /* Seriously... so 'a string' is the same as 'a ' 'str' 'ing' */
 		QUOTED_STRING string
 		{
+			std::stack<std::string> quotedStrings = pi->scannerContext_.quotedStrings;
 			const ExpressionNode* const expr =
 				dynamic_cast<const ExpressionNode*>($2);
 			assert(NULL != expr);
@@ -1422,27 +1445,32 @@ orderByGroupList:
 joinTables:
 	identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
 		}
 	| identifier ON expression
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
 			delete $3;
 		}
 	| identifier USING LEFT_PARENTHESE usingList RIGHT_PARENTHESE
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
 		}
 	| identifier COMMA joinTables
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
 		}
 	| identifier normalJoin joinTables
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
 		}
@@ -1506,11 +1534,13 @@ optionalHaving:
 usingList:
 	identifier
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
 		}
 	| identifier COMMA usingList
 		{
+			std::stack<std::string> identifiers = pi->scannerContext_.identifiers;
 			qr->checkTable(identifiers.top());
 			identifiers.pop();
 		}
@@ -1593,7 +1623,7 @@ transactionStuff:
 	;
 
 %%
-	void yyerror(QueryRisk* qr, yyscan_t, const char*)
+	void yyerror(QueryRisk* const qr, yyscan_t, const char* const)
 	{
 		qr->valid = false;
 	}

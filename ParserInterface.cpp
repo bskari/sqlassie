@@ -20,6 +20,7 @@
 
 #include "clearStack.hpp"
 #include "nullptr.hpp"
+#include "parser.tab.hpp"
 #include "ParserInterface.hpp"
 #include "scanner.yy.hpp"
 
@@ -38,10 +39,6 @@ using std::string;
 
 // Methods from the parser
 extern int yyparse(QueryRisk* const qrPtr, ParserInterface* const pi);
-// Stacks from the parser
-extern stack<string> identifiers;
-extern stack<string> quotedStrings;
-extern stack<string> numbers;
 
 // Static members
 mutex ParserInterface::parserMutex_;
@@ -72,6 +69,7 @@ private:
 
 
 ParserInterface::ParserInterface(const string& buffer) :
+	scannerContext_(),
 	parsed_(false),
 	qr_(),
 	parserStatus_(0),
@@ -104,18 +102,18 @@ int ParserInterface::parse(QueryRisk* const qrPtr)
 		lock_guard<mutex> m(parserMutex_);
 	
 		// Clear the stacks before every parsing attempt
-		clearStack(&identifiers);
-		clearStack(&quotedStrings);
-		clearStack(&numbers);
+		clearStack(&scannerContext_.identifiers);
+		clearStack(&scannerContext_.quotedStrings);
+		clearStack(&scannerContext_.numbers);
 		
 		parserStatus = yyparse(qrPtr, this);
 
 		#ifndef NDEBUG
 			if (0 == parserStatus && qrPtr->valid)
 			{
-				assert(identifiers.empty() && "Identifiers stack not empty");
-				assert(quotedStrings.empty() && "Quoted strings stack not empty");
-				assert(numbers.empty() && "Numbers stack not empty");
+				assert(scannerContext_.identifiers.empty() && "Identifiers stack not empty");
+				assert(scannerContext_.quotedStrings.empty() && "Quoted strings stack not empty");
+				assert(scannerContext_.numbers.empty() && "Numbers stack not empty");
 			}
 		#endif
 		

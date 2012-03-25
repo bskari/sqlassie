@@ -22,9 +22,9 @@
 #define PARSER_INTERFACE_HPP
 
 #include "AstNode.hpp"
-#include "parser.tab.hpp"
 class ParserInterfaceScannerMembers;
 #include "QueryRisk.hpp"
+#include "ScannerContext.hpp"
 
 #include <boost/cstdint.hpp>
 #include <boost/thread/mutex.hpp>
@@ -67,6 +67,8 @@ public:
 	QueryHash getHash() const;
 
 	friend int yylex(YYSTYPE* lvalp, QueryRisk* const qrPtr, ParserInterface* const pi);
+
+	ScannerContext scannerContext_;
 
 private:
 	bool parsed_;

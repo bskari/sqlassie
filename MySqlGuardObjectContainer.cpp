@@ -47,8 +47,25 @@ MySqlGuardObjectContainer::MySqlGuardObjectContainer(
 	numObjects_(numObjects),
 	loadBalancer_(0),
 	attackProbsMutexes_(new mutex[numObjects]),
-	attackProbs_(new DlibProbabilities[numObjects])
+	attackProbs_(new AttackProbabilities*[numObjects])
 {
+	for (int i = 0; i < numObjects; ++i)
+	{
+		try
+		{
+			attackProbs_[i] = new DlibProbabilities;
+		}
+		catch (...)
+		{
+			for (int j = 0; j < i; ++j)
+			{
+				delete attackProbs_[j];
+			}
+			delete [] attackProbsMutexes_;
+			delete [] attackProbs_;
+			throw;
+		}
+	}
 	assert(
 		numObjects > 0 &&
 		numObjects <= 16 &&
@@ -96,6 +113,7 @@ void MySqlGuardObjectContainer::logBlockedQuery(
 
 int MySqlGuardObjectContainer::getLockOnProbabilityGenerator()
 {
+	/// @TODO Make this lock stuff exception safe
 	// Try all the locks
 	for (int i = 0; i < numObjects_; ++i)
 	{
@@ -119,7 +137,7 @@ double MySqlGuardObjectContainer::getProbabilityOfAccessAttack(
 {
 	assert(instance_ != nullptr && "Called MySqlGuardObjectContainer singleton without initializing");
 	const int lock = instance_->getLockOnProbabilityGenerator();
-	const double prob = instance_->attackProbs_[lock].getProbabilityOfAccessAttack(qr);
+	const double prob = instance_->attackProbs_[lock]->getProbabilityOfAccessAttack(qr);
 	instance_->attackProbsMutexes_[lock].unlock();
 	return prob;
 }
@@ -131,7 +149,7 @@ double MySqlGuardObjectContainer::getProbabilityOfBypassAttack(
 {
 	assert(instance_ != nullptr && "Called MySqlGuardObjectContainer singleton without initializing");
 	const int lock = instance_->getLockOnProbabilityGenerator();
-	const double prob = instance_->attackProbs_[lock].getProbabilityOfBypassAttack(qr);
+	const double prob = instance_->attackProbs_[lock]->getProbabilityOfBypassAttack(qr);
 	instance_->attackProbsMutexes_[lock].unlock();
 	return prob;
 }
@@ -144,7 +162,7 @@ double MySqlGuardObjectContainer::getProbabilityOfModificationAttack(
 	assert(instance_ != nullptr && "Called MySqlGuardObjectContainer singleton without initializing");
 	const int lock = instance_->getLockOnProbabilityGenerator();
 	const double prob = 
-		instance_->attackProbs_[lock].getProbabilityOfModificationAttack(qr);
+		instance_->attackProbs_[lock]->getProbabilityOfModificationAttack(qr);
 	instance_->attackProbsMutexes_[lock].unlock();
 	return prob;
 }
@@ -156,8 +174,8 @@ double MySqlGuardObjectContainer::getProbabilityOfFingerprintingAttack(
 {
 	assert(instance_ != nullptr && "Called MySqlGuardObjectContainer singleton without initializing");
 	const int lock = instance_->getLockOnProbabilityGenerator();
-	const double prob = 
-		instance_->attackProbs_[lock].getProbabilityOfFingerprintingAttack(qr);
+	const double prob =
+		instance_->attackProbs_[lock]->getProbabilityOfFingerprintingAttack(qr);
 	instance_->attackProbsMutexes_[lock].unlock();
 	return prob;
 }
@@ -169,7 +187,7 @@ double MySqlGuardObjectContainer::getProbabilityOfSchemaAttack(
 {
 	assert(instance_ != nullptr && "Called MySqlGuardObjectContainer singleton without initializing");
 	const int lock = instance_->getLockOnProbabilityGenerator();
-	const double prob = instance_->attackProbs_[lock].getProbabilityOfSchemaAttack(qr);
+	const double prob = instance_->attackProbs_[lock]->getProbabilityOfSchemaAttack(qr);
 	instance_->attackProbsMutexes_[lock].unlock();
 	return prob;
 }
@@ -181,7 +199,7 @@ double MySqlGuardObjectContainer::getProbabilityOfDenialAttack(
 {
 	assert(instance_ != nullptr && "Called MySqlGuardObjectContainer singleton without initializing");
 	const int lock = instance_->getLockOnProbabilityGenerator();
-	const double prob = instance_->attackProbs_[lock].getProbabilityOfDenialAttack(qr);
+	const double prob = instance_->attackProbs_[lock]->getProbabilityOfDenialAttack(qr);
 	instance_->attackProbsMutexes_[lock].unlock();
 	return prob;
 }

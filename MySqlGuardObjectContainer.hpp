@@ -95,7 +95,7 @@ private:
 	int numObjects_;
 	int loadBalancer_;
 	boost::mutex* attackProbsMutexes_;
-	AttackProbabilities* attackProbs_;
+	AttackProbabilities** attackProbs_;
 	
 	// Disallowed methods
 	MySqlGuardObjectContainer(const MySqlGuardObjectContainer& rhs);

@@ -35,11 +35,10 @@
 #include "dlib/graph_utils.h"
 #include "dlib/graph.h"
 #include "dlib/directed_graph.h"
-#include <string>
-#include <fstream>
-#include <functional>
 #include <exception>
+#include <fstream>
 #include <stack>
+#include <string>
 
 using boost::bind;
 using boost::function;

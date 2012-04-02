@@ -113,8 +113,28 @@ scanner:	scanner.o scanner.yy.o QueryRisk.o parser.tab.hpp Logger.o \
 		Logger.o ScannerContext.o \
 		-lboost_regex -lboost_thread -o scanner
 
-# SQLassie Makefile is separate so that downloading is easy
-include Makefile.sqlassie
+sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
+	ProxyHalf.o ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
+	parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
+	ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
+	AlwaysSomethingNode.o DlibProbabilities.o MySqlGuardObjectContainer.o \
+	ConditionalNode.o ParserInterface.o MySqlErrorMessageBlocker.o \
+	AttackProbabilities.o MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o \
+	huginScanner.yy.o huginParser.tab.o MessageHandler.o Logger.o \
+	InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlassie.o Socket.o Proxy.o ProxyHalf.o \
+		ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
+		parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
+		ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
+		ConditionalNode.o AlwaysSomethingNode.o DlibProbabilities.o \
+		MySqlGuardObjectContainer.o ParserInterface.o \
+		MySqlErrorMessageBlocker.o AttackProbabilities.o \
+		MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o \
+		huginParser.tab.o MessageHandler.o Logger.o InSubselectNode.o \
+		NegationNode.o QueryWhitelist.o ScannerContext.o \
+		-lboost_program_options -lboost_regex -lboost_thread -lmysqlclient \
+		-lpthread \
+		-o sqlassie
 
 test:	tests/test.o tests/testNode.o tests/testParser.o \
 	tests/testMySqlConstants.o tests/testQueryWhitelist.o \

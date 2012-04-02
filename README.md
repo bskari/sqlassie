@@ -44,7 +44,11 @@ SQLassie identifies this query as containing a schema discovery attack and block
 Compiling
 ---------
 
-SQLassie comes with two Makefiles: one meant for use with gcc, and one meant for use with clang++. Support for gcc is more thorough at this time, so to start building, link to the gcc Makefile by running
+SQLassie comes with two Makefiles: one meant for use with gcc, and one meant for use with clang++. Support for gcc is more thorough at this time, so to start building, change into the source directory
+
+    cd src
+
+and link to the gcc Makefile by running
 
     ln -s Makefile.gcc Makefile
 
@@ -55,3 +59,5 @@ Next, you'll need to install some dependencies. On a Debian-based system, you sh
 Finally, compile by running
 
     make
+
+The resulting binaries will be placed in the bin directory.

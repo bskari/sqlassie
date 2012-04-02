@@ -16,8 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
 
-BINARIES = logger tunnel scanner parser riskAnalyzer queryStatistics \
-	probabilities sqlassie test demo
+BINARY_DIR = ../bin
+BINARIES = $(BINARY_DIR)/logger \
+	$(BINARY_DIR)/tunnel \
+	$(BINARY_DIR)/scanner \
+	$(BINARY_DIR)/parser \
+	$(BINARY_DIR)/riskAnalyzer \
+	$(BINARY_DIR)/queryStatistics \
+	$(BINARY_DIR)/probabilities \
+	$(BINARY_DIR)/sqlassie \
+	$(BINARY_DIR)/test \
+	$(BINARY_DIR)/demo
 
 LEX = flex
 YACC = bison
@@ -42,7 +51,7 @@ endif
 
 all:	$(BINARIES) $(OPTIONAL_STRIP)
 
-demo:	demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
+$(BINARY_DIR)/demo:	demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o ConditionalListNode.o ConditionalNode.o ExpressionNode.o \
 	InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o AttackProbabilities.o parser.tab.hpp \
@@ -55,17 +64,17 @@ demo:	demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 		AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
 		huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
 		NegationNode.o ScannerContext.o \
-		-lboost_regex -lboost_thread -o demo
+		-lboost_regex -lboost_thread -o $(BINARY_DIR)/demo
 
-logger:	logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
+$(BINARY_DIR)/logger:	logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
 	ProxyHalf.o ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \
 	MessageHandler.o Logger.o
 	$(CXX) $(CXXFLAGS) logger.o Socket.o Proxy.o ProxyHalf.o \
 		ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \
 		MessageHandler.o Logger.o \
-		-lboost_thread -o logger
+		-lboost_thread -o $(BINARY_DIR)/logger
 
-parser:	parser.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
+$(BINARY_DIR)/parser:	parser.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
 	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
@@ -75,12 +84,12 @@ parser:	parser.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
 		AlwaysSomethingNode.o ParserInterface.o MySqlConstants.o \
 		Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
-		-lboost_regex -lboost_thread -lm -o parser
+		-lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/parser
 
-probabilities:	probabilities.o csvParse.hpp
-	$(CXX) $(CXXFLAGS) probabilities.o -o probabilities
+$(BINARY_DIR)/probabilities:	probabilities.o csvParse.hpp
+	$(CXX) $(CXXFLAGS) probabilities.o -o $(BINARY_DIR)/probabilities
 
-queryStatistics:	queryStatistics.o parser.tab.o scanner.yy.o QueryRisk.o \
+$(BINARY_DIR)/queryStatistics:	queryStatistics.o parser.tab.o scanner.yy.o QueryRisk.o \
 	AstNode.o ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
 	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
@@ -90,9 +99,9 @@ queryStatistics:	queryStatistics.o parser.tab.o scanner.yy.o QueryRisk.o \
 		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
 		AlwaysSomethingNode.o ParserInterface.o scanner.yy.o MySqlConstants.o \
 		Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
-		-lboost_regex -lboost_thread -lm -o queryStatistics
+		-lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/queryStatistics
 
-riskAnalyzer:	riskAnalyzer.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
+$(BINARY_DIR)/riskAnalyzer:	riskAnalyzer.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o ConditionalListNode.o ConditionalNode.o ExpressionNode.o \
 	InValuesListNode.o AlwaysSomethingNode.o NegationNode.o \
 	ParserInterface.o AttackProbabilities.o parser.tab.hpp \
@@ -105,18 +114,18 @@ riskAnalyzer:	riskAnalyzer.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 		AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
 		huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
 		NegationNode.o ScannerContext.o \
-		-lboost_regex -lboost_thread -o riskAnalyzer
+		-lboost_regex -lboost_thread -o $(BINARY_DIR)/riskAnalyzer
 
-scanner:	scanner.o scanner.yy.o QueryRisk.o parser.tab.hpp Logger.o \
+$(BINARY_DIR)/scanner:	scanner.o scanner.yy.o QueryRisk.o parser.tab.hpp Logger.o \
 	ScannerContext.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) scanner.o scanner.yy.o QueryRisk.o \
 		Logger.o ScannerContext.o \
-		-lboost_regex -lboost_thread -o scanner
+		-lboost_regex -lboost_thread -o $(BINARY_DIR)/scanner
 
 # SQLassie Makefile is separate so that downloading is easy
 include Makefile.sqlassie
 
-test:	tests/test.o tests/testNode.o tests/testParser.o \
+$(BINARY_DIR)/test:	tests/test.o tests/testNode.o tests/testParser.o \
 	tests/testMySqlConstants.o tests/testQueryWhitelist.o \
 	Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp	ProxyHalf.o \
 	ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o parser.tab.o \
@@ -143,15 +152,15 @@ test:	tests/test.o tests/testNode.o tests/testParser.o \
 		-lboost_regex -lboost_thread -lmysqlclient \
 		-lboost_unit_test_framework -lboost_filesystem -lboost_system \
 		-lpthread \
-		-o test
+		-o $(BINARY_DIR)/test
 
-tunnel:	tunnel.o ProxyListenSocket.hpp \
+$(BINARY_DIR)/tunnel:	tunnel.o ProxyListenSocket.hpp \
 	Socket.o Proxy.o ProxyHalf.o ListenSocket.o MySqlPrinter.o \
 	ProxyListenSocket.o MessageHandler.o Logger.o
 	$(CXX) $(CXXFLAGS) tunnel.o Socket.o Proxy.o ProxyHalf.o \
 		ListenSocket.o MySqlPrinter.o ProxyListenSocket.o MessageHandler.o \
 		Logger.o \
-		-lboost_thread -lboost_program_options -o tunnel
+		-lboost_thread -lboost_program_options -o $(BINARY_DIR)/tunnel
 
 parser.tab.cpp parser.tab.hpp:	parser.y
 	$(YACC) -o parser.tab.cpp --defines=parser.tab.hpp -v parser.y

@@ -1,4 +1,4 @@
-sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
+$(BINARY_DIR)/sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
 	ProxyHalf.o ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
 	parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
 	ConditionalListNode.o ExpressionNode.o InValuesListNode.o \

@@ -19,4 +19,4 @@ $(BINARY_DIR)/sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHa
 		NegationNode.o QueryWhitelist.o ScannerContext.o \
 		-lboost_program_options -lboost_regex -lboost_thread -lmysqlclient \
 		-lpthread \
-		-o sqlassie
+		-o $(BINARY_DIR)/sqlassie

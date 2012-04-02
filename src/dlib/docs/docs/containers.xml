@@ -1,0 +1,1933 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="stylesheet.xsl"?>
+
+<doc>
+   <title>Containers</title>
+
+   <!-- ************************************************************************* -->
+
+   <body>
+         <br/><br/>
+         <p>
+         Many of these containers were inspired by the RESOLVE/C++ course sequence at Ohio State.  As such, most of 
+         the objects do not support copying in any form, only swapping is allowed. That is, when objects 
+         are added or removed from any of these containers they are swapped in and out, not copied. 
+         </p>
+
+         <p>
+         This allows you to do things like have containers of containers of containers without encountering the 
+         overhead of the massive copying that would likely result if you did the same thing with the STL. 
+         It also means you can store objects that are not copyable inside these containers, which is not 
+         something you can do with the STL.  
+         </p>
+
+         <p>
+         To use any of these containers all you need to do is #include the file indicated in the 
+         short section about the component you would like to use. Then pick which implementation you 
+         would like and typedef it to something nice. Here is an example of creating a typedef for 
+         a set of integers using the first kernel implementation. <br/>
+         <tt>typedef dlib::set&lt;int&gt;::kernel_1a set_of_ints;</tt>.  Or as another example,
+         if you wanted to make an expandable array of ints you might say <br/>
+         <tt>typedef dlib::array&lt;int&gt;::expand_1d_c array_of_ints;</tt>. 
+         </p>
+
+
+         <p>
+         Note that it is assumed by these containers that swap() and operator&lt; do not throw.  They
+         may not function correctly if this assumption is broken.  Also note that the built in types (int, long,
+         char, etc.) and std::string will not cause operator&lt; or swap() to throw.
+         </p>
+
+         <p>
+            Note also that most of the containers inherit from the <a href="#enumerable">enumerable</a>
+            interface.  Thus, all the member functions inherited from enumerable are defined
+            in the enumerable class and their documentation is not repeated in each 
+            container's documentation.  This includes the size() member function in each
+            container.
+         </p>
+
+   
+   </body>
+
+   <!-- ************************************************************************* -->
+
+   <menu width="150">
+    <top>
+      <section>
+         <name>Objects</name>
+         <item>static_set</item> 
+         <item>any</item> 
+         <item>array</item> 
+         <item>array2d</item> 
+         <item>binary_search_tree</item> 
+         <item>hash_map</item> 
+         <item>hash_set</item> 
+         <item>hash_table</item> 
+         <item>directed_graph</item> 
+         <item>graph</item> 
+         <item>map</item> 
+         <item>
+            <name>matrix</name>
+            <sub>
+               <item nolink="true">
+                  <name>math</name>
+                  <sub>
+                     <item>
+                        <name>exp</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#exp</link>
+                     </item>
+                     <item>
+                        <name>log10</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#log10</link>
+                     </item>
+                     <item>
+                        <name>log</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#log</link>
+                     </item>
+                     <item>
+                        <name>sqrt</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#sqrt</link>
+                     </item>
+                     <item>
+                        <name>pow</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#pow</link>
+                     </item>
+                     <item>
+                        <name>squared</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#squared</link>
+                     </item>
+                     <item>
+                        <name>cubed</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#cubed</link>
+                     </item>
+                     <item>
+                        <name>sigmoid</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#sigmoid</link>
+                     </item>
+                     <item>
+                        <name>abs</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#abs</link>
+                     </item>
+                     <item>
+                        <name>reciprocal</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#reciprocal</link>
+                     </item>
+                     <item>
+                        <name>reciprocal_max</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#reciprocal_max</link>
+                     </item>
+                     <item>
+                        <name>normalize</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#normalize</link>
+                     </item>
+                     <item>
+                        <name>round</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#round</link>
+                     </item>
+                     <item>
+                        <name>ceil</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#ceil</link>
+                     </item>
+                     <item>
+                        <name>floor</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#floor</link>
+                     </item>
+                     <item>
+                        <name>round_zeros</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#round_zeros</link>
+                     </item>
+                     <item>
+                        <name>conj</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#conj</link>
+                     </item>
+                     <item>
+                        <name>norm</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#norm</link>
+                     </item>
+                     <item>
+                        <name>imag</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#imag</link>
+                     </item>
+                     <item>
+                        <name>real</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#real</link>
+                     </item>
+                     <item>
+                        <name>complex_matrix</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#complex_matrix</link>
+                     </item>
+                     <item>
+                        <name>sin</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#sin</link>
+                     </item>
+                     <item>
+                        <name>cos</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#cos</link>
+                     </item>
+                     <item>
+                        <name>tan</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#tan</link>
+                     </item>
+                     <item>
+                        <name>asin</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#asin</link>
+                     </item>
+                     <item>
+                        <name>acos</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#acos</link>
+                     </item>
+                     <item>
+                        <name>atan</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#atan</link>
+                     </item>
+                     <item>
+                        <name>sinh</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#sinh</link>
+                     </item>
+                     <item>
+                        <name>cosh</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#cosh</link>
+                     </item>
+                     <item>
+                        <name>tanh</name>
+                        <link>dlib/matrix/matrix_math_functions_abstract.h.html#tanh</link>
+                     </item>
+                  </sub>
+               </item>
+               <item nolink="true">
+                  <name>linear_algebra</name>
+                  <sub>
+                     <item>
+                        <name>inv</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#inv</link>
+                     </item>
+                     <item>
+                        <name>pinv</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#pinv</link>
+                     </item>
+                     <item>
+                        <name>svd</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#svd</link>
+                     </item>
+                     <item>
+                        <name>svd2</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#svd2</link>
+                     </item>
+                     <item>
+                        <name>svd3</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#svd3</link>
+                     </item>
+                     <item>
+                        <name>det</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#det</link>
+                     </item>
+                     <item>
+                        <name>trace</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#trace</link>
+                     </item>
+                     <item>
+                        <name>chol</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#chol</link>
+                     </item>
+                     <item>
+                        <name>inv_lower_triangular</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#inv_lower_triangular</link>
+                     </item>
+                     <item>
+                        <name>inv_upper_triangular</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#inv_upper_triangular</link>
+                     </item>
+                     <item>
+                        <name>lu_decomposition</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#lu_decomposition</link>
+                     </item>
+                     <item>
+                        <name>qr_decomposition</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#qr_decomposition</link>
+                     </item>
+                     <item>
+                        <name>cholesky_decomposition</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#cholesky_decomposition</link>
+                     </item>
+                     <item>
+                        <name>eigenvalue_decomposition</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#eigenvalue_decomposition</link>
+                     </item>
+                     <item>
+                        <name>real_eigenvalues</name>
+                        <link>dlib/matrix/matrix_la_abstract.h.html#real_eigenvalues</link>
+                     </item>
+                  </sub>
+               </item>
+               <item nolink="true">
+                  <name>sub_expressions</name>
+                  <sub>
+                     <item>
+                        <name>range</name>
+                        <link>dlib/matrix/matrix_subexp_abstract.h.html#range</link>
+                     </item>
+                     <item>
+                        <name>subm</name>
+                        <link>dlib/matrix/matrix_subexp_abstract.h.html#subm</link>
+                     </item>
+                     <item>
+                        <name>rowm</name>
+                        <link>dlib/matrix/matrix_subexp_abstract.h.html#rowm</link>
+                     </item>
+                     <item>
+                        <name>colm</name>
+                        <link>dlib/matrix/matrix_subexp_abstract.h.html#colm</link>
+                     </item>
+                     <item>
+                        <name>set_subm</name>
+                        <link>dlib/matrix/matrix_subexp_abstract.h.html#set_subm</link>
+                     </item>
+                     <item>
+                        <name>set_colm</name>
+                        <link>dlib/matrix/matrix_subexp_abstract.h.html#set_colm</link>
+                     </item>
+                     <item>
+                        <name>set_rowm</name>
+                        <link>dlib/matrix/matrix_subexp_abstract.h.html#set_rowm</link>
+                     </item>
+                  </sub>
+               </item>
+               <item nolink="true">
+                  <name>statistics</name>
+                  <sub>
+                     <item>
+                        <name>sum</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#sum</link>
+                     </item>
+                     <item>
+                        <name>sum_rows</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#sum_rows</link>
+                     </item>
+                     <item>
+                        <name>sum_cols</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#sum_cols</link>
+                     </item>
+                     <item>
+                        <name>prod</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#prod</link>
+                     </item>
+                     <item>
+                        <name>mean</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#mean</link>
+                     </item>
+                     <item>
+                        <name>max</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#max</link>
+                     </item>
+                     <item>
+                        <name>min</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#min</link>
+                     </item>
+                     <item>
+                        <name>find_min_and_max</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#find_min_and_max</link>
+                     </item>
+                     <item>
+                        <name>index_of_min</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#index_of_min</link>
+                     </item>
+                     <item>
+                        <name>index_of_max</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#index_of_max</link>
+                     </item>
+                     <item>
+                        <name>variance</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#variance</link>
+                     </item>
+                     <item>
+                        <name>covariance</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#covariance</link>
+                     </item>
+                     <item>
+                        <name>randm</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#randm</link>
+                     </item>
+                  </sub>
+               </item>
+               <item nolink="true">
+                  <name>utilities</name>
+                  <sub>
+                     <item>
+                        <name>is_col_vector</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#is_col_vector</link>
+                     </item>
+                     <item>
+                        <name>is_row_vector</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#is_row_vector</link>
+                     </item>
+                     <item>
+                        <name>is_vector</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#is_vector</link>
+                     </item>
+                     <item>
+                        <name>const_temp_matrix</name>
+                        <link>dlib/matrix/matrix_abstract.h.html#const_temp_matrix</link>
+                     </item>
+                     <item>
+                        <name>diag</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#diag</link>
+                     </item>
+                     <item>
+                        <name>diagm</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#diagm</link>
+                     </item>
+                     <item>
+                        <name>trans</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#trans</link>
+                     </item>
+                     <item>
+                        <name>flipud</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#flipud</link>
+                     </item>
+                     <item>
+                        <name>fliplr</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#fliplr</link>
+                     </item>
+                     <item>
+                        <name>dot</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#dot</link>
+                     </item>
+                     <item>
+                        <name>lowerm</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#lowerm</link>
+                     </item>
+                     <item>
+                        <name>upperm</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#upperm</link>
+                     </item>
+                     <item>
+                        <name>make_symmetric</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#make_symmetric</link>
+                     </item>
+                     <item>
+                        <name>ones_matrix</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#ones_matrix</link>
+                     </item>
+                     <item>
+                        <name>zeros_matrix</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#zeros_matrix</link>
+                     </item>
+                     <item>
+                        <name>uniform_matrix</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#uniform_matrix</link>
+                     </item>
+                     <item>
+                        <name>identity_matrix</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#identity_matrix</link>
+                     </item>
+                     <item>
+                        <name>rotate</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#rotate</link>
+                     </item>
+                     <item>
+                        <name>vector_to_matrix</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#vector_to_matrix</link>
+                     </item>
+                     <item>
+                        <name>pointer_to_column_vector</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#pointer_to_column_vector</link>
+                     </item>
+                     <item>
+                        <name>pointer_to_matrix</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#pointer_to_matrix</link>
+                     </item>
+                     <item>
+                        <name>reshape_to_column_vector</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#reshape_to_column_vector</link>
+                     </item>
+                     <item>
+                        <name>reshape</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#reshape</link>
+                     </item>
+                     <item>
+                        <name>array_to_matrix</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#array_to_matrix</link>
+                     </item>
+                     <item>
+                        <name>removerc</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#removerc</link>
+                     </item>
+                     <item>
+                        <name>remove_row</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#remove_row</link>
+                     </item>
+                     <item>
+                        <name>remove_col</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#remove_col</link>
+                     </item>
+                     <item>
+                        <name>matrix_cast</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#matrix_cast</link>
+                     </item>
+                     <item>
+                        <name>set_all_elements</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#set_all_elements</link>
+                     </item>
+                     <item>
+                        <name>tmp</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#tmp</link>
+                     </item>
+                     <item>
+                        <name>equal</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#equal</link>
+                     </item>
+                     <item>
+                        <name>pointwise_multiply</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#pointwise_multiply</link>
+                     </item>
+                     <item>
+                        <name>join_rows</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#join_rows</link>
+                     </item>
+                     <item>
+                        <name>join_cols</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#join_cols</link>
+                     </item>
+                     <item>
+                        <name>tensor_product</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#tensor_product</link>
+                     </item>
+                     <item>
+                        <name>scale_columns</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#scale_columns</link>
+                     </item>
+                     <item>
+                        <name>scale_rows</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#scale_rows</link>
+                     </item>
+                     <item>
+                        <name>sort_columns</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#sort_columns</link>
+                     </item>
+                     <item>
+                        <name>rsort_columns</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#rsort_columns</link>
+                     </item>
+                     <item>
+                        <name>length</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#length</link>
+                     </item>
+                     <item>
+                        <name>length_squared</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#length_squared</link>
+                     </item>
+
+                     <item>
+                        <name>pixel_to_vector</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#pixel_to_vector</link>
+                     </item>
+                     <item>
+                        <name>vector_to_pixel</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#vector_to_pixel</link>
+                     </item>
+                     <item>
+                        <name>clamp</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#clamp</link>
+                     </item>
+                     <item>
+                        <name>linspace</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#linspace</link>
+                     </item>
+                     <item>
+                        <name>logspace</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#logspace</link>
+                     </item>
+                     <item>
+                        <name>cartesian_product</name>
+                        <link>dlib/matrix/matrix_utilities_abstract.h.html#cartesian_product</link>
+                     </item>
+                  </sub>
+               </item>
+            </sub>
+         </item> 
+         <item>queue</item> 
+         <item>reference_counter</item> 
+         <item>type_safe_union</item> 
+         <item>sequence</item> 
+         <item>set</item> 
+         <item>stack</item> 
+         <item>std_vector_c</item> 
+         <item>static_map</item> 
+         <item>sliding_buffer</item>
+         <item>tuple</item>
+         <item>reference_wrapper</item>
+         <item nolink="true">
+            <name>smart pointers</name>
+            <sub>
+               <item>scoped_ptr</item>
+               <item>shared_ptr</item>
+               <item>shared_ptr_thread_safe</item>
+               <item>weak_ptr</item>
+            </sub>
+         </item>
+         
+      </section>
+
+      <section>
+         <name>Interfaces</name>
+         <item>map_pair</item> 
+         <item>enumerable</item> 
+         <item>
+            <name>remover</name>
+            <sub>
+               <item>
+                  <name>remover</name>
+                  <link>dlib/interfaces/remover.h.html#remover</link>
+               </item>
+               <item>
+                  <name>asc_remover</name>
+                  <link>dlib/interfaces/remover.h.html#asc_remover</link>
+               </item>
+               <item>
+                  <name>pair_remover</name>
+                  <link>dlib/interfaces/remover.h.html#pair_remover</link>
+               </item>
+               <item>
+                  <name>asc_pair_remover</name>
+                  <link>dlib/interfaces/remover.h.html#asc_pair_remover</link>
+               </item>
+            </sub>   
+         </item>     
+      </section>     
+    </top>
+   </menu>
+
+   <!-- ************************************************************************* -->
+   <!-- ************************************************************************* -->
+   <!-- ************************************************************************* -->
+
+   <components>
+   
+      <component checked="true">
+         <name>array</name>
+         <file>dlib/array.h</file>
+         <spec_file>dlib/array/array_kernel_abstract.h</spec_file>
+         <description>
+            This object is just like a C style array and the accessor functions operate 
+            in constant time. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>array_kernel_1</name>
+               <file>dlib/array/array_kernel_1.h</file>
+               <description> 
+                  This implementation is done using an array of pointers, each of which point to 
+                  small sections of the array. This implementation allows the array to use only 
+                  about as much memory as it needs at any given time.
+                  It does not use the <a href="other.html#memory_manager">memory_manager</a> at all. 
+
+               </description> 
+
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for array_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation>          
+
+            <implementation>
+               <name>array_kernel_2</name>
+               <file>dlib/array/array_kernel_2.h</file>
+               <description> 
+                  This implementation is done using a single array of max_size() elements.  So this
+                  is just a simple layer on top of a C style array.
+                  It uses the <a href="other.html#memory_manager">memory_manager</a> for all 
+                  memory allocations. 
+
+               </description> 
+
+               <typedefs>
+                  <typedef>
+                     <name>kernel_2a</name>
+                     <description>is a typedef for array_kernel_2</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation>          
+
+         </implementations>
+         
+         <extensions>
+            <extension>
+               <name>array_sort</name>
+               <spec_file>dlib/array/array_sort_abstract.h</spec_file>
+               <description> 
+                  This extension gives an array the ability to sort its contents.
+               </description> 
+
+               <implementations>
+                  <implementation>
+                     <name>array_sort_1</name>
+                     <file>dlib/array/array_sort_1.h</file>
+                     <description> 
+                        This is a version of the QuickSort algorithm. It swaps the entire array into a C 
+                        style array, sorts it and then swaps it back into the array object.
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>sort_1a</name>
+                           <description>is a typedef for array_kernel_1a extended by array_sort_1</description>
+                        </typedef>
+                        <typedef>
+                           <name>sort_1b</name>
+                           <description>is a typedef for array_kernel_2a extended by array_sort_1</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation> 
+                  <implementation>
+                     <name>array_sort_2</name>
+                     <file>dlib/array/array_sort_2.h</file>
+                     <description> 
+                        This is a version of the QuickSort algorithm.
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>sort_2a</name>
+                           <description>is a typedef for array_kernel_1a extended by array_sort_2</description>
+                        </typedef>
+                        <typedef>
+                           <name>sort_2b</name>
+                           <description>is a typedef for array_kernel_2a extended by array_sort_2</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation>          
+               </implementations>
+   
+               
+            </extension>
+
+
+
+            <extension>
+               <name>array_expand</name>
+               <spec_file>dlib/array/array_expand_abstract.h</spec_file>
+               <description> 
+                This extension gives an array the ability to expand its size() beyond
+                its max_size() without clearing out all its elements.  It also adds a set of pop/push_back()
+                functions similar to the ones in the std::vector object.
+               </description> 
+
+               <implementations>
+                  <implementation>
+                     <name>array_expand_1</name>
+                     <file>dlib/array/array_expand_1.h</file>
+                     <description> 
+                        This is implemented by creating a new bigger array if max_size() isn't big enough,
+                        swapping everything into that new array, and then swapping that array with *this.
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>expand_1a</name>
+                           <description>is a typedef for array_sort_1a extended by array_expand_1</description>
+                        </typedef>
+                        <typedef>
+                           <name>expand_1b</name>
+                           <description>is a typedef for array_sort_1b extended by array_expand_1</description>
+                        </typedef>
+                        <typedef>
+                           <name>expand_1c</name>
+                           <description>is a typedef for array_sort_2a extended by array_expand_1</description>
+                        </typedef>
+                        <typedef>
+                           <name>expand_1d</name>
+                           <description>is a typedef for array_sort_2b extended by array_expand_1</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation> 
+               </implementations>
+   
+               
+            </extension>
+
+
+         </extensions>
+               
+      </component>
+      
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>sliding_buffer</name>
+         <file>dlib/sliding_buffer.h</file>
+         <spec_file>dlib/sliding_buffer/sliding_buffer_kernel_abstract.h</spec_file>
+         <description>
+            This object represents an array with the ability to rotate its contents
+                        left or right. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>sliding_buffer_kernel_1</name>
+               <file>dlib/sliding_buffer/sliding_buffer_kernel_1.h</file>
+               <description> 
+                  This object is implemented using a C style array in the obvious way.  See the code for details. 
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for sliding_buffer_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                     
+         </implementations>
+                        
+      </component>
+            
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>array2d</name>
+         <file>dlib/array2d.h</file>
+         <spec_file>dlib/array2d/array2d_kernel_abstract.h</spec_file>
+         <description>
+                This object represents a 2-Dimensional array of objects.
+         </description>
+
+         <examples>
+            <example>image_ex.cpp.html</example>
+         </examples>
+         
+         <implementations>
+            <implementation>
+               <name>array2d_kernel_1</name>
+               <file>dlib/array2d/array2d_kernel_1.h</file>
+               <description> 
+                  This is implemented in the obvious way.  See the source for details.
+                  It uses the <a href="other.html#memory_manager">memory_manager</a> for all memory allocations.
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for array2d_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation>                                  
+         </implementations>
+                        
+      </component>
+            
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>binary_search_tree</name>
+         <file>dlib/binary_search_tree.h</file>
+         <spec_file>dlib/binary_search_tree/binary_search_tree_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a data dictionary that is built on top of some kind of binary search tree.  
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>binary_search_tree_kernel_1</name>
+               <file>dlib/binary_search_tree/binary_search_tree_kernel_1.h</file>
+               <description> 
+        This implementation is done using an AVL binary search tree.  It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations.
+     </description>  
+  
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for binary_search_tree_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+            <implementation>
+               <name>binary_search_tree_kernel_2</name>
+               <file>dlib/binary_search_tree/binary_search_tree_kernel_2.h</file>
+               <description> 
+                  This implementation is done using a red-black binary search tree.  It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations. 
+               </description> 
+               <typedefs>
+                  <typedef>
+                     <name>kernel_2a</name>
+                     <description>is a typedef for binary_search_tree_kernel_2</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation>          
+         </implementations>
+         
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>hash_map</name>
+         <file>dlib/hash_map.h</file>
+         <spec_file>dlib/hash_map/hash_map_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a hashed mapping of items of type domain onto items of type range. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>hash_map_kernel_1</name>
+               <file>dlib/hash_map/hash_map_kernel_1.h</file>
+               <description> 
+                  This implementation is done using a <a href="#hash_table">hash_table</a> object. It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations.
+
+               </description> 
+   
+ 
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for hash_map_kernel_1 that uses hash_table_kernel_1a</description>
+                  </typedef>
+                  <typedef>
+                     <name>kernel_1b</name>
+                     <description>is a typedef for hash_map_kernel_1 that uses hash_table_kernel_2a</description>
+                  </typedef>
+                  <typedef>
+                     <name>kernel_1c</name>
+                     <description>is a typedef for hash_map_kernel_1 that uses hash_table_kernel_2b</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+         
+                        
+         </implementations>
+         
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>hash_set</name>
+         <file>dlib/hash_set.h</file>
+         <spec_file>dlib/hash_set/hash_set_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a hashed unordered and unaddressed collection of unique items. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>hash_set_kernel_1</name>
+               <file>dlib/hash_set/hash_set_kernel_1.h</file>
+               <description> 
+                  This implementation is done using a <a href="#hash_table">hash_table</a> object. It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations.
+
+               </description> 
+   
+ 
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for hash_set_kernel_1 that uses hash_table_kernel_1a</description>
+                  </typedef>
+                  <typedef>
+                     <name>kernel_1b</name>
+                     <description>is a typedef for hash_set_kernel_1 that uses hash_table_kernel_2a</description>
+                  </typedef>
+                  <typedef>
+                     <name>kernel_1c</name>
+                     <description>is a typedef for hash_set_kernel_1 that uses hash_table_kernel_2b</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+         
+                        
+         </implementations>
+         
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>hash_table</name>
+         <file>dlib/hash_table.h</file>
+         <spec_file>dlib/hash_table/hash_table_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a data dictionary that is built on top of some kind of 
+            hash table. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>hash_table_kernel_1</name>
+               <file>dlib/hash_table/hash_table_kernel_1.h</file>
+               <description> 
+                  This implementation is done using singly linked lists as hashing buckets.  It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations. 
+               </description> 
+   
+  
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for hash_table_kernel_1. </description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+         
+            <implementation>
+               <name>hash_table_kernel_2</name>
+               <file>dlib/hash_table/hash_table_kernel_2.h</file>
+               <description> 
+                  This implementation is done using <a href="#binary_search_tree">
+                  binary_search_tree</a> objects as hashing buckets.  It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations. 
+
+               </description> 
+    
+  
+               <typedefs>
+                  <typedef>
+                     <name>kernel_2a</name>
+                     <description>is a typedef for hash_table_kernel_2 that uses binary_search_tree_kernel_1</description>
+                  </typedef>
+                  <typedef>
+                     <name>kernel_2b</name>
+                     <description>is a typedef for hash_table_kernel_2 that uses binary_search_tree_kernel_2</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+         
+                        
+         </implementations>
+         
+               
+      </component>
+      
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>map</name>
+         <file>dlib/map.h</file>
+         <spec_file>dlib/map/map_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a mapping of items of type domain onto items of type range.
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>map_kernel_1</name>
+               <file>dlib/map/map_kernel_1.h</file>
+               <description> 
+                  This is implemented using the <a href="#binary_search_tree">binary_search_tree</a> component. It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations.
+
+               </description> 
+   
+      
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for map_kernel_1 that uses binary_search_tree_kernel_1</description>
+                  </typedef>
+                  <typedef>
+                     <name>kernel_1b</name>
+                     <description>is a typedef for map_kernel_1 that uses binary_search_tree_kernel_2</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+         
+         
+                        
+         </implementations>
+         
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>enumerable</name>
+         <file>dlib/interfaces/enumerable.h</file>
+         <spec_file>dlib/interfaces/enumerable.h</spec_file>
+         <description>
+            This object is an abstract class which represents an interface for iterating over 
+            all the elements of a container. 
+         </description>
+         
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>map_pair</name>
+         <file>dlib/interfaces/map_pair.h</file>
+         <spec_file>dlib/interfaces/map_pair.h</spec_file>
+         <description>
+            This object is an abstract class which represents an interface for accessing a 
+            pair from a container such as the map, hash_table, etc. 
+         </description>
+         
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>remover</name>
+         <file>dlib/interfaces/remover.h</file>
+         <spec_file>dlib/interfaces/remover.h</spec_file>
+         <description>
+            This is a set of interfaces which gives the ability to remove all the items in a 
+            container without actually knowing what kind of container contains them. 
+         </description>
+         
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>weak_ptr</name>
+         <file>dlib/smart_pointers.h</file>
+         <spec_file>dlib/smart_pointers/weak_ptr_abstract.h</spec_file>
+         <description>
+            <p>
+                The weak_ptr class template stores a weak reference to an object that is 
+                already managed by a shared_ptr. To access the object, a weak_ptr can 
+                be converted to a shared_ptr using the member function lock().  
+            </p>
+
+            <p>
+                This is an implementation of the std::tr1::weak_ptr template from the 
+                document ISO/IEC PDTR 19768, Proposed Draft Technical Report on C++
+                Library Extensions.  The only deviation from that document is that this 
+                shared_ptr is declared inside the dlib namespace rather than std::tr1.
+            </p>
+         </description>
+               
+      </component>
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>type_safe_union</name>
+         <file>dlib/type_safe_union.h</file>
+         <spec_file link="true">dlib/type_safe_union/type_safe_union_kernel_abstract.h</spec_file>
+         <description>
+                This object is a type safe analogue of the classic C union object. 
+                The type_safe_union, unlike a union, can contain non-POD types such 
+                as std::string.    
+                <p>It is also implemented without performing any
+                   heap memory allocations and instead it stores everything on the stack.</p>
+         </description>
+         
+         <examples>
+            <example>pipe_ex_2.cpp.html</example>
+         </examples>
+         
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>any</name>
+         <file>dlib/any.h</file>
+         <spec_file link="true">dlib/any/any_abstract.h</spec_file>
+         <description>
+                This object is basically a type-safe version of a void*.  In particular,
+                it is a container which can contain only one object but the object may
+                be of any type.  
+
+               <p>
+                It is somewhat like the <a href="#type_safe_union">type_safe_union</a> except you don't have to declare 
+                the set of possible content types beforehand.  So in some sense this is 
+                like a less type-strict version of the type_safe_union.
+               </p>
+         </description>
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+
+      <component>
+         <name>shared_ptr_thread_safe</name>
+         <file>dlib/smart_pointers_thread_safe.h</file>
+         <spec_file>dlib/smart_pointers/shared_ptr_thread_safe_abstract.h</spec_file>
+         <description>
+            <p>
+                This object represents a reference counted smart pointer just like 
+                <a href="#shared_ptr">shared_ptr</a> except that it is threadsafe.
+            </p>
+         </description>
+               
+      </component>
+      
+   <!-- ************************************************************************* -->
+      <component>
+         <name>shared_ptr</name>
+         <file>dlib/smart_pointers.h</file>
+         <spec_file>dlib/smart_pointers/shared_ptr_abstract.h</spec_file>
+         <description>
+            <p>
+                This object represents a reference counted smart pointer.  Each shared_ptr
+                contains a pointer to some object and when the last shared_ptr that points
+                to the object is destructed or reset() then the object is guaranteed to be 
+                deleted.
+            </p>
+
+            <p>
+                This is an implementation of the std::tr1::shared_ptr template from the 
+                document ISO/IEC PDTR 19768, Proposed Draft Technical Report on C++
+                Library Extensions.  The only deviation from that document is that this 
+                shared_ptr is declared inside the dlib namespace rather than std::tr1.
+            </p>
+         </description>
+               
+      </component>
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>tuple</name>
+         <file>dlib/tuple.h</file>
+         <spec_file>dlib/tuple/tuple_abstract.h</spec_file>
+         <description>
+                This is an implementation of a very simple templated container object.
+                It contains between 0 and 31 objects where each object is listed
+                explicitly in the tuple's template arguments.   
+
+            <p>
+               Note that there is only one implementation of this object so there aren't any
+               different kernels to choose from when you create instances of the tuple object.  
+               So for example, you
+               could declare a tuple of 3 ints using the following statement: 
+               <tt>dlib::tuple&lt;int,int,int&gt; t;</tt>  
+            </p>
+         </description>
+               
+      </component>
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>reference_wrapper</name>
+         <file>dlib/ref.h</file>
+         <spec_file>dlib/ref.h</spec_file>
+         <description>
+                This is a simple object that just holds a reference to another object. 
+                It is useful because it can serve as a kind of "copyable reference".  
+         </description>
+         <examples>
+            <example>thread_function_ex.cpp.html</example>
+         </examples>
+               
+      </component>
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>scoped_ptr</name>
+         <file>dlib/smart_pointers.h</file>
+         <spec_file>dlib/smart_pointers/scoped_ptr_abstract.h</spec_file>
+         <description>
+                This is a implementation of the scoped_ptr class found in the Boost C++ 
+                library.  It is a simple smart pointer class which guarantees that the 
+                pointer contained within it will always be deleted.  
+                
+                The class does not permit copying and so does not do any kind of 
+                reference counting.  Thus it is very simple and quite fast.
+         </description>
+               
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>graph</name>
+         <file>dlib/graph.h</file>
+         <spec_file>dlib/graph/graph_kernel_abstract.h</spec_file>
+         <description>
+                This object represents a graph which is a set of nodes with undirected
+                edges connecting various nodes.  
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>graph_kernel_1</name>
+               <file>dlib/graph/graph_kernel_1.h</file>
+               <description> 
+                  This is implemented using std::vector to contain all the nodes and edges.   
+               </description> 
+
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for graph_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+         </implementations>
+         
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      <component checked="true">
+         <name>directed_graph</name>
+         <file>dlib/directed_graph.h</file>
+         <spec_file>dlib/directed_graph/directed_graph_kernel_abstract.h</spec_file>
+         <description>
+                This object represents a directed graph which is a set of nodes with directed
+                edges connecting various nodes.  
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>directed_graph_kernel_1</name>
+               <file>dlib/directed_graph/directed_graph_kernel_1.h</file>
+               <description> 
+                  This is implemented using std::vector to contain all the nodes and edges.   
+               </description> 
+
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for directed_graph_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+         </implementations>
+         
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>queue</name>
+         <file>dlib/queue.h</file>
+         <spec_file>dlib/queue/queue_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a first in first out queue. 
+         </description>
+         
+         <examples>
+            <example>queue_ex.cpp.html</example>
+         </examples>
+
+         <implementations>
+            <implementation>
+               <name>queue_kernel_1</name>
+               <file>dlib/queue/queue_kernel_1.h</file>
+               <description> 
+                  This is implemented in the obvious way using a singly linked list.  It does not use the 
+        <a href="other.html#memory_manager">memory_manager</a> at all. 
+               </description> 
+
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for queue_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+            <implementation>
+               <name>queue_kernel_2</name>
+               <file>dlib/queue/queue_kernel_2.h</file>
+               <description> 
+               This is implemented using a singly linked list and each node in the list
+               contains block_size (a template parameter) elements.  It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations. 
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_2a</name>
+                     <description>is a typedef for queue_kernel_2 with a block_size of 20</description>
+                  </typedef>
+                  <typedef>
+                     <name>kernel_2b</name>
+                     <description>is a typedef for queue_kernel_2 with a block_size of 100</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation>          
+         </implementations>
+         
+         <extensions>
+            <extension>
+               <name>queue_sort</name>
+               <spec_file>dlib/queue/queue_sort_abstract.h</spec_file>
+               <description> 
+                  This extension gives a queue the ability to sort its contents.
+               </description> 
+
+               <implementations>
+                  <implementation>
+                     <name>queue_sort_1</name>
+                     <file>dlib/queue/queue_sort_1.h</file>
+                     <description> 
+                        This is a version of the QuickSort algorithm.
+                     </description> 
+    
+                     <typedefs>
+                        <typedef>
+                           <name>sort_1a</name>
+                           <description>is a typedef for queue_kernel_1a extended by queue_sort_1</description>
+                        </typedef>
+                        <typedef>
+                           <name>sort_1b</name>
+                           <description>is a typedef for queue_kernel_2a extended by queue_sort_1</description>
+                        </typedef>
+                        <typedef>
+                           <name>sort_1c</name>
+                           <description>is a typedef for queue_kernel_2b extended by queue_sort_1</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation> 
+                           
+               </implementations>
+   
+               
+            </extension>
+         </extensions>
+               
+      </component>
+      
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>reference_counter</name>
+         <file>dlib/reference_counter.h</file>
+         <spec_file>dlib/reference_counter/reference_counter_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a container for an object and provides reference counting
+            capabilities for the object it contains. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>reference_counter_kernel_1</name>
+               <file>dlib/reference_counter/reference_counter_kernel_1.h</file>
+               <description> 
+                  This implementation is done using pointers in the obvious way.
+               </description> 
+
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for reference_counter_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                        
+         </implementations>
+         
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>sequence</name>
+         <file>dlib/sequence.h</file>
+         <spec_file>dlib/sequence/sequence_kernel_abstract.h</spec_file>
+         <description>
+            This object represents an ordered sequence of items, each item is 
+            associated with an integer value. The items are numbered from 0 to the number of items in the 
+            sequence minus 1. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>sequence_kernel_1</name>
+               <file>dlib/sequence/sequence_kernel_1.h</file>
+               <description> 
+                  This is implemented as an AVL binary search tree.  
+                  Accessing(or adding or removing) an element always takes O(log n) time.  
+ It uses the <a href="other.html#memory_manager">memory_manager</a> for all memory allocations. 
+               </description> 
+
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for sequence_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+            <implementation>
+               <name>sequence_kernel_2</name>
+               <file>dlib/sequence/sequence_kernel_2.h</file>
+               <description> 
+                  This implementation is done using a doubly linked list in the shape of a ring.  
+                  It will remember the last element accessed(or added or removed) and give O(1) 
+                  access time to the elements just left and right of it.  Aside from that, 
+                  accessing(or adding or removing) a random element will take O(n) and in the worst 
+                  case it will take time proportional to the size of the sequence/2.  
+      <p>
+                     It does not use the 
+                     <a href="other.html#memory_manager">memory_manager</a> at all. 
+      </p>
+
+               </description> 
+
+               <typedefs>
+                  <typedef>
+                     <name>kernel_2a</name>
+                     <description>is a typedef for sequence_kernel_2</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation>          
+         </implementations>
+         
+         <extensions>
+      
+            <extension>
+               <name>sequence_sort</name>
+               <spec_file>dlib/sequence/sequence_sort_abstract.h</spec_file>
+               <description> 
+                  This extension gives a sequence the ability to sort its contents.
+               </description> 
+
+               <implementations>
+                  <implementation>
+                     <name>sequence_sort_1</name>
+                     <file>dlib/sequence/sequence_sort_1.h</file>
+                     <description> 
+                        This is a version of the QuickSort algorithm and it sorts sequences of less 
+                        than 30 elements with a selection sort.  This implementation is fastest when 
+                        used with sequence_kernel_2 and fairly slow when used with sequence_kernel_1                       
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>sort_1a</name>
+                           <description>is a typedef for sequence_kernel_2a extended by sequence_sort_1</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation> 
+                  <implementation>
+                     <name>sequence_sort_2</name>
+                     <file>dlib/sequence/sequence_sort_2.h</file>
+                     <description> 
+                        This is a version of the QuickSort algorithm.  This implementation of sort is 
+                        the best to use with sequence_kernel_1 objects but gives extremely poor performance 
+                        with sequence_kernel_2 objects.
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>sort_2a</name>
+                           <description>is a typedef for sequence_kernel_1a extended by sequence_sort_2</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation>          
+               </implementations>
+   
+               
+            </extension>
+            <extension>
+               <name>sequence_compare</name>
+               <spec_file>dlib/sequence/sequence_compare_abstract.h</spec_file>
+               <description> 
+                  This extension gives sequences the ability to compare themselves using 
+                  operator&lt; and operator==.  Thus they can be used in the other container classes 
+                  that require this ability. (maps, sets, etc.)
+               </description> 
+
+               <implementations>
+                  <implementation>
+                     <name>sequence_compare_1</name>
+                     <file>dlib/sequence/sequence_compare_1.h</file>
+                     <description> 
+                        The implementation is obvious.  Click on the sequence_compare_1 link if you want to see.                       
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>compare_1a</name>
+                           <description>is a typedef for sequence_kernel_1a extended by sequence_compare_1</description>
+                        </typedef>
+                        <typedef>
+                           <name>compare_1b</name>
+                           <description>is a typedef for sequence_kernel_2a extended by sequence_compare_1</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation> 
+                           
+               </implementations>
+   
+               
+            </extension>
+         </extensions>
+               
+      </component>
+      
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>set</name>
+         <file>dlib/set.h</file>
+         <spec_file>dlib/set/set_kernel_abstract.h</spec_file>
+         <description>
+            This object represents an unordered and unaddressed collection of unique items. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>set_kernel_1</name>
+               <file>dlib/set/set_kernel_1.h</file>
+               <description> 
+                  This is implemented using the <a href="#binary_search_tree">binary_search_tree</a> component.   It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations.
+
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for set_kernel_1 that uses binary_search_tree_kernel_1</description>
+                  </typedef>
+                  <typedef>
+                     <name>kernel_1b</name>
+                     <description>is a typedef for set_kernel_1 that uses binary_search_tree_kernel_2</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                     
+         </implementations>
+         
+         <extensions>
+      
+            <extension>
+               <name>set_compare</name>
+               <spec_file>dlib/set/set_compare_abstract.h</spec_file>
+               <description> 
+                  This extension gives sets the ability to compare themselves using operator&lt; and 
+                  operator==.  Thus they can be used in the other container classes that require 
+                  this ability. (maps, sets, etc.)
+               </description> 
+
+               <implementations>
+                  <implementation>
+                     <name>set_compare_1</name>
+                     <file>dlib/set/set_compare_1.h</file>
+                     <description> 
+                        The implementation is obvious.  Click on the set_compare_1 link if you want to see.                      
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>compare_1a</name>
+                           <description>is a typedef for set_kernel_1a extended by set_compare_1</description>
+                        </typedef>
+                        <typedef>
+                           <name>compare_1b</name>
+                           <description>is a typedef for set_kernel_1b extended by set_compare_1</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation> 
+                           
+               </implementations>
+   
+               
+            </extension>
+         </extensions>
+               
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>stack</name>
+         <file>dlib/stack.h</file>
+         <spec_file>dlib/stack/stack_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a last in first out stack. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>stack_kernel_1</name>
+               <file>dlib/stack/stack_kernel_1.h</file>
+               <description> 
+                  This implementation is done in the obvious way using a singly linked list.  It uses the 
+        <a href="other.html#memory_manager">memory_manager</a> for all memory allocations. 
+
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for stack_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                     
+         </implementations>
+                        
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>static_map</name>
+         <file>dlib/static_map.h</file>
+         <spec_file>dlib/static_map/static_map_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a mapping of items of type domain onto items of type range. 
+            The difference between this object and the normal <a href="#map">map</a> object is that it does not support adding
+            or removing individual objects from itself.  This allows implementations to focus on using less memory and 
+            achieving faster searching. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>static_map_kernel_1</name>
+               <file>dlib/static_map/static_map_kernel_1.h</file>
+               <description> 
+                  This implementation is just a sorted array which can be searched using a binary search.  
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for static_map_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                     
+         </implementations>
+                        
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component checked="true">
+         <name>static_set</name>
+         <file>dlib/static_set.h</file>
+         <spec_file>dlib/static_set/static_set_kernel_abstract.h</spec_file>
+         <description>
+            This object represents an unordered and unaddressed collection of items. 
+            The difference between this object and the normal <a href="#set">set</a> object is that it does not support adding
+            or removing individual objects from itself.  This allows implementations to focus on using less memory and 
+            achieving faster searching. 
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>static_set_kernel_1</name>
+               <file>dlib/static_set/static_set_kernel_1.h</file>
+               <description> 
+                  This implementation is just a sorted array which can be searched using a binary search.  
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for static_set_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                     
+         </implementations>
+         
+         <extensions>
+      
+            <extension>
+               <name>static_set_compare</name>
+               <spec_file>dlib/static_set/static_set_compare_abstract.h</spec_file>
+               <description> 
+                  This extension gives static_sets the ability to compare themselves using operator&lt; and 
+                  operator==.  Thus they can be used in the other container classes that require 
+                  this ability. (maps, static_sets, etc.)
+               </description> 
+
+               <implementations>
+                  <implementation>
+                     <name>static_set_compare_1</name>
+                     <file>dlib/static_set/static_set_compare_1.h</file>
+                     <description> 
+                        The implementation is obvious.  Click on the static_set_compare_1 link if you want to see.                        
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>compare_1a</name>
+                           <description>is a typedef for static_set_kernel_1a extended by static_set_compare_1</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation> 
+                           
+               </implementations>
+   
+               
+            </extension>
+         </extensions>
+               
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>matrix</name>
+         <file>dlib/matrix.h</file>
+         <spec_file link="true">dlib/matrix/matrix_abstract.h</spec_file>
+         <description>
+           This is a 2D matrix object that enables you to write code that deals with
+           matrices using a simple syntax similar to what can be written in MATLAB.  It is implemented using 
+           the <a href="matrix_expressions_ex.cpp.html">expression templates</a> technique which allows it to eliminate the 
+           temporary matrix objects that would normally be returned from expressions 
+           such as M = A+B+C+D;  Normally each invocation of the + operator would 
+           construct and return a temporary matrix object but using this technique 
+           we can avoid creating all these temporary objects and receive a large speed boost.
+           <p>
+           This object is also capable of using BLAS and LAPACK libraries such as ATLAS or the Intel
+           MKL when available.   To enable BLAS support all you have to do is #define 
+           DLIB_USE_BLAS and then make sure you link your application with your 
+           BLAS library.  Similarly, to enable LAPACK support just #define DLIB_USE_LAPACK and 
+           link to your LAPACK library.  Finally, the use of BLAS and LAPACK is transparent to 
+           the user, that is, the dlib matrix object uses BLAS and LAPACK internally to optimize 
+           various operations while still allowing the user to use a simple MATLAB like syntax.  
+           </p>
+           <p>
+           Note that the cmake files that come with dlib know how to link a project with ATLAS or
+           the Intel MKL if you are building on a linux system.  The cmake files may also 
+           work in a few other cases as well but I haven't tested any others.   But in any
+           case, by no means are you required to use the dlib cmake files. 
+           </p>
+           <p>
+              It is also worth noting that all the preconditions of every function 
+              related to the matrix object are checked by <a href="metaprogramming.html#DLIB_ASSERT">DLIB_ASSERT</a>
+              statements and thus can be enabled by #defining ENABLE_ASSERTS or DEBUG.  Doing
+              this will cause your program to run slower but should catch any usage errors. 
+           </p>
+           <p>
+              Finally, you don't need to #include anything to get the matrix extensions listed below.  
+              They are included by the <a href="dlib/matrix.h.html">dlib/matrix.h</a> file for you.
+            </p>
+         </description>
+         
+         <examples>
+            <example>matrix_ex.cpp.html</example>
+            <example>matrix_expressions_ex.cpp.html</example>
+         </examples>
+
+         <extensions>
+            <extension>
+               <name>matrix_utilities</name>
+               <spec_file>dlib/matrix/matrix_utilities_abstract.h</spec_file>
+               <description>
+                  This extension contains miscellaneous utility functions
+                  for manipulating matrix objects.  
+               </description>
+            </extension>
+
+            <extension>
+               <name>matrix_la</name>
+               <spec_file>dlib/matrix/matrix_la_abstract.h</spec_file>
+               <description>
+                  This extension contains linear algebra functions to calculate 
+                  QR, LU, Cholesky, eigenvalue, and singular value decompositions.  It also
+                  contains a few other miscellaneous functions that solve systems of 
+                  equations or calculate values derived from the above decompositions.
+               </description>
+            </extension>
+
+            <extension>
+               <name>matrix_math_functions</name>
+               <spec_file>dlib/matrix/matrix_math_functions_abstract.h</spec_file>
+               <description>This extension contains mathematical functions that operate on each
+                  element of a matrix independently.  
+               </description>
+            </extension>
+
+            <extension>
+               <name>matrix_sub_expressions</name>
+               <spec_file>dlib/matrix/matrix_subexp_abstract.h</spec_file>
+               <description>
+                  This extension contains a number of functions for dealing with sub-matrices.  
+               </description>
+            </extension>
+         </extensions>              
+                                    
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+      
+      <component>
+         <name>std_vector_c</name>
+         <file>dlib/stl_checked.h</file>
+         <spec_file link="true">dlib/stl_checked/std_vector_c_abstract.h</spec_file>
+         <description>
+            This object is a simple wrapper around the std::vector object.  It 
+            provides an identical interface but also checks the preconditions of
+            each member function.  That is, if you violate a requires
+            clause the dlib::fatal_error exception is thrown. 
+         </description>
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+   </components>
+
+   <!-- ************************************************************************* -->
+
+
+</doc>

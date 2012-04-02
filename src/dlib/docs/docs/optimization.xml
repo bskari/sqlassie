@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="stylesheet.xsl"?>
+
+<doc>
+   <title>Optimization</title>
+
+   <!-- ************************************************************************* -->
+
+   <body>
+      <br/><br/>
+
+         <p>
+            This page documents library components that attempt to find the 
+            minimum or maximum of a user supplied function.   An introduction
+            to the general purpose non-linear optimizers in this section can be
+            found <a href="optimization_ex.cpp.html">here</a>.  For an example
+            showing how to use the non-linear least squares routines look 
+            <a href="least_squares_ex.cpp.html">here</a>.
+         </p>
+
+   </body>
+
+   <!-- ************************************************************************* -->
+
+   <menu width="150">
+    <top>
+      <section>
+         <name>Main Routines</name>
+         <item>find_min</item> 
+         <item>find_min_single_variable</item> 
+         <item>find_min_using_approximate_derivatives</item> 
+         <item>find_min_bobyqa</item> 
+         <item>solve_qp_using_smo</item> 
+         <item>oca</item> 
+         <item>find_max</item> 
+         <item>find_max_single_variable</item> 
+         <item>find_max_using_approximate_derivatives</item> 
+         <item>find_max_bobyqa</item> 
+         <item>find_max_trust_region</item> 
+         <item>find_min_trust_region</item> 
+         <item>solve_least_squares</item> 
+         <item>solve_least_squares_lm</item> 
+      </section>
+
+      <section>
+         <name>Strategies</name>
+         <item>cg_search_strategy</item>
+         <item>bfgs_search_strategy</item>
+         <item>newton_search_strategy</item>
+         <item>lbfgs_search_strategy</item>
+         <item>objective_delta_stop_strategy</item>
+         <item>gradient_norm_stop_strategy</item>
+      </section>
+
+      <section>
+         <name>Helper Routines</name>
+         <item>derivative</item> 
+         <item>negate_function</item> 
+         <item>make_line_search_function</item> 
+         <item>poly_min_extrap</item> 
+         <item>lagrange_poly_min_extrap</item> 
+         <item>line_search</item> 
+         <item>solve_trust_region_subproblem</item> 
+      </section>
+
+    </top>  
+   </menu>
+
+   <!-- ************************************************************************* -->
+   <!-- ************************************************************************* -->
+   <!-- ************************************************************************* -->
+
+   <components>
+   
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>derivative</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_abstract.h</spec_file>
+         <description>
+            This is a function that takes another function as input and returns
+            a function object that numerically computes the derivative of the input function.
+         </description>
+                                 
+      </component>
+
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>negate_function</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_abstract.h</spec_file>
+         <description>
+            This is a function that takes another function as input and returns
+            a function object that computes the negation of the input function.
+         </description>
+                                 
+      </component>
+
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>make_line_search_function</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_line_search_abstract.h</spec_file>
+         <description>
+            This is a function that takes another function f(x) as input and returns
+            a function object l(z) = f(start + z*direction).   It is useful for
+            turning multi-variable functions into single-variable functions for
+            use with the <a href="#line_search">line_search</a> routine.
+         </description>
+                                 
+      </component>
+
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>poly_min_extrap</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_line_search_abstract.h</spec_file>
+         <description>
+            This function finds the 3rd degree polynomial that interpolates a 
+            set of points and returns you the minimum of that polynomial.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>lagrange_poly_min_extrap</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_line_search_abstract.h</spec_file>
+         <description>
+            This function finds the second order polynomial that interpolates a 
+            set of points and returns you the minimum of that polynomial.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>line_search</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_line_search_abstract.h</spec_file>
+         <description>
+            Performs a gradient based line search on a given function and returns the input
+            that makes the function significantly smaller.
+         </description>
+                                 
+      </component>
+
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>cg_search_strategy</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_search_strategies_abstract.h</spec_file>
+         <description>
+                This object represents a strategy for determining which direction
+                a <a href="#line_search">line search</a> should be carried out along.  This particular object
+                is an implementation of the Polak-Ribiere conjugate gradient method
+                for determining this direction.
+
+                  <p>
+                This method uses an amount of memory that is linear in the number
+                of variables to be optimized.  So it is capable of handling problems
+                with a very large number of variables.  However, it is generally
+                not as good as the L-BFGS algorithm (see the 
+                <a href="#lbfgs_search_strategy">lbfgs_search_strategy</a> class).
+                  </p>
+         </description>
+         <examples>
+            <example>optimization_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>bfgs_search_strategy</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_search_strategies_abstract.h</spec_file>
+         <description>
+                This object represents a strategy for determining which direction
+                a <a href="#line_search">line search</a> should be carried out along.  This particular object
+                is an implementation of the BFGS quasi-newton method for determining 
+                this direction.
+
+                  <p>
+                This method uses an amount of memory that is quadratic in the number
+                of variables to be optimized.  It is generally very effective but 
+                if your problem has a very large number of variables then it isn't 
+                appropriate.  Instead, you should try the <a href="#lbfgs_search_strategy">lbfgs_search_strategy</a>.
+                  </p>
+         </description>
+         <examples>
+            <example>optimization_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>newton_search_strategy</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_search_strategies_abstract.h</spec_file>
+         <description>
+                This object represents a strategy for determining which direction
+                a <a href="#line_search">line search</a> should be carried out along.  This particular routine 
+                is an implementation of the newton method for determining this direction.  
+                That means using it requires you to supply a method for
+                creating hessian matrices for the problem you are trying to optimize.
+
+               <p>
+               Note also that this is actually a helper function for creating 
+               <a href="dlib/optimization/optimization_search_strategies_abstract.h.html#newton_search_strategy_obj"
+                     >newton_search_strategy_obj</a> objects.  
+               </p>
+
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>lbfgs_search_strategy</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_search_strategies_abstract.h</spec_file>
+         <description>
+                This object represents a strategy for determining which direction
+                a <a href="#line_search">line search</a> should be carried out along.  This particular object
+                is an implementation of the L-BFGS quasi-newton method for determining 
+                this direction.
+
+                  <p>
+                This method uses an amount of memory that is linear in the number
+                of variables to be optimized.  This makes it an excellent method 
+                to use when an optimization problem has a large number of variables.
+                  </p>
+         </description>
+         <examples>
+            <example>optimization_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>objective_delta_stop_strategy</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_stop_strategies_abstract.h</spec_file>
+         <description>
+                This object represents a strategy for deciding if an optimization
+                algorithm should terminate.   This particular object looks at the 
+                change in the objective function from one iteration to the next and 
+                bases its decision on how large this change is.  If the change
+                is below a user given threshold then the search stops.
+         </description>
+         <examples>
+            <example>optimization_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>gradient_norm_stop_strategy</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_stop_strategies_abstract.h</spec_file>
+         <description>
+                This object represents a strategy for deciding if an optimization
+                algorithm should terminate.   This particular object looks at the 
+                norm (i.e. the length) of the current gradient vector and
+                stops if it is smaller than a user given threshold.  
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>find_min</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_abstract.h</spec_file>
+         <description>
+             Performs an unconstrained minimization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+         </description>
+         <examples>
+            <example>optimization_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>find_min_single_variable</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_line_search_abstract.h</spec_file>
+         <description>
+             Performs a bound constrained minimization of a nonlinear function.  The 
+             function must be of a single variable.  Derivatives are not required.  
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>solve_trust_region_subproblem</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_trust_region_abstract.h</spec_file>
+         <description>
+             This function solves the following optimization problem:
+<pre>
+Minimize: f(p) == 0.5*trans(p)*B*p + trans(g)*p
+subject to the following constraint:
+   length(p) &lt;= radius
+</pre>
+
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>solve_qp_using_smo</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_solve_qp_using_smo_abstract.h</spec_file>
+         <description>
+             This function solves the following quadratic program:
+<pre>
+   Minimize: f(alpha) == 0.5*trans(alpha)*Q*alpha - trans(alpha)*b
+   subject to the following constraints:
+      sum(alpha) == C 
+      min(alpha) >= 0 
+   Where f is convex.  This means that Q should be positive-semidefinite.
+</pre>
+
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>oca</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_oca_abstract.h</spec_file>
+         <description>
+                This object is a tool for solving the following optimization problem:   
+<pre>
+   Minimize: f(w) == 0.5*dot(w,w) + C*R(w)
+
+   Where R(w) is a user-supplied convex function and C > 0
+</pre>
+<br/>
+<br/>
+
+                For a detailed discussion you should consult the following papers
+                from the Journal of Machine Learning Research:
+                <blockquote>
+                    Optimized Cutting Plane Algorithm for Large-Scale Risk Minimization
+                      by  Vojtech Franc, Soren Sonnenburg; 10(Oct):2157--2192, 2009. 
+                </blockquote>
+                <blockquote>
+                    Bundle Methods for Regularized Risk Minimization
+                      by Choon Hui Teo, S.V.N. Vishwanthan, Alex J. Smola, Quoc V. Le; 11(Jan):311-365, 2010. 
+                </blockquote>
+
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      
+      <component>
+         <name>find_min_bobyqa</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_bobyqa_abstract.h</spec_file>
+         <description>
+            This function defines the dlib interface to the BOBYQA software developed by M.J.D Powell.
+            BOBYQA is a method for optimizing a function in the absence of derivative information.  
+            Powell described it as a method that seeks the least value of a function of many 
+            variables, by applying a trust region method that forms quadratic models by 
+            interpolation.  There is usually some freedom in the interpolation conditions, 
+            which is taken up by minimizing the Frobenius norm of the change to the second 
+            derivative of the model, beginning with the zero matrix. The values of the variables 
+            are constrained by upper and lower bounds.  
+
+            <p>
+            The following paper, published in 2009 by Powell, describes the
+            detailed working of the BOBYQA algorithm.  
+
+               <blockquote>
+               The BOBYQA algorithm for bound constrained optimization 
+               without derivatives by M.J.D. Powell
+               </blockquote>
+            </p>
+
+            <p>
+               Note that BOBYQA only works on functions of two or more variables.  So if you need to perform 
+               derivative-free optimization on a function of a single variable 
+               then you should use the <a href="#find_min_single_variable">find_min_single_variable</a>
+               function.
+            </p>
+
+         </description>
+         <examples>
+            <example>optimization_ex.cpp.html</example>
+            <example>model_selection_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>find_max_bobyqa</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_bobyqa_abstract.h</spec_file>
+         <description>
+            This function is identical to the <a href="#find_min_bobyqa">find_min_bobyqa</a> routine 
+            except that it negates the objective function before performing optimization.  
+            Thus this function will attempt to find the maximizer of the objective rather than 
+            the minimizer.
+            <p>
+               Note that BOBYQA only works on functions of two or more variables.  So if you need to perform 
+               derivative-free optimization on a function of a single variable 
+               then you should use the <a href="#find_max_single_variable">find_max_single_variable</a>
+               function.
+            </p>
+         </description>
+         <examples>
+            <example>optimization_ex.cpp.html</example>
+            <example>model_selection_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>find_min_using_approximate_derivatives</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_abstract.h</spec_file>
+         <description>
+             Performs an unconstrained minimization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+             This version doesn't take a gradient function but instead numerically approximates 
+             the gradient.
+         </description>
+         <examples>
+            <example>optimization_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>solve_least_squares</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_least_squares_abstract.h</spec_file>
+         <description>
+            This is a function for solving non-linear least squares problems.  It uses a method
+            which combines the traditional Levenberg-Marquardt technique with a quasi-newton
+            approach.  It is appropriate for large residual problems (i.e. problems where the
+            terms in the least squares function, the residuals, don't go to zero but remain
+            large at the solution)
+         </description>
+                                 
+         <examples>
+            <example>least_squares_ex.cpp.html</example>
+         </examples>
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>solve_least_squares_lm</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_least_squares_abstract.h</spec_file>
+         <description>
+            This is a function for solving non-linear least squares problems.  It uses 
+            the traditional Levenberg-Marquardt technique. 
+            It is appropriate for small residual problems (i.e. problems where the
+            terms in the least squares function, the residuals, go to zero at the solution)
+         </description>
+                                 
+         <examples>
+            <example>least_squares_ex.cpp.html</example>
+         </examples>
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>find_min_trust_region</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_trust_region_abstract.h</spec_file>
+         <description>
+             Performs an unconstrained minimization of a nonlinear function using 
+             a trust region method.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>find_max_trust_region</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_trust_region_abstract.h</spec_file>
+         <description>
+             Performs an unconstrained maximization of a nonlinear function using 
+             a trust region method.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>find_max</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_abstract.h</spec_file>
+         <description>
+             Performs an unconstrained maximization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>find_max_single_variable</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_line_search_abstract.h</spec_file>
+         <description>
+             Performs a bound constrained maximization of a nonlinear function.  The 
+             function must be of a single variable.  Derivatives are not required.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>find_max_using_approximate_derivatives</name>
+         <file>dlib/optimization.h</file>
+         <spec_file link="true">dlib/optimization/optimization_abstract.h</spec_file>
+         <description>
+             Performs an unconstrained maximization of a nonlinear function using 
+             some search strategy (e.g. <a href="#bfgs_search_strategy">bfgs_search_strategy</a>).
+             This version doesn't take a gradient function but instead numerically approximates 
+             the gradient.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+   </components>
+
+   <!-- ************************************************************************* -->
+
+
+</doc>
+

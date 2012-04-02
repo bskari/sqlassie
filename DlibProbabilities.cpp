@@ -32,10 +32,10 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/function.hpp>
 #include <cassert>
-#include "dlib/bayes_utils.h"
-#include "dlib/graph_utils.h"
-#include "dlib/graph.h"
-#include "dlib/directed_graph.h"
+#include "dlib/dlib/bayes_utils.h"
+#include "dlib/dlib/graph_utils.h"
+#include "dlib/dlib/graph.h"
+#include "dlib/dlib/directed_graph.h"
 #include <exception>
 #include <fstream>
 #include <stack>

@@ -28,10 +28,10 @@
 
 #include <boost/cstdint.hpp>
 #include <boost/thread/mutex.hpp>
-#include "dlib/bayes_utils.h"
-#include "dlib/graph.h"
-#include "dlib/graph_utils.h"
-#include "dlib/directed_graph.h"
+#include "dlib/dlib/bayes_utils.h"
+#include "dlib/dlib/graph.h"
+#include "dlib/dlib/graph_utils.h"
+#include "dlib/dlib/directed_graph.h"
 
 /**
  * Implementation of AttackProbabilities that uses Bayesian networks and the

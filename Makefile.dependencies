@@ -33,9 +33,9 @@ ConditionalNode.o:	ConditionalNode.cpp AstNode.hpp ConditionalNode.hpp
 
 DlibProbabilities.o:	DlibProbabilities.cpp AttackProbabilities.hpp \
 	BayesException.hpp DlibProbabilities.hpp Logger.hpp QueryRisk.hpp \
-	clearStack.hpp dlib/bayes_utils.h dlib/directed_graph.h dlib/graph.h \
-	dlib/graph_utils.h huginParser.tab.hpp huginScanner.yy.hpp \
-	nullptr.hpp
+	clearStack.hpp dlib/dlib/bayes_utils.h dlib/dlib/directed_graph.h \
+	dlib/dlib/graph.h dlib/dlib/graph_utils.h huginParser.tab.hpp \
+	huginScanner.yy.hpp nullptr.hpp
 
 ExpressionNode.o:	ExpressionNode.cpp AstNode.hpp ExpressionNode.hpp \
 	Logger.hpp nullptr.hpp
@@ -131,7 +131,8 @@ queryStatistics.o:	queryStatistics.cpp Logger.hpp ParserInterface.hpp \
 riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
 	DlibProbabilities.hpp ParserInterface.hpp QueryRisk.hpp nullptr.hpp
 
-scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp scanner.yy.hpp
+scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ScannerContext.hpp \
+	nullptr.hpp parser.tab.hpp scanner.yy.hpp
 
 sqlassie.o:	sqlassie.cpp DescribedException.hpp Logger.hpp \
 	MySqlGuardListenSocket.hpp MySqlGuardObjectContainer.hpp \

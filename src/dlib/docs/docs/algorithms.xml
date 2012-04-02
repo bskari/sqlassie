@@ -1,0 +1,902 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="stylesheet.xsl"?>
+
+<doc>
+   <title>Algorithms</title>
+
+   <!-- ************************************************************************* -->
+
+   <body>
+      <br/><br/>
+
+         <p>
+            This page documents library components that are all basically just implementations of 
+            mathematical functions or algorithms that don't fit in any of the other pages
+            of the dlib documentation.  So this includes things like checksums, cryptographic hashes, 
+            sorting, etc.
+         </p>
+
+   </body>
+
+   <!-- ************************************************************************* -->
+
+   <menu width="150">
+    <top>
+      <section>
+         <name>Tools</name>
+         <item>bigint</item> 
+         <item>crc32</item> 
+         <item>rand</item> 
+         <item>running_stats</item> 
+         <item>running_scalar_covariance</item> 
+         <item>running_covariance</item> 
+         <item>random_subset_selector</item> 
+         <item>randomly_subsample</item> 
+         <item nolink="true">
+            <name>Quantum Computing</name>
+            <sub>
+               <item>quantum_register</item> 
+               <item>gate</item> 
+            </sub>
+         </item>
+         <item nolink="true">
+            <name>Geometry</name>
+            <sub>
+               <item>rectangle</item> 
+               <item>vector</item> 
+               <item>point</item> 
+               <item>rotate_point</item> 
+               <item>point_rotator</item> 
+               <item>get_rect</item> 
+               <item>centered_rect</item> 
+               <item>shrink_rect</item> 
+               <item>grow_rect</item> 
+               <item>translate_rect</item> 
+               <item>resize_rect</item> 
+               <item>resize_rect_width</item> 
+               <item>resize_rect_height</item> 
+               <item>move_rect</item> 
+               <item>nearest_point</item> 
+            </sub>
+         </item>
+         <item nolink="true">
+            <name>Graph Utilities</name>
+            <sub>
+               <item>graph_contains_directed_cycle</item> 
+               <item>graph_contains_undirected_cycle</item> 
+               <item>create_moral_graph</item> 
+               <item>triangulate_graph_and_find_cliques</item> 
+               <item>graph_contains_length_one_cycle</item> 
+               <item>find_connected_nodes</item> 
+               <item>graph_is_connected</item> 
+               <item>is_clique</item> 
+               <item>is_maximal_clique</item> 
+               <item>copy_graph_structure</item> 
+               <item>edge</item> 
+               <item>is_join_tree</item> 
+               <item>create_join_tree</item> 
+            </sub>
+         </item>
+         <item>hsort_array</item> 
+         <item>isort_array</item> 
+         <item>put_in_range</item> 
+         <item>md5</item> 
+         <item>median</item> 
+         <item>qsort_array</item> 
+         <item>square_root</item> 
+         <item nolink="true">
+            <name>Set Utilities</name>
+            <sub>
+               <item>set_intersection_size</item> 
+               <item>set_intersection</item> 
+               <item>set_union</item> 
+               <item>set_difference</item> 
+            </sub>
+         </item>
+      </section>
+
+    </top>  
+   </menu>
+
+   <!-- ************************************************************************* -->
+   <!-- ************************************************************************* -->
+   <!-- ************************************************************************* -->
+
+   <components>
+   
+   <!-- ************************************************************************* -->
+
+      <component checked="true">
+         <name>bigint</name>
+         <file>dlib/bigint.h</file>
+         <spec_file>dlib/bigint/bigint_kernel_abstract.h</spec_file>
+         <description>
+            This object represents an arbitrary precision unsigned integer.  It's pretty simple.  
+            It's interface is just like a normal int, you don't have to tell it how much memory
+            to use or anything unusual.  It just goes :)       
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>bigint_kernel_1</name>
+               <file>dlib/bigint/bigint_kernel_1.h</file>
+               <description> 
+                  This implementation is done using an array of unsigned shorts.  It is also reference counted.  
+                  For further details see the above link.  Also note that kernel_2 should be 
+      faster in almost every case so you should really just use that version of the bigint object.
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for bigint_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                     
+            <implementation>
+               <name>bigint_kernel_2</name>
+               <file>dlib/bigint/bigint_kernel_2.h</file>
+               <description> 
+                  This implementation is basically the same as kernel_1 except it uses the 
+                  Fast Fourier Transform to perform multiplications much faster.  
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_2a</name>
+                     <description>is a typedef for bigint_kernel_2</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                     
+         </implementations>
+                           
+                        
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>crc32</name>
+         <file>dlib/crc32.h</file>
+         <spec_file>dlib/crc32/crc32_kernel_abstract.h</spec_file>
+         <description>
+            This object represents the CRC-32 algorithm for calculating
+                        checksums.   
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>crc32_kernel_1</name>
+               <file>dlib/crc32/crc32_kernel_1.h</file>
+               <description> 
+                  This implementation uses the polynomial 0xedb88320. 
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for crc32_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation>                                  
+         </implementations>
+                        
+      </component>
+            
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>rand</name>
+         <file>dlib/rand.h</file>
+         <spec_file>dlib/rand/rand_kernel_abstract.h</spec_file>
+         <description>
+            This object represents a pseudorandom number generator.
+         </description>
+         
+         <implementations>
+            <implementation>
+               <name>rand_kernel_1</name>
+               <file>dlib/rand/rand_kernel_1.h</file>
+               <description> 
+                  This implementation is done using the Mersenne Twister algorithm.
+               </description> 
+    
+               <typedefs>
+                  <typedef>
+                     <name>kernel_1a</name>
+                     <description>is a typedef for rand_kernel_1</description>
+                  </typedef>
+               </typedefs>                
+               
+            </implementation> 
+                     
+         </implementations>
+         
+         <extensions>
+      
+            <extension>
+               <name>rand_float</name>
+               <spec_file>dlib/rand/rand_float_abstract.h</spec_file>
+               <description> 
+                  This extension gives rand the ability to generate random floating point numbers.
+               </description> 
+
+               <implementations>
+                  <implementation>
+                     <name>rand_float_1</name>
+                     <file>dlib/rand/rand_float_1.h</file>
+                     <description> 
+                        The implementation is obvious.  Click on the link if you want to see.                        
+                     </description> 
+
+                     <typedefs>
+                        <typedef>
+                           <name>float_1a</name>
+                           <description>is a typedef for rand_kernel_1a extended by rand_float_1</description>
+                        </typedef>
+                     </typedefs>                
+                     
+                  </implementation> 
+                           
+               </implementations>
+   
+               
+            </extension>
+         </extensions>
+               
+                        
+      </component>
+            
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>rectangle</name>
+         <file>dlib/geometry.h</file>
+         <spec_file>dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>
+            This object represents a rectangular region inside a Cartesian 
+            coordinate system.  It allows you to easily represent and manipulate
+            rectangles.
+         </description>
+      </component>
+            
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>vector</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/vector_abstract.h</spec_file>
+         <description>
+            This object represents a two or three dimensional vector.
+         </description>
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>point</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/vector_abstract.h</spec_file>
+         <description>
+               This object represents a point inside a Cartesian coordinate system.
+         </description>
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>running_stats</name>
+         <file>dlib/statistics.h</file>
+         <spec_file link="true">dlib/statistics/statistics_abstract.h</spec_file>
+         <description>
+                This object represents something that can compute the running mean and
+                variance of a stream of real numbers.  
+         </description>
+
+         <examples>
+            <example>kcentroid_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>running_covariance</name>
+         <file>dlib/statistics.h</file>
+         <spec_file link="true">dlib/statistics/statistics_abstract.h</spec_file>
+         <description>
+                This object is a simple tool for computing the mean and
+                covariance of a sequence of vectors.  
+         </description>
+
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>running_scalar_covariance</name>
+         <file>dlib/statistics.h</file>
+         <spec_file link="true">dlib/statistics/statistics_abstract.h</spec_file>
+         <description>
+                This object is a simple tool for computing the covariance of a 
+                sequence of scalar values.  
+         </description>
+      </component>
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>random_subset_selector</name>
+         <file>dlib/statistics.h</file>
+         <spec_file>dlib/statistics/random_subset_selector_abstract.h</spec_file>
+         <description>
+               This object is a tool to help you select a random subset of a large body of data.  
+               In particular, it is useful when the body of data is too large to fit into memory.
+         </description>
+
+                                 
+      </component>
+      
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>randomly_subsample</name>
+         <file>dlib/statistics.h</file>
+         <spec_file link="true">dlib/statistics/random_subset_selector_abstract.h</spec_file>
+         <description>
+            This is a set of convenience functions for 
+            creating <a href="#random_subset_selector">random subsets</a> of data.
+         </description>
+                                 
+      </component>
+      
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>hsort_array</name>
+         <file>dlib/sort.h</file>
+         <spec_file link="true">dlib/sort.h</spec_file>
+         <description>
+            hsort_array is an implementation of the heapsort algorithm.  It will sort anything that has an 
+            array like operator[] interface.  
+         </description>
+                                 
+      </component>
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>put_in_range</name>
+         <file>dlib/algs.h</file>
+         <spec_file link="true">dlib/algs.h</spec_file>
+         <description>
+            This is a simple function that takes a range and a value and returns the given
+            value if it is within the range.  If it isn't in the range then it returns the  
+            end of range value that is closest.
+         </description>
+                                 
+      </component>
+               
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>isort_array</name>
+         <file>dlib/sort.h</file>
+         <spec_file link="true">dlib/sort.h</spec_file>
+         <description>
+            isort_array is an implementation of the insertion sort algorithm.  It will sort anything that has an 
+            array like operator[] interface.   
+         </description>
+                                 
+      </component>
+               
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>qsort_array</name>
+         <file>dlib/sort.h</file>
+         <spec_file link="true">dlib/sort.h</spec_file>
+         <description>
+            qsort_array is an implementation of the QuickSort algorithm.  It will sort anything that has an array like 
+            operator[] interface.  If the quick sort becomes unstable then it switches to a heap sort.  This 
+            way sorting is guaranteed to take at most N*log(N) time.
+         </description>
+                                 
+      </component>
+            
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>md5</name>
+         <file>dlib/md5.h</file>
+         <spec_file>dlib/md5/md5_kernel_abstract.h</spec_file>
+         <description>
+            This is an implementation of The MD5 Message-Digest Algorithm as described in rfc1321.   
+         </description>
+                                 
+      </component>
+            
+      
+      
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>median</name>
+         <file>dlib/algs.h</file>
+         <spec_file link="true">dlib/algs.h</spec_file>
+         <description>
+            This function takes three parameters and finds the median of the three.  The median is swapped into
+            the first parameter and the first parameter ends up in one of the other two, unless the first parameter was
+            the median to begin with of course. 
+         </description>
+                                 
+      </component>
+            
+   <!-- ************************************************************************* -->
+      
+      <component>
+         <name>square_root</name>
+         <file>dlib/algs.h</file>
+         <spec_file link="true">dlib/algs.h</spec_file>
+         <description>        
+            square_root is a function which takes an unsigned long and returns the square root of it or
+            if the root is not an integer then it is rounded up to the next integer.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>edge</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#graph">graph</a> object and a 
+            pair of indices.  It returns a reference to the edge object between the two nodes
+            with the given indices. 
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>is_join_tree</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes two <a href="containers.html#graph">graph</a> objects and
+            checks if the second of the two graphs is a valid join tree (aka tree decomposition)
+            of the first graph.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>create_join_tree</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#graph">graph</a> object and
+            creates a join tree for that graph.  Or in other words, this function finds a 
+            tree decomposition of the given graph.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>graph_contains_directed_cycle</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function checks a <a href="containers.html#directed_graph">directed_graph</a> for directed cycles.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>set_intersection</name>
+         <file>dlib/set_utils.h</file>
+         <spec_file link="true">dlib/set_utils/set_utils_abstract.h</spec_file>
+         <description>        
+            This function takes two <a href="containers.html#set">set</a> objects and 
+            gives you their intersection.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>set_union</name>
+         <file>dlib/set_utils.h</file>
+         <spec_file link="true">dlib/set_utils/set_utils_abstract.h</spec_file>
+         <description>        
+            This function takes two <a href="containers.html#set">set</a> objects and 
+            gives you their union.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>set_difference</name>
+         <file>dlib/set_utils.h</file>
+         <spec_file link="true">dlib/set_utils/set_utils_abstract.h</spec_file>
+         <description>        
+            This function takes two <a href="containers.html#set">set</a> objects and 
+            gives you their difference.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>set_intersection_size</name>
+         <file>dlib/set_utils.h</file>
+         <spec_file link="true">dlib/set_utils/set_utils_abstract.h</spec_file>
+         <description>        
+            This function takes two <a href="containers.html#set">set</a> objects and tells you
+            how many items they have in common.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>triangulate_graph_and_find_cliques</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#graph">graph</a> and
+            turns it into a chordal graph.  It also returns a 
+            <a href="containers.html#set">set</a> that contains
+            all the cliques present in the chordal graph.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>create_moral_graph</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#directed_graph">directed_graph</a>
+            and returns the moralized version of the graph in the form of a 
+            <a href="containers.html#graph">graph</a> object.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>graph_contains_length_one_cycle</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#graph">graph</a>
+            or <a href="containers.html#directed_graph">directed_graph</a> object and
+            returns true if and only if the graph contains a node that has an edge that
+            links back to itself.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>find_connected_nodes</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a node from a <a href="containers.html#graph">graph</a>
+            or <a href="containers.html#directed_graph">directed_graph</a> object and a 
+            <a href="containers.html#set">set</a> of unsigned longs.  It finds all the
+            nodes in the given graph that are connected to the given node by an 
+            undirected path and returns them in the set (also note that the
+            original query node is also returned in this set).
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>graph_is_connected</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#graph">graph</a> or
+            <a href="containers.html#directed_graph">directed_graph</a> object and
+            determines if the graph is connected.  That is, it returns true if and only if
+            there is an undirected path between any two nodes in the given graph.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>is_clique</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#graph">graph</a> and a 
+            <a href="containers.html#set">set</a> of node index values and checks 
+            if the specified set of nodes is a clique in the graph.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>copy_graph_structure</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#graph">graph</a> or 
+            <a href="containers.html#directed_graph">directed_graph</a> and copies  
+            its structure to another graph or directed_graph object.  The only 
+            restriction is that you can't copy the structure of a graph into a
+            directed_graph.  The three other possible combinations are allowed
+            however.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>is_maximal_clique</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="containers.html#graph">graph</a> and a 
+            <a href="containers.html#set">set</a> of node index values and checks 
+            if the specified set of nodes is a maximal clique in the graph.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>nearest_point</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="#rectangle">rectangle</a> and a 
+            <a href="#point">point</a> and returns the point in the given 
+            rectangle that is nearest to the given point.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>move_rect</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="#rectangle">rectangle</a> and moves
+            it so that it's upper left corner occupies the given location.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>resize_rect_height</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="#rectangle">rectangle</a> and 
+            returns a new rectangle with the given height but otherwise with the 
+            same edge points as the original rectangle. 
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>resize_rect_width</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="#rectangle">rectangle</a> and 
+            returns a new rectangle with the given width but otherwise with the 
+            same edge points as the original rectangle. 
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>resize_rect</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="#rectangle">rectangle</a> and 
+            returns a new rectangle with the given size but with the same upper
+            left corner as the original rectangle.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>translate_rect</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="#rectangle">rectangle</a> and moves
+            it by a given number of units along the x and y axis relative to
+            where it was before the move.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>quantum_register</name>
+         <file>dlib/quantum_computing.h</file>
+         <spec_file link="true">dlib/quantum_computing/quantum_computing_abstract.h</spec_file>
+         <description>        
+                This object represents a set of quantum bits.  It can be used
+                with the quantum <a href="#gate">gate</a> object to simulate
+                quantum algorithms.
+         </description>
+
+         <examples>
+            <example>quantum_computing_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>gate</name>
+         <file>dlib/quantum_computing.h</file>
+         <spec_file link="true">dlib/quantum_computing/quantum_computing_abstract.h</spec_file>
+         <description>        
+            This object represents a quantum gate that operates on a 
+            <a href="#quantum_register">quantum_register</a>.   
+         </description>
+         <examples>
+            <example>quantum_computing_ex.cpp.html</example>
+         </examples>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>centered_rect</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            There are various overloads of this function but the basic idea is
+            that it returns a <a href="#rectangle">rectangle</a> with a given 
+            width and height and centered about a given point.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>shrink_rect</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="#rectangle">rectangle</a> object, 
+            shrinks its borders by a given amount, and returns the result.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>grow_rect</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This function takes a <a href="#rectangle">rectangle</a> object, 
+            grows its borders by a given amount, and returns the result.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>rotate_point</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/vector_abstract.h</spec_file>
+         <description>        
+            This is a function that rotates a 2D <a href="#vector">vector</a> or 
+            <a href="#point">point</a> object about a given point.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>point_rotator</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/vector_abstract.h</spec_file>
+         <description>        
+            This is an object that rotates a 2D <a href="#vector">vector</a> or 
+            <a href="#point">point</a> object about the origin.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>get_rect</name>
+         <file>dlib/geometry.h</file>
+         <spec_file link="true">dlib/geometry/rectangle_abstract.h</spec_file>
+         <description>        
+            This is a simple template function that returns a rectangle 
+            representing the size of a 2D container (e.g. <a href="containers.html#matrix">matrix</a> or
+            <a href="containers.html#array2d">array2d</a>). 
+         </description>
+      </component>
+
+   <!-- ************************************************************************* -->
+
+      <component>
+         <name>graph_contains_undirected_cycle</name>
+         <file>dlib/graph_utils.h</file>
+         <spec_file link="true">dlib/graph_utils/graph_utils_abstract.h</spec_file>
+         <description>        
+            This function checks a <a href="containers.html#directed_graph">directed_graph</a> for undirected cycles.
+         </description>
+                                 
+      </component>
+
+   <!-- ************************************************************************* -->
+
+   </components>
+
+   <!-- ************************************************************************* -->
+
+
+</doc>
+

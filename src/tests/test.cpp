@@ -41,8 +41,8 @@ test_suite* init_unit_test_suite(int, char*[])
 	Logger::setLevel(Logger::ALL);
 
 	// Set up blocking for the whitelist test
-	string parseWhitelistFilename("tests/parseWhitelist.mysql");
-	string blockWhitelistFilename("tests/blockWhitelist.mysql");
+	string parseWhitelistFilename("../src/tests/parseWhitelist.mysql");
+	string blockWhitelistFilename("../src/tests/blockWhitelist.mysql");
 	QueryWhitelist::initialize(
 		&parseWhitelistFilename,
 		&blockWhitelistFilename

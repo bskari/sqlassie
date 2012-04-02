@@ -58,7 +58,7 @@ void testParseKnownGoodQueries()
 	namespace ba = boost::algorithm;
 
 	// Open the .sql files in the queries directory and try to parse them
-	fs::path queriesPath("./tests/queries");
+	fs::path queriesPath("../src/tests/queries");
 	BOOST_REQUIRE(fs::exists(queriesPath));
 	BOOST_REQUIRE(fs::is_directory(queriesPath));
 	

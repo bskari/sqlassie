@@ -17,6 +17,9 @@
 # Makefile is just a symlink
 Makefile
 
+# Custom Makefile options per system
+Makefile.custom
+
 # Binaries
 demo
 logger

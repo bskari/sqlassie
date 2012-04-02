@@ -110,6 +110,8 @@ QueryRisk.o:	QueryRisk.cpp Logger.hpp QueryRisk.hpp
 QueryWhitelist.o:	QueryWhitelist.cpp DescribedException.hpp Logger.hpp \
 	ParserInterface.hpp QueryWhitelist.hpp nullptr.hpp
 
+ScannerContext.o:	ScannerContext.cpp ScannerContext.hpp
+
 SimpleProxy.o:	SimpleProxy.cpp SimpleProxy.hpp Socket.hpp SocketException.hpp
 
 Socket.o:	Socket.cpp Logger.hpp Socket.hpp SocketException.hpp nullptr.hpp

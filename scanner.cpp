@@ -19,8 +19,11 @@
  */
 
 #include "Logger.hpp"
+#include "nullptr.hpp"
+#include "parser.tab.hpp"
 #include "QueryRisk.hpp"
 #include "scanner.yy.hpp"
+#include "ScannerContext.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <cassert>
@@ -40,11 +43,12 @@ using namespace boost;
  * @date November 15 2010
  */
 
-extern int sql_lex(QueryRisk* qr, yyscan_t scanner);
-
-extern stack<string> identifiers;
-extern stack<string> quotedStrings;
-extern stack<string> numbers;
+extern int sql_lex(
+	YYSTYPE* llvalp,
+	ScannerContext* context,
+	QueryRisk* qr,
+	yyscan_t scanner
+);
 
 map<int, string> tokenCodes;
 void loadTokensFromFile(const char* fileName);
@@ -53,23 +57,24 @@ int main()
 {
     Logger::initialize();
 	loadTokensFromFile("parser.tab.hpp");
-	
+
 	string x;
 	cout << "Enter MySQL query: ";
-	
+
+	ScannerContext context;
 	while (getline(cin, x))
 	{
 		yyscan_t scanner;
 		sql_lex_init(&scanner);
 		YY_BUFFER_STATE bufferState = sql__scan_string(x.c_str(), scanner);
 		QueryRisk qr;
-		int lexCode = sql_lex(&qr, scanner);
+		int lexCode = sql_lex(nullptr, &context, &qr, scanner);
 		do
 		{
 			assert(tokenCodes.end() != tokenCodes.find(lexCode) &&
 				"Token code doesn't have an associated name");
 			cout << '"' << sql_get_text(scanner) << "\": " << lexCode << ", " << tokenCodes[lexCode] << endl;
-			lexCode = sql_lex(&qr, scanner);
+			lexCode = sql_lex(nullptr, &context, &qr, scanner);
 		}
 		while (lexCode > 255);
 		
@@ -81,24 +86,24 @@ int main()
 	cout << endl;
 	
 	cout << "Identifiers found:" << endl;
-	while (!identifiers.empty())
+	while (!context.identifiers.empty())
 	{
-		cout << identifiers.top() << endl;
-		identifiers.pop();
+		cout << context.identifiers.top() << endl;
+		context.identifiers.pop();
 	}
 	
 	cout << "Quoted strings found:" << endl;
-	while (!quotedStrings.empty())
+	while (!context.quotedStrings.empty())
 	{
-		cout << quotedStrings.top() << endl;
-		quotedStrings.pop();
+		cout << context.quotedStrings.top() << endl;
+		context.quotedStrings.pop();
 	}
 	
 	cout << "Numbers found:" << endl;
-	while (!numbers.empty())
+	while (!context.numbers.empty())
 	{
-		cout << numbers.top() << endl;
-		numbers.pop();
+		cout << context.numbers.top() << endl;
+		context.numbers.pop();
 	}
 }
 

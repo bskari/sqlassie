@@ -26,25 +26,23 @@
 
 %{
 	#define YY_EXTRA_TYPE QueryRisk*
-	#define YY_DECL int yylex(QueryRisk* qr, yyscan_t yyscanner)
-	
+	#define YY_DECL int sql_lex( \
+		YYSTYPE* const lvalp, \
+		ScannerContext* const context, \
+		QueryRisk* const qr, \
+		yyscan_t yyscanner \
+	)
+
 	#include "AstNode.hpp"
 	#include "Logger.hpp"
 	// Include file produced by Bison
 	#include "parser.tab.hpp"
 	#include "QueryRisk.hpp"
+	#include "ScannerContext.hpp"
 
 	#include <cassert>
 	#include <stack>
 	#include <string>
-	
-	std::stack<std::string> identifiers;
-	std::string identifier;
-	std::stack<std::string> quotedStrings;
-	static std::string quotedString;
-	// Using strings instead of ints for this stack because otherwise I would
-	// get weird segmentation fault errors whenever I'd try to pop it
-	std::stack<std::string> numbers;
 	
 	static inline int hexToNum(const char c)
 	{
@@ -175,31 +173,31 @@ HEX_STRING	0x[0-9A-Fa-f]{2,}
 
 {WHITE_SPACE}		{}
 
-"'"		{quotedString = ""; BEGIN(QUOTED);}
-<QUOTED>[^'\\]+	{quotedString += yytext;}
-<QUOTED>"\\\\"	{quotedString += '\\';}
-<QUOTED>"\\'"	{quotedString += '\'';}
-<QUOTED>"\\".	{quotedString += yytext;}
+"'"		{context->quotedString = ""; BEGIN(QUOTED);}
+<QUOTED>[^'\\]+	{context->quotedString += yytext;}
+<QUOTED>"\\\\"	{context->quotedString += '\\';}
+<QUOTED>"\\'"	{context->quotedString += '\'';}
+<QUOTED>"\\".	{context->quotedString += yytext;}
 <QUOTED>"'"+	{
 			/* If we matched an odd number of quotes, then it's 
 			the terminating quote */
 			if (yyleng % 2)
 			{
 				BEGIN(INITIAL);
-				quotedStrings.push(quotedString);
+				context->quotedStrings.push(context->quotedString);
 				return QUOTED_STRING;
 			}
 			else
 			{
 				// Skip the escaping quote
-				quotedString += (yytext + 1);
+				context->quotedString += (yytext + 1);
 			}
 }
 <QUOTED><<EOF>>	{qr->valid = false; BEGIN(INITIAL);}
 
 {HEX_STRING}	{
 	++qr->hexStrings;
-	quotedStrings.push(hexStringToString(yytext));
+	context->quotedStrings.push(hexStringToString(yytext));
 	return QUOTED_STRING;
 }
 
@@ -207,11 +205,11 @@ HEX_STRING	0x[0-9A-Fa-f]{2,}
  they count as identifiers. MySQL defaults to using them as strings unless
  you enable ANSI_QUOTES, but I'm just going to assume the latter and let the
  user deal with it. */
-\"		{quotedString = ""; BEGIN(DOUBLE_QUOTED);}
-<DOUBLE_QUOTED>[^\"]+	{quotedString += yytext;}
+\"		{context->quotedString = ""; BEGIN(DOUBLE_QUOTED);}
+<DOUBLE_QUOTED>[^\"]+	{context->quotedString += yytext;}
 <DOUBLE_QUOTED>["]	{
 				BEGIN(INITIAL);
-				quotedStrings.push(quotedString);
+				context->quotedStrings.push(context->quotedString);
 				return QUOTED_STRING;
 }
 <DOUBLE_QUOTED><<EOF>>	{qr->valid = false; BEGIN(INITIAL);}
@@ -354,14 +352,14 @@ HEX_STRING	0x[0-9A-Fa-f]{2,}
 "sql_cache"			{return SQL_CACHE;}
 "sql_no_cache"		{return SQL_NO_CACHE;}
 
-{IDENTIFIER}	{identifiers.push(std::string(yytext)); return IDENTIFIER;}
+{IDENTIFIER}	{context->identifiers.push(std::string(yytext)); return IDENTIFIER;}
 {QUOTED_IDENTIFIER}	{
 	std::string str(yytext);
-	identifiers.push(str.substr(1, str.length() - 2));
+	context->identifiers.push(str.substr(1, str.length() - 2));
 	return IDENTIFIER;
 }
-{NUMBER}		{numbers.push(std::string(yytext));	return NUMBER;}
-{GLOBAL_VARIABLE}	{identifiers.push(std::string(yytext)); return GLOBAL_VARIABLE;}
+{NUMBER}		{context->numbers.push(std::string(yytext)); return NUMBER;}
+{GLOBAL_VARIABLE}	{context->identifiers.push(std::string(yytext)); return GLOBAL_VARIABLE;}
 
 .	{return ERROR;}
 

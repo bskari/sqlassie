@@ -87,6 +87,7 @@ DlibProbabilities::DlibProbabilities() :
 		"schema.net",
 		"denialOfService.net"
 	};
+    const string netFolder("nets/");
 	const size_t expectedNodes[numAttackTypes] = {19, 15, 14, 24, 21, 7};
 
 	for (int i = 0; i < numAttackTypes; ++i)
@@ -101,10 +102,11 @@ DlibProbabilities::DlibProbabilities() :
 	
 	for (int i = 0; i < numAttackTypes; ++i)
 	{
-		if (0 != loadNetwork(netFileNames[i], &bayesNets_[i]))
+        const string netFileName(netFolder + netFileNames[i]);
+		if (0 != loadNetwork(netFileName, &bayesNets_[i]))
 		{
 			throw BayesException(
-				string("Unable to load Bayesian network file: ") + netFileNames[i]
+				string("Unable to load Bayesian network file: ") + netFileName
 			);
 		}
 		
@@ -668,14 +670,13 @@ double DlibProbabilities::getProbabilityOfDenialAttack(const QueryRisk& qr)
 
 
 int DlibProbabilities::loadNetwork(
-	const char* const fileName,
+	const string& fileName,
 	bayes_net* network
 )
 {
-	assert(nullptr != fileName);
 	assert(nullptr != network);
 	
-	ifstream fin(fileName);
+	ifstream fin(fileName.c_str());
 	if (!fin)
 	{
 		return 1;

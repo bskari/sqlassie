@@ -32,6 +32,7 @@
 #include "dlib/dlib/graph.h"
 #include "dlib/dlib/graph_utils.h"
 #include "dlib/dlib/directed_graph.h"
+#include <string>
 
 /**
  * Implementation of AttackProbabilities that uses Bayesian networks and the
@@ -78,7 +79,7 @@ protected:
 	 * @param network The network to encode the information from the file.
 	 * @return 0 on success.
 	 */
-	static int loadNetwork(const char* fileName, bayes_net* network);
+	static int loadNetwork(const std::string& fileName, bayes_net* network);
 	
 private:
 	enum ATTACK_TYPE

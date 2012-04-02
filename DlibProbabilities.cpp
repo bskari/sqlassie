@@ -28,6 +28,7 @@
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
 
+#include <boost/bind.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/function.hpp>
 #include <cassert>
@@ -91,7 +92,7 @@ DlibProbabilities::DlibProbabilities() :
 
 	for (int i = 0; i < numAttackTypes; ++i)
 	{
-		function<double (const Evidence&)> f = boost::bind(
+		function<double (const Evidence&)> f = bind(
 			&DlibProbabilities::computeEvidence,
 			this,
 			_1

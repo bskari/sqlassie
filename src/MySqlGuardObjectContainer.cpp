@@ -68,7 +68,7 @@ MySqlGuardObjectContainer::MySqlGuardObjectContainer(
 	}
 	assert(
 		numObjects > 0 &&
-		numObjects <= 16 &&
+		numObjects <= 256 &&
 		"Number of objects should match the number of hardware threads"
 	);
 }
@@ -89,7 +89,8 @@ void MySqlGuardObjectContainer::initialize()
 
 	if (nullptr == instance_)
 	{
-		instance_ = new MySqlGuardObjectContainer(2);
+        const unsigned numCores = boost::thread::hardware_concurrency();
+		instance_ = new MySqlGuardObjectContainer(numCores);
 	}
 }
 

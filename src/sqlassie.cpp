@@ -26,8 +26,10 @@
 #include "MySqlGuardObjectContainer.hpp"
 #include "nullptr.hpp"
 #include "QueryWhitelist.hpp"
+#include "SensitiveNameChecker.hpp"
 #include "version.h"
 
+#include <boost/bind.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
@@ -37,6 +39,7 @@
 #include <signal.h>
 #include <string>
 #include <unistd.h>
+#include <utility>
 
 using namespace std;
 using namespace boost;
@@ -49,6 +52,10 @@ static const char* DEFAULT_CONFIG_FILE = "sqlassie.conf";
 static const char* DEFAULT_HOST = "127.0.0.1";
 static const char* PARSER_WHITELIST_OPTION = "parser-query-whitelist-file";
 static const char* BLOCKED_WHITELIST_OPTION = "blocked-query-whitelist-file";
+static const char* PASSWORD_REGEX = "password-regex";
+static const char* PASSWORD_SUBSTRING = "password-substring";
+static const char* USER_REGEX = "user-regex";
+static const char* USER_SUBSTRING = "user-substring";
 
 static MySqlGuardListenSocket* mysqlGuard = nullptr;
 static int verbosityLevel = 0;
@@ -73,6 +80,10 @@ static const options::variable_value& getOption(
 	const options::variables_map& vm1,
 	const options::variables_map& vm2
 );
+static void setupOptions(
+	const options::variables_map& commandLineVm,
+	const options::variables_map& fileVm
+);
 
 
 int main(int argc, char* argv[])
@@ -80,6 +91,7 @@ int main(int argc, char* argv[])
 	// Instantiate singleton classes
 	Logger::initialize();
 	MySqlGuardObjectContainer::initialize();
+    SensitiveNameChecker::initialize();
 	
 	options::variables_map commandLineVm;
 	options::variables_map fileVm;
@@ -145,31 +157,7 @@ int main(int argc, char* argv[])
 	}
 
 	// Use the parameters
-	if (getOption("quiet", commandLineVm, fileVm).as<bool>())
-	{
-		verbosityLevel = -1;
-	}
-	switch (verbosityLevel)
-	{
-	case -1:
-		Logger::setLevel(Logger::FATAL);
-		break;
-	case 0:
-		Logger::setLevel(Logger::WARN);
-		break;
-	case 1:
-		Logger::setLevel(Logger::INFO);
-		break;
-	case 2:
-		Logger::setLevel(Logger::DEBUG);
-		break;
-	case 3:
-		Logger::setLevel(Logger::TRACE);
-		break;
-	default:
-		Logger::setLevel(Logger::ALL);
-		break;
-	}
+    setupOptions(commandLineVm, fileVm);
 	
 	// Override logging level in debug builds
 	#ifndef NDEBUG
@@ -181,39 +169,6 @@ int main(int argc, char* argv[])
 	// Register signal handler
 	signal(SIGINT, handleSignal);
 
-	// Set up whitelists
-	const string* whitelistFilenames[] = {nullptr, nullptr};
-	const char* const optionNames[] = {
-		PARSER_WHITELIST_OPTION,
-		BLOCKED_WHITELIST_OPTION
-	};
-	assert(
-		sizeof(whitelistFilenames) / sizeof(whitelistFilenames[0]) ==
-		sizeof(optionNames) / sizeof(optionNames[0])
-	);
-	for (
-		size_t i = 0; 
-		i < sizeof(whitelistFilenames) / sizeof(whitelistFilenames[0]);
-		++i
-	)
-	{
-		if (!getOption(optionNames[i], commandLineVm, fileVm).as<string>().empty())
-		{
-			whitelistFilenames[i] = new string(
-				getOption(optionNames[i], commandLineVm, fileVm).as<string>()
-			);
-		}
-	}
-	QueryWhitelist::initialize(whitelistFilenames[0], whitelistFilenames[1]);
-	for (
-		size_t i = 0; 
-		i < sizeof(whitelistFilenames) / sizeof(whitelistFilenames[0]);
-		++i
-	)
-	{
-		delete whitelistFilenames[i];
-	}
-	
 	#ifdef NDEBUG
 		// Let debuggers catch exceptions so we can get backtraces
 		try
@@ -437,6 +392,26 @@ options::options_description getFileOptions()
 			options::value<string>()->default_value(""),
 			"A file containing queries that SQLassie has failed to parse but should be forwarded anyway."
 		)
+        (
+			PASSWORD_REGEX,
+			options::value<string>()->default_value(""),
+			"SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name matching this Perl style regular expression will be considered a password field."
+		)
+        (
+			PASSWORD_SUBSTRING,
+			options::value<string>()->default_value(""),
+			"SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name containing this word will be considered a password field."
+		)
+        (
+			USER_REGEX,
+			options::value<string>()->default_value(""),
+			"SQLassie uses this to determine which SQL table names should be considered user tables. Any table name matching this Perl style regular expression will be considered a user table."
+		)
+        (
+			USER_SUBSTRING,
+			options::value<string>()->default_value(""),
+			"SQLassie uses this to determine which SQL table names should be considered user tables. Any table name containing this word will be considered a user table."
+		)
 	;
 	return configuration;
 }
@@ -542,7 +517,118 @@ bool optionsAreValid(
 		*error = "Quiet can only be used without verbose options";
 		return false;
 	}
+
+    // Only specify one of password/user substring or regex
+    const bool pwSubstr = !fileVm[PASSWORD_SUBSTRING].as<string>().empty();
+    const bool pwRegex = !fileVm[PASSWORD_REGEX].as<string>().empty();
+    if (pwSubstr == pwRegex)
+    {
+        *error = "You must specify either a password field word or regular expression";
+        return false;
+    }
+    const bool userSubstr = !fileVm[USER_SUBSTRING].as<string>().empty();
+    const bool userRegex = !fileVm[USER_REGEX].as<string>().empty();
+    if (userSubstr == userRegex)
+    {
+        *error = "You must specify either a user table word or regular expression";
+        return false;
+    }
+
 	return true;
+}
+
+
+/**
+ * Prepares and sets up the SQLassie config from the options.
+ */
+void setupOptions(
+	const options::variables_map& commandLineVm,
+	const options::variables_map& fileVm
+)
+{
+    // Set the logging level
+	if (getOption("quiet", commandLineVm, fileVm).as<bool>())
+	{
+		verbosityLevel = -1;
+	}
+	switch (verbosityLevel)
+	{
+	case -1:
+		Logger::setLevel(Logger::FATAL);
+		break;
+	case 0:
+		Logger::setLevel(Logger::WARN);
+		break;
+	case 1:
+		Logger::setLevel(Logger::INFO);
+		break;
+	case 2:
+		Logger::setLevel(Logger::DEBUG);
+		break;
+	case 3:
+		Logger::setLevel(Logger::TRACE);
+		break;
+	default:
+		Logger::setLevel(Logger::ALL);
+		break;
+	}
+
+	// Set up whitelists
+	const string* whitelistFilenames[] = {nullptr, nullptr};
+	const char* const optionNames[] = {
+		PARSER_WHITELIST_OPTION,
+		BLOCKED_WHITELIST_OPTION
+	};
+	assert(
+		sizeof(whitelistFilenames) / sizeof(whitelistFilenames[0]) ==
+		sizeof(optionNames) / sizeof(optionNames[0])
+	);
+	for (
+		size_t i = 0; 
+		i < sizeof(whitelistFilenames) / sizeof(whitelistFilenames[0]);
+		++i
+	)
+	{
+		if (!getOption(optionNames[i], commandLineVm, fileVm).as<string>().empty())
+		{
+			whitelistFilenames[i] = new string(
+				getOption(optionNames[i], commandLineVm, fileVm).as<string>()
+			);
+		}
+	}
+	QueryWhitelist::initialize(whitelistFilenames[0], whitelistFilenames[1]);
+	for (
+		size_t i = 0; 
+		i < sizeof(whitelistFilenames) / sizeof(whitelistFilenames[0]);
+		++i
+	)
+	{
+		delete whitelistFilenames[i];
+	}
+	
+    // Set the sensitive tables and fields
+    typedef pair<const char*, boost::function<void (const string&)> > optionAndSetter;
+    SensitiveNameChecker& ref = SensitiveNameChecker::get();
+    SensitiveNameChecker* inst = &ref;
+
+    boost::function<void (const string&)> test(boost::bind(&SensitiveNameChecker::setPasswordRegex, inst, _1));
+
+    optionAndSetter sensitiveNames[] = {
+        optionAndSetter(PASSWORD_REGEX, boost::bind(&SensitiveNameChecker::setPasswordRegex, inst, _1)),
+        optionAndSetter(PASSWORD_SUBSTRING, boost::bind(&SensitiveNameChecker::setPasswordSubstring, inst, _1)),
+        optionAndSetter(USER_REGEX, boost::bind(&SensitiveNameChecker::setUserRegex, inst, _1)),
+        optionAndSetter(USER_SUBSTRING, boost::bind(&SensitiveNameChecker::setUserSubstring, inst, _1))
+    };
+    for (size_t i = 0; i < sizeof(sensitiveNames) / sizeof(sensitiveNames[0]); ++i)
+    {
+        const char* const optionName = sensitiveNames[i].first;
+        boost::function<void (const string&)> setter = sensitiveNames[i].second;
+        const string& option = getOption(optionName, commandLineVm, fileVm).as<string>();
+        if (!option.empty())
+        {
+            setter(option);
+        }
+    }
 }
 
 

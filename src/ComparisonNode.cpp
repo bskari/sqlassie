@@ -20,6 +20,7 @@
 
 #include "ComparisonNode.hpp"
 #include "ExpressionNode.hpp"
+#include "SensitiveNameChecker.hpp"
 #include "Logger.hpp"
 #include "MySqlConstants.hpp"
 #include "nullptr.hpp"
@@ -137,19 +138,21 @@ bool ComparisonNode::anyIsAlwaysTrue() const
 
 QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
-	static const regex password(".*password.*", regex::perl | regex::icase);
-
 	assert(2 == children_.size() && "ComparisonNode should have 2 children");
 	
 	const ExpressionNode* const expr1 = dynamic_cast<const ExpressionNode*>(
-		children_.at(0));
+		children_.at(0)
+    );
 	const ExpressionNode* const expr2 = dynamic_cast<const ExpressionNode*>(
-		children_.at(1));
-	assert(nullptr != expr1 && nullptr != expr2 &&
-		"ComparisonNode should only have ExpressionNode children");
+		children_.at(1)
+    );
+	assert(
+        nullptr != expr1 && nullptr != expr2 &&
+        "ComparisonNode should only have ExpressionNode children"
+    );
 	
 	// Only check for equality comparisons to password field
-	if ("=" != compareType_ || !regex_match(expr1->getValue(), password))
+	if ("=" != compareType_ || SensitiveNameChecker::get().isPasswordField(expr1->getValue()))
 	{
 		return QueryRisk::PASSWORD_NOT_USED;
 	}

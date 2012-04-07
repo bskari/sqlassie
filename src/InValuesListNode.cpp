@@ -20,6 +20,7 @@
 
 #include "ConditionalNode.hpp"
 #include "ExpressionNode.hpp"
+#include "SensitiveNameChecker.hpp"
 #include "InValuesListNode.hpp"
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
@@ -98,13 +99,11 @@ bool InValuesListNode::anyIsAlwaysTrue() const
 
 QueryRisk::EmptyPassword InValuesListNode::emptyPassword() const
 {
-	static const regex password(".*password.*", regex::perl | regex::icase);
-
 	// If we're checking something like "password IN (...)", something is fishy
 	// This isn't quite as severe as "password = ''", but let's err on the side
 	// of caution and treat it as such anyway
 	// @TODO: Come up with a more accurate way of handling this
-	if (regex_match(expression_->getValue(), password))
+	if (SensitiveNameChecker::get().isPasswordField(expression_->getValue()))
 	{
 		return QueryRisk::PASSWORD_EMPTY;
 	}

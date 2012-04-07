@@ -21,6 +21,7 @@
 #include "Logger.hpp"
 #include "ParserInterface.hpp"
 #include "QueryRisk.hpp"
+#include "SensitiveNameChecker.hpp"
 
 #include <cassert>
 #include <fstream>
@@ -39,6 +40,9 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     Logger::initialize();
+    SensitiveNameChecker::initialize();
+    SensitiveNameChecker::get().setPasswordSubstring("password");
+    SensitiveNameChecker::get().setUserSubstring("user");
 	assert(34 == sizeof(QueryRisk) &&
 "QueryStatistics size has changed; did you add more features?\n\
 If so, you need to update queryStatistics.cpp");

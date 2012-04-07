@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "../SensitiveNameChecker.hpp"
 #include "../Logger.hpp"
 #include "../nullptr.hpp"
 #include "../QueryWhitelist.hpp"
@@ -34,11 +35,13 @@ using namespace boost::unit_test;
 using std::string;
 
 
-#include <iostream>
 test_suite* init_unit_test_suite(int, char*[])
 {
 	Logger::initialize();
 	Logger::setLevel(Logger::ALL);
+    SensitiveNameChecker::initialize();
+    SensitiveNameChecker::get().setPasswordSubstring("password");
+    SensitiveNameChecker::get().setUserSubstring("user");
 
 	// Set up blocking for the whitelist test
 	string parseWhitelistFilename("../src/tests/parseWhitelist.mysql");

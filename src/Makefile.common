@@ -56,14 +56,14 @@ $(BINARY_DIR)/demo:	demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 	InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o AttackProbabilities.o parser.tab.hpp \
 	DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
-	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o
+	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o SensitiveNameChecker.o
 	$(CXX) $(CXXFLAGS) demo.o parser.tab.o scanner.yy.o \
 		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
 		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
 		AlwaysSomethingNode.o ParserInterface.o \
 		AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
 		huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
-		NegationNode.o ScannerContext.o \
+		NegationNode.o ScannerContext.o SensitiveNameChecker.o \
 		-lboost_regex -lboost_thread -o $(BINARY_DIR)/demo
 
 $(BINARY_DIR)/logger:	logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
@@ -78,12 +78,13 @@ $(BINARY_DIR)/parser:	parser.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
 	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
-	NegationNode.o ScannerContext.o
+	NegationNode.o ScannerContext.o SensitiveNameChecker.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) parser.o parser.tab.o scanner.yy.o \
 		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
 		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
 		AlwaysSomethingNode.o ParserInterface.o MySqlConstants.o \
 		Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
+		SensitiveNameChecker.o \
 		-lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/parser
 
 $(BINARY_DIR)/probabilities:	probabilities.o csvParse.hpp
@@ -93,12 +94,13 @@ $(BINARY_DIR)/queryStatistics:	queryStatistics.o parser.tab.o scanner.yy.o Query
 	AstNode.o ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
 	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
-	NegationNode.o ScannerContext.o
+	NegationNode.o ScannerContext.o SensitiveNameChecker.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) queryStatistics.o parser.tab.o  \
 		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
 		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
 		AlwaysSomethingNode.o ParserInterface.o scanner.yy.o MySqlConstants.o \
 		Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
+		SensitiveNameChecker.o \
 		-lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/queryStatistics
 
 $(BINARY_DIR)/riskAnalyzer:	riskAnalyzer.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
@@ -106,14 +108,15 @@ $(BINARY_DIR)/riskAnalyzer:	riskAnalyzer.o parser.tab.o scanner.yy.o QueryRisk.o
 	InValuesListNode.o AlwaysSomethingNode.o NegationNode.o \
 	ParserInterface.o AttackProbabilities.o parser.tab.hpp \
 	DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
-	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o
+	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
+	SensitiveNameChecker.o
 	$(CXX) $(CXXFLAGS) riskAnalyzer.o parser.tab.o scanner.yy.o \
 		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
 		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
 		AlwaysSomethingNode.o ParserInterface.o \
 		AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
 		huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
-		NegationNode.o ScannerContext.o \
+		NegationNode.o ScannerContext.o SensitiveNameChecker.o \
 		-lboost_regex -lboost_thread -o $(BINARY_DIR)/riskAnalyzer
 
 $(BINARY_DIR)/scanner:	scanner.o scanner.yy.o QueryRisk.o parser.tab.hpp Logger.o \
@@ -130,7 +133,8 @@ $(BINARY_DIR)/sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHa
 	ConditionalNode.o ParserInterface.o MySqlErrorMessageBlocker.o \
 	AttackProbabilities.o MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o \
 	huginScanner.yy.o huginParser.tab.o MessageHandler.o Logger.o \
-	InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o
+	InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o \
+	SensitiveNameChecker.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlassie.o Socket.o Proxy.o ProxyHalf.o \
 		ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
 		parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
@@ -140,7 +144,7 @@ $(BINARY_DIR)/sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHa
 		MySqlErrorMessageBlocker.o AttackProbabilities.o \
 		MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o \
 		huginParser.tab.o MessageHandler.o Logger.o InSubselectNode.o \
-		NegationNode.o QueryWhitelist.o ScannerContext.o \
+		NegationNode.o QueryWhitelist.o ScannerContext.o SensitiveNameChecker.o \
 		-lboost_program_options -lboost_regex -lboost_thread -lmysqlclient \
 		-lpthread \
 		-o $(BINARY_DIR)/sqlassie
@@ -155,7 +159,8 @@ $(BINARY_DIR)/test:	tests/test.o tests/testNode.o tests/testParser.o \
 	ConditionalNode.o ParserInterface.o MySqlErrorMessageBlocker.o \
 	AttackProbabilities.o MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o \
 	huginScanner.yy.o huginParser.tab.o MessageHandler.o Logger.o \
-	InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o
+	InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o \
+	SensitiveNameChecker.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) tests/test.o tests/testNode.o \
 		tests/testParser.o tests/testMySqlConstants.o \
 		tests/testQueryWhitelist.o \
@@ -168,7 +173,7 @@ $(BINARY_DIR)/test:	tests/test.o tests/testNode.o tests/testParser.o \
 		MySqlErrorMessageBlocker.o AttackProbabilities.o \
 		MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o \
 		huginParser.tab.o MessageHandler.o Logger.o InSubselectNode.o \
-		NegationNode.o QueryWhitelist.o ScannerContext.o \
+		NegationNode.o QueryWhitelist.o ScannerContext.o SensitiveNameChecker.o \
 		-lboost_regex -lboost_thread -lmysqlclient \
 		-lboost_unit_test_framework -lboost_filesystem -lboost_system \
 		-lpthread \

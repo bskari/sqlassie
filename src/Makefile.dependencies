@@ -24,7 +24,8 @@ AstNode.o:	AstNode.cpp AstNode.hpp nullptr.hpp
 AttackProbabilities.o:	AttackProbabilities.cpp AttackProbabilities.hpp
 
 ComparisonNode.o:	ComparisonNode.cpp ComparisonNode.hpp ExpressionNode.hpp \
-	Logger.hpp MySqlConstants.hpp QueryRisk.hpp nullptr.hpp
+	Logger.hpp MySqlConstants.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
+	nullptr.hpp
 
 ConditionalListNode.o:	ConditionalListNode.cpp AstNode.hpp \
 	ConditionalListNode.hpp ConditionalNode.hpp Logger.hpp nullptr.hpp
@@ -44,7 +45,8 @@ InSubselectNode.o:	InSubselectNode.cpp InSubselectNode.hpp \
 	InValuesListNode.hpp QueryRisk.hpp
 
 InValuesListNode.o:	InValuesListNode.cpp ConditionalNode.hpp \
-	ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp nullptr.hpp
+	ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp \
+	SensitiveNameChecker.hpp nullptr.hpp
 
 ListenSocket.o:	ListenSocket.cpp ListenSocket.hpp Logger.hpp \
 	MessageHandler.hpp SocketException.hpp
@@ -112,38 +114,44 @@ QueryWhitelist.o:	QueryWhitelist.cpp DescribedException.hpp Logger.hpp \
 
 ScannerContext.o:	ScannerContext.cpp ScannerContext.hpp
 
+SensitiveNameChecker.o:	SensitiveNameChecker.cpp SensitiveNameChecker.hpp
+
 SimpleProxy.o:	SimpleProxy.cpp SimpleProxy.hpp Socket.hpp SocketException.hpp
 
 Socket.o:	Socket.cpp Logger.hpp Socket.hpp SocketException.hpp nullptr.hpp
 
 demo.o:	demo.cpp AttackProbabilities.hpp DlibProbabilities.hpp Logger.hpp \
-	MySqlGuard.hpp ParserInterface.hpp QueryRisk.hpp nullptr.hpp
+	MySqlGuard.hpp ParserInterface.hpp QueryRisk.hpp \
+	SensitiveNameChecker.hpp nullptr.hpp
 
 logger.o:	logger.cpp Logger.hpp MySqlLoggerListenSocket.hpp
 
-parser.o:	parser.cpp AstNode.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp
+parser.o:	parser.cpp AstNode.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
+	SensitiveNameChecker.hpp
 
 probabilities.o:	probabilities.cpp csvParse.hpp
 
 queryStatistics.o:	queryStatistics.cpp Logger.hpp ParserInterface.hpp \
-	QueryRisk.hpp
+	QueryRisk.hpp SensitiveNameChecker.hpp
 
 riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
-	DlibProbabilities.hpp ParserInterface.hpp QueryRisk.hpp nullptr.hpp
+	DlibProbabilities.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
+	SensitiveNameChecker.hpp nullptr.hpp
 
 scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ScannerContext.hpp \
 	nullptr.hpp parser.tab.hpp scanner.yy.hpp
 
 sqlassie.o:	sqlassie.cpp DescribedException.hpp Logger.hpp \
 	MySqlGuardListenSocket.hpp MySqlGuardObjectContainer.hpp \
-	QueryWhitelist.hpp accumulator.hpp getpass.h nullptr.hpp version.h
+	QueryWhitelist.hpp SensitiveNameChecker.hpp accumulator.hpp \
+	getpass.h nullptr.hpp version.h
 
 tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 	accumulator.hpp nullptr.hpp
 
-tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp nullptr.hpp \
-	tests/testMySqlConstants.hpp tests/testNode.hpp tests/testParser.hpp \
-	tests/testQueryWhitelist.hpp
+tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp \
+	SensitiveNameChecker.hpp nullptr.hpp tests/testMySqlConstants.hpp \
+	tests/testNode.hpp tests/testParser.hpp tests/testQueryWhitelist.hpp
 
 tests/testMySqlConstants.o:	tests/testMySqlConstants.cpp MySqlConstants.hpp \
 	tests/testMySqlConstants.hpp

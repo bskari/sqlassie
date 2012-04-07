@@ -22,6 +22,7 @@
 #include "Logger.hpp"
 #include "ParserInterface.hpp"
 #include "QueryRisk.hpp"
+#include "SensitiveNameChecker.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -39,6 +40,9 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     Logger::initialize();
+    SensitiveNameChecker::initialize();
+    SensitiveNameChecker::get().setPasswordSubstring("password");
+    SensitiveNameChecker::get().setUserSubstring("user");
 	bool file = false;
 	
 	ifstream fin;

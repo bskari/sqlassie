@@ -25,6 +25,7 @@
 #include "nullptr.hpp"
 #include "ParserInterface.hpp"
 #include "QueryRisk.hpp"
+#include "SensitiveNameChecker.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -148,6 +149,9 @@ void setProbabilities(QueryRisk& qr, AttackProbabilities* probs, double probabil
 int main(int argc, char* argv[])
 {
     Logger::initialize();
+    SensitiveNameChecker::initialize();
+    SensitiveNameChecker::get().setPasswordSubstring("password");
+    SensitiveNameChecker::get().setUserSubstring("user");
 	if (argc < 2)
 	{
 		// If no input is provided, print an error

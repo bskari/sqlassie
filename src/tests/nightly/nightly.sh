@@ -195,6 +195,31 @@ function runStress ()
     set -e
 }
 
+function runStaticAnalysis ()
+{
+    for staticAnalysisTool in \
+        'cppcheck --error-exitcode=1' \
+        'cpplint.py --filter=-whitespace/braces,-whitespace/parens,-whitespace/newline,-runtime/rtti';
+    do
+        if [ ! -z "$(which $staticAnalysisTool)" ];
+        then
+            pushd src
+                for sourceFile in *cpp *hpp;
+                do
+                    set +e
+                        $staticAnalysisTool $sourceFile
+                        exitCode=$?
+                    set -e
+                    if [ $exitCode -ne 0 ];
+                    then
+                        saveMessage "$sourceFile failed $staticAnalysisTool" "../STATIC.txt"
+                    fi
+                done
+            popd src
+        fi
+    done
+}
+
 function waitForLowLoad ()
 {
     waitCount=0
@@ -219,6 +244,8 @@ waitForLowLoad
 
 cd ../../.. # Into main SQLassie directory
 update
+
+runStaticAnalysis
 
 for version in RELEASE DEBUG ;
 do

@@ -19,9 +19,6 @@
 # Default version; this is overridable on the command line by typing:
 # make VERSION=[RELEASE|DEBUG|PROFILE]
 
-# Custom platform specific options
--include Makefile.custom
-
 VERSION = DEBUG
 WARNING_CXXFLAGS = -Wall -Wextra -Weffc++ -Wfloat-equal -Wshadow\
 	-Wpointer-arith -Wcast-align -Wstrict-overflow=5\
@@ -36,5 +33,8 @@ RELEASE_CXXFLAGS = -O3 -march=native -fexpensive-optimizations\
 # Use the GNU C/C++:
 CXX = g++
 CC = gcc
+
+# Custom platform specific options
+-include Makefile.custom
 
 include Makefile.common

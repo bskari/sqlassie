@@ -22,12 +22,12 @@
 #define DLIB_PROBABILITIES_HPP
 
 #include "AttackProbabilities.hpp"
+class ComputeEvidenceParameters;
 #include "LruCache.hpp"
 #include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
 #include <boost/cstdint.hpp>
-#include <boost/thread/mutex.hpp>
 #include "dlib/dlib/bayes_utils.h"
 #include "dlib/dlib/graph.h"
 #include "dlib/dlib/graph_utils.h"
@@ -134,7 +134,7 @@ private:
 		const int size
 	);
 
-	static boost::mutex computeMutex_;
+    ComputeEvidenceParameters* cep_;
 	double computeEvidence(const Evidence&);
 };
 

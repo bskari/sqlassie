@@ -66,20 +66,22 @@ static const int CACHE_SIZE = 5;
 // it will call a function to compute value then store it. The cache assumes
 // that the only thing that's necessary to compute the value is the key, which
 // isn't true in this case. To facilitate sending these extra parameters to
-// the compute function, I'm going to use some globals. This is terrible, and
-// I'm sorry.
-static int computeParameter_attackType;
-static int computeParameter_node;
-static int computeParameter_state;
-static const int* computeParameter_evidenceNodes;
-static const int* computeParameter_evidenceStates;
-static int computeParameter_evidenceSize;
-
-// Static member variables
-boost::mutex DlibProbabilities::computeMutex_;
+// the compute function, I'm going to put them in this class. This is not great,
+// and I'm sorry.
+struct ComputeEvidenceParameters
+{
+    int attackType_;
+    int node_;
+    int state_;
+    const int* evidenceNodes_;
+    const int* evidenceStates_;
+    int evidenceSize_;
+    boost::mutex computeMutex_;
+};
 
 
 DlibProbabilities::DlibProbabilities()
+    : cep_(new ComputeEvidenceParameters)
 {
 	const char* netFileNames[numAttackTypes] = {
 		"dataAccess.net",
@@ -137,6 +139,7 @@ DlibProbabilities::~DlibProbabilities()
 	{
 		delete caches_[i];
 	}
+    delete cep_;
 }
 
 
@@ -751,13 +754,13 @@ double DlibProbabilities::computeProbabilityOfState(
 		encodeEvidence(evidenceNodes, evidenceStates, evidenceSize);
 
 	// Set some static variables so that we can compute the probability if necessary
-	lock_guard<mutex> lg(computeMutex_);
-	computeParameter_attackType = type;
-	computeParameter_node = node;
-	computeParameter_state = state;
-	computeParameter_evidenceNodes = evidenceNodes;
-	computeParameter_evidenceStates = evidenceStates;
-	computeParameter_evidenceSize = evidenceSize;
+	lock_guard<mutex> lg(cep_->computeMutex_);
+	cep_->attackType_ = type;
+	cep_->node_ = node;
+	cep_->state_ = state;
+	cep_->evidenceNodes_ = evidenceNodes;
+	cep_->evidenceStates_ = evidenceStates;
+	cep_->evidenceSize_ = evidenceSize;
 
 	EvidenceCache& evidenceCache = *caches_[type];
 	return evidenceCache(encodedEvidence);
@@ -792,16 +795,16 @@ DlibProbabilities::Evidence DlibProbabilities::encodeEvidence(
 
 double DlibProbabilities::computeEvidence(const Evidence&)
 {
-	bayes_net& net = bayesNets_[computeParameter_attackType];
-	join_tree_type& joinTree = joinTrees_[computeParameter_attackType];
+	bayes_net& net = bayesNets_[cep_->attackType_];
+	join_tree_type& joinTree = joinTrees_[cep_->attackType_];
 
-	for (int i = 0; i < computeParameter_evidenceSize; ++i)
+	for (int i = 0; i < cep_->evidenceSize_; ++i)
 	{
-		const int NODE_NUMBER = computeParameter_evidenceNodes[i];
+		const int NODE_NUMBER = cep_->evidenceNodes_[i];
 		set_node_value(
 			net,
 			NODE_NUMBER,
-			computeParameter_evidenceStates[NODE_NUMBER]
+			cep_->evidenceStates_[NODE_NUMBER]
 		);
 		set_node_as_evidence(net, NODE_NUMBER);
 	}
@@ -809,5 +812,5 @@ double DlibProbabilities::computeEvidence(const Evidence&)
 	// Compute the probabilities of the nodes given what we know
 	bayesian_network_join_tree computed(net, joinTree);
 
-	return computed.probability(computeParameter_node)(computeParameter_state);
+	return computed.probability(cep_->node_)(cep_->state_);
 }

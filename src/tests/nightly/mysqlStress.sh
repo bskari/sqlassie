@@ -36,7 +36,7 @@ if [ "$#" -ge 5 ] ;
 then
     query="$5"
 else
-    query="SELECT User, Host, Password FROM user ORDER BY User, Host LIMIT 1, 3;"
+    query="SELECT User, Host, User FROM user ORDER BY User, Host LIMIT 1, 3;"
 fi
 
 command="mysql -u $user -P $port $database -h 127.0.0.1"

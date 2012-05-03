@@ -24,14 +24,12 @@
 #include "ParserInterface.hpp"
 #include "scanner.yy.hpp"
 
-#include <boost/thread/mutex.hpp>
 #include <cassert>
 #include <exception>
 #include <stack>
 #include <string>
 
 using boost::lock_guard;
-using boost::mutex;
 using std::bad_alloc;
 using std::size_t;
 using std::stack;
@@ -39,9 +37,6 @@ using std::string;
 
 // Methods from the parser
 extern int yyparse(QueryRisk* const qrPtr, ParserInterface* const pi);
-
-// Static members
-mutex ParserInterface::parserMutex_;
 
 
 /**
@@ -113,28 +108,21 @@ int ParserInterface::parse(QueryRisk* const qrPtr)
 	}
 
 	int parserStatus;
-	// Start a new block so I can do a scoped, exception safe lock
-	{
-		/// @TODO ticket #3 make Bison reentrant so I don't have to use a big lock
-		lock_guard<mutex> m(parserMutex_);
-	
-		// Clear the stacks before every parsing attempt
-		clearStack(&scannerContext_.identifiers);
-		clearStack(&scannerContext_.quotedStrings);
-		clearStack(&scannerContext_.numbers);
-		
-		parserStatus = yyparse(qrPtr, this);
+    // Clear the stacks before every parsing attempt
+    clearStack(&scannerContext_.identifiers);
+    clearStack(&scannerContext_.quotedStrings);
+    clearStack(&scannerContext_.numbers);
+    
+    parserStatus = yyparse(qrPtr, this);
 
-		#ifndef NDEBUG
-			if (0 == parserStatus && qrPtr->valid)
-			{
-				assert(scannerContext_.identifiers.empty() && "Identifiers stack not empty");
-				assert(scannerContext_.quotedStrings.empty() && "Quoted strings stack not empty");
-				assert(scannerContext_.numbers.empty() && "Numbers stack not empty");
-			}
-		#endif
-		
-	} // Unlock the mutex
+    #ifndef NDEBUG
+        if (0 == parserStatus && qrPtr->valid)
+        {
+            assert(scannerContext_.identifiers.empty() && "Identifiers stack not empty");
+            assert(scannerContext_.quotedStrings.empty() && "Quoted strings stack not empty");
+            assert(scannerContext_.numbers.empty() && "Numbers stack not empty");
+        }
+    #endif
 	
 	qr_ = *qrPtr;
 	parserStatus_ = parserStatus;

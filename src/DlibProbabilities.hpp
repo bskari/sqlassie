@@ -134,7 +134,7 @@ private:
 		const int size
 	);
 
-	boost::mutex computeMutex_;
+	static boost::mutex computeMutex_;
 	double computeEvidence(const Evidence&);
 };
 

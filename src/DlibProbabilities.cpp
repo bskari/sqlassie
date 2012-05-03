@@ -75,9 +75,11 @@ static const int* computeParameter_evidenceNodes;
 static const int* computeParameter_evidenceStates;
 static int computeParameter_evidenceSize;
 
+// Static member variables
+boost::mutex DlibProbabilities::computeMutex_;
 
-DlibProbabilities::DlibProbabilities() :
-	 computeMutex_()
+
+DlibProbabilities::DlibProbabilities()
 {
 	const char* netFileNames[numAttackTypes] = {
 		"dataAccess.net",

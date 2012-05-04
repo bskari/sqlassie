@@ -8,24 +8,24 @@ set -e
 
 function saveMessage()
 {
-	if [ $# -ne 2 ];
-	then
-		echo 'saveMessage called without errorCount or file'
-		return
-	fi
+    if [ $# -ne 2 ];
+    then
+        echo 'saveMessage called without errorCount or file'
+        return
+    fi
 
-	echo $(date +'%Y-%m-%d %H:%M ') $1 | tee -a $2
+    echo $(date +'%Y-%m-%d %H:%M ') $1 | tee -a $2
 }
 
 function update()
 {
-	git fetch origin > /dev/null
-	git pull origin HEAD > /dev/null
+    git fetch origin > /dev/null
+    git pull origin HEAD > /dev/null
 }
 
 function runMake()
 {
-	pushd src
+    pushd src
 
         if [ $# -ne 1 ];
         then
@@ -50,12 +50,12 @@ function runMake()
 
         saveMessage "Built in $time_" "../$version.txt"
 
-	popd
+    popd
 }
 
 function runTest()
 {
-	pushd bin
+    pushd bin
 
         if [ $# -ne 1 ];
         then
@@ -79,12 +79,12 @@ function runTest()
             saveMessage "$errorCount errors in test" "../$version.txt"
         fi
 
-	popd
+    popd
 }
 
 function runTestTime()
 {
-	pushd bin
+    pushd bin
 
         if [ $# -ne 1 ];
         then
@@ -102,18 +102,18 @@ function runTestTime()
 
         saveMessage "Test ran in $time_ seconds" "../$version.txt"
 
-	popd
+    popd
 }
 
 function runCrawler()
 {
-	if [ $# -ne 1 ];
-	then
-		echo 'runCrawler requires build type argument'
+    if [ $# -ne 1 ];
+    then
+        echo 'runCrawler requires build type argument'
         return
-	fi
+    fi
 
-	version="$1"
+    version="$1"
     # Run SQLassie
     pushd bin
         set +e
@@ -139,7 +139,7 @@ function runCrawler()
         set -e
     popd
 
-	saveMessage "Crawler ran in $time_ seconds" "$version.txt"
+    saveMessage "Crawler ran in $time_ seconds" "$version.txt"
 
     # Kill SQLassie
     set +e
@@ -151,15 +151,15 @@ function runCrawler()
 
 function runStress ()
 {
-	if [ $# -ne 1 ];
-	then
-		echo 'runStress requires build type argument'
+    if [ $# -ne 1 ];
+    then
+        echo 'runStress requires build type argument'
         return
-	fi
+    fi
 
     echo 'Running stress'
 
-	version="$1"
+    version="$1"
     # Run SQLassie
     pushd bin
         set +e
@@ -262,13 +262,13 @@ runStaticAnalysis
 
 for version in RELEASE DEBUG ;
 do
-	pushd src
+    pushd src
         make clean
-	popd
+    popd
 
-	runMake "$version"
-	runTest "$version"
-	runTestTime "$version"
-	runCrawler "$version"
+    runMake "$version"
+    runTest "$version"
+    runTestTime "$version"
+    runCrawler "$version"
     runStress "$version"
 done

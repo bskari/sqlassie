@@ -1,19 +1,19 @@
 /*
  * SQLassie - database firewall
  * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
- * 
+ *
  * This file is part of SQLassie.
  *
  * SQLassie is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * SQLassie is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -45,90 +45,90 @@ const int NUM_QUERY_TYPES = 10;
 
 void setProbabilities(QueryRisk& qr, AttackProbabilities* probs, double probabilities[])
 {
-	assert(
-		nullptr != probs &&
-		"The probability calculator should not be null"
-	);
-	if (nullptr == probs)
-	{
-		return;
-	}
-	// Authentication bypass attack
-	if (QueryRisk::TYPE_SELECT == qr.queryType && qr.userTable)
-	{
-		probabilities[0] = probs->getProbabilityOfBypassAttack(qr);
-	}
-	else
-	{
-		probabilities[0] = 0.0;
-	}
-	
-	// Data access attack
-	if (QueryRisk::TYPE_SELECT == qr.queryType)
-	{
-		probabilities[1] = probs->getProbabilityOfAccessAttack(qr);
-	}
-	else
-	{
-		probabilities[1] = 0.0;
-	}
-	
-	// Data modification attack
-	if (
-		QueryRisk::TYPE_UPDATE == qr.queryType ||
-		QueryRisk::TYPE_INSERT == qr.queryType ||
-		QueryRisk::TYPE_DELETE == qr.queryType
-	)
-	{
-		probabilities[2] = probs->getProbabilityOfModificationAttack(qr);
-	}
-	else
-	{
-		probabilities[2] = 0.0;
-	}
-	
-	// Fingerprinting attack
-	// Fingerprinting attacks can come from select or data mods!
-	if (
-		QueryRisk::TYPE_SELECT == qr.queryType 
-		|| QueryRisk::TYPE_INSERT == qr.queryType
-		|| QueryRisk::TYPE_UPDATE == qr.queryType
-		|| QueryRisk::TYPE_DELETE == qr.queryType
-	)
-	{
-		probabilities[3] = 
-			probs->getProbabilityOfFingerprintingAttack(qr);
-	}
-	else
-	{
-		probabilities[3] = 0.0;
-	}
-	
-	// Schema discovery attack
-	// Schema attacks can come from select or data mods!
-	if (
-		QueryRisk::TYPE_SELECT == qr.queryType 
-		|| QueryRisk::TYPE_INSERT == qr.queryType
-		|| QueryRisk::TYPE_UPDATE == qr.queryType
-		|| QueryRisk::TYPE_DELETE == qr.queryType
-	)
-	{
-		probabilities[4] = probs->getProbabilityOfSchemaAttack(qr);
-	}
-	else
-	{
-		probabilities[4] = 0.0;
-	}
-	
-	// Denial of service attack
-	if (QueryRisk::TYPE_SELECT == qr.queryType)
-	{
-		probabilities[5] = probs->getProbabilityOfDenialAttack(qr);
-	}
-	else
-	{
-		probabilities[5] = 0.0;
-	}
+    assert(
+        nullptr != probs &&
+        "The probability calculator should not be null"
+    );
+    if (nullptr == probs)
+    {
+        return;
+    }
+    // Authentication bypass attack
+    if (QueryRisk::TYPE_SELECT == qr.queryType && qr.userTable)
+    {
+        probabilities[0] = probs->getProbabilityOfBypassAttack(qr);
+    }
+    else
+    {
+        probabilities[0] = 0.0;
+    }
+
+    // Data access attack
+    if (QueryRisk::TYPE_SELECT == qr.queryType)
+    {
+        probabilities[1] = probs->getProbabilityOfAccessAttack(qr);
+    }
+    else
+    {
+        probabilities[1] = 0.0;
+    }
+
+    // Data modification attack
+    if (
+        QueryRisk::TYPE_UPDATE == qr.queryType ||
+        QueryRisk::TYPE_INSERT == qr.queryType ||
+        QueryRisk::TYPE_DELETE == qr.queryType
+    )
+    {
+        probabilities[2] = probs->getProbabilityOfModificationAttack(qr);
+    }
+    else
+    {
+        probabilities[2] = 0.0;
+    }
+
+    // Fingerprinting attack
+    // Fingerprinting attacks can come from select or data mods!
+    if (
+        QueryRisk::TYPE_SELECT == qr.queryType
+        || QueryRisk::TYPE_INSERT == qr.queryType
+        || QueryRisk::TYPE_UPDATE == qr.queryType
+        || QueryRisk::TYPE_DELETE == qr.queryType
+    )
+    {
+        probabilities[3] =
+            probs->getProbabilityOfFingerprintingAttack(qr);
+    }
+    else
+    {
+        probabilities[3] = 0.0;
+    }
+
+    // Schema discovery attack
+    // Schema attacks can come from select or data mods!
+    if (
+        QueryRisk::TYPE_SELECT == qr.queryType
+        || QueryRisk::TYPE_INSERT == qr.queryType
+        || QueryRisk::TYPE_UPDATE == qr.queryType
+        || QueryRisk::TYPE_DELETE == qr.queryType
+    )
+    {
+        probabilities[4] = probs->getProbabilityOfSchemaAttack(qr);
+    }
+    else
+    {
+        probabilities[4] = 0.0;
+    }
+
+    // Denial of service attack
+    if (QueryRisk::TYPE_SELECT == qr.queryType)
+    {
+        probabilities[5] = probs->getProbabilityOfDenialAttack(qr);
+    }
+    else
+    {
+        probabilities[5] = 0.0;
+    }
 }
 
 
@@ -138,131 +138,131 @@ int main(int argc, char* argv[])
     SensitiveNameChecker::initialize();
     SensitiveNameChecker::get().setPasswordSubstring("password");
     SensitiveNameChecker::get().setUserSubstring("user");
-	bool file = false;
-	
-	ifstream fin;
-	if (argc > 1)
-	{
-		fin.open(argv[1]);
-		file = true;
-	}
-	istream& stream = (fin.is_open() ? fin : cin);
-	if (argc > 1 && !fin)
-	{
-		cerr << "Unable to open file '" << argv[1] << "', aborting" << endl;
-		return 0;
-	}
+    bool file = false;
 
-	string query;
-	int queryCount = 0;
-	int queryTypes[NUM_QUERY_TYPES] = {0};
-	
-	DlibProbabilities dp;
-	while (!stream.eof() && queryCount < 500)
-	{
-		if (!file)
-		{
-			cout << "Enter MySQL query: ";
-		}
-		getline(stream, query);
-		
-		if (0 == query.length())
-		{
-			continue;
-		}
-		
-		QueryRisk qr;
-		ParserInterface parser(query);
-		
-		const int status = parser.parse(&qr);
-		++queryCount;
-		
-		// If the query was successfully parsed (i.e. was a valid query)
-		if (0 == status && qr.valid)
-		{
-			assert(
-				qr.queryType < NUM_QUERY_TYPES &&
-				"queryTypes array is too small for the number of query types in the QueryRisk::QueryType enum"
-			);
-			++queryTypes[qr.queryType];
-			
-			/*
-			if (!file)
-			{
-				cout << qr << endl;
-			}
-			*/
-			
-			double dlibProbabilities[NUM_PROBABILITIES];
-			const char* const names[NUM_PROBABILITIES] = {
-				"Bypass authentication",
-				"Data access",
-				"Data modification",
-				"Fingerprinting",
-				"Schema",
-				"Denial of service"
-			};
-			
-			setProbabilities(qr, &dp, dlibProbabilities);
-			
-			double* probabilities[1] = {
-				dlibProbabilities
-			};
-			const char* listNames[1] = {
-				"Dlib"
-			};
-			
-			assert(
-				sizeof(probabilities) / sizeof(probabilities[0]) ==
-					sizeof(listNames) / sizeof(listNames[0]) &&
-				"List of probabilities and names of the lists should be the same size"
-			);
-			
-			bool queryPrinted = false;
-			for (
-				size_t listNum = 0; 
-				listNum < sizeof(probabilities) / sizeof(probabilities[0]);
-				++listNum
-			)
-			{
-				for (int i = 0; i < NUM_PROBABILITIES; ++i)
-				{
-					if (!file && probabilities[listNum][i] > 0.0)
-					{
-						cout << names[i] << ": " << probabilities[listNum][i] << endl;
-					}
-					else if (probabilities[listNum][i] > CUTOFF)
-					{
-						if (!queryPrinted)
-						{
-							cout << query << endl;
-							queryPrinted = true;
-						}
-						cout << names[i] << ": " << probabilities[listNum][i] << endl;
-					}
-					// NANs mean something is wrong with the network or with
-					// the Bayesian library
-					else if (probabilities[listNum][i] != probabilities[listNum][i])
-					{
-						cerr << "Got a NAN for probability of " << names[i] << "!!!\n"
-							<< "This is likely due to an error in either the Bayesian library,"
-							<< " or the Bayesian net file." << endl;
-					}
-				}
-			}
-		}
-		else
-		{
-			cerr << "Query #" << queryCount << " did not parse" << endl;
-		}
-	}
-	/*
-	// Print the counts of types of queries that were seen
-	for (int i = 0; i < NUM_QUERY_TYPES; ++i)
-	{
-		cout << "Query type " << i + 1 << ": " << queryTypes[i] << endl;
-	}
-	*/
-	
-	return 0;
+    ifstream fin;
+    if (argc > 1)
+    {
+        fin.open(argv[1]);
+        file = true;
+    }
+    istream& stream = (fin.is_open() ? fin : cin);
+    if (argc > 1 && !fin)
+    {
+        cerr << "Unable to open file '" << argv[1] << "', aborting" << endl;
+        return 0;
+    }
+
+    string query;
+    int queryCount = 0;
+    int queryTypes[NUM_QUERY_TYPES] = {0};
+
+    DlibProbabilities dp;
+    while (!stream.eof() && queryCount < 500)
+    {
+        if (!file)
+        {
+            cout << "Enter MySQL query: ";
+        }
+        getline(stream, query);
+
+        if (0 == query.length())
+        {
+            continue;
+        }
+
+        QueryRisk qr;
+        ParserInterface parser(query);
+
+        const int status = parser.parse(&qr);
+        ++queryCount;
+
+        // If the query was successfully parsed (i.e. was a valid query)
+        if (0 == status && qr.valid)
+        {
+            assert(
+                qr.queryType < NUM_QUERY_TYPES &&
+                "queryTypes array is too small for the number of query types in the QueryRisk::QueryType enum"
+            );
+            ++queryTypes[qr.queryType];
+
+            /*
+            if (!file)
+            {
+                cout << qr << endl;
+            }
+            */
+
+            double dlibProbabilities[NUM_PROBABILITIES];
+            const char* const names[NUM_PROBABILITIES] = {
+                "Bypass authentication",
+                "Data access",
+                "Data modification",
+                "Fingerprinting",
+                "Schema",
+                "Denial of service"
+            };
+
+            setProbabilities(qr, &dp, dlibProbabilities);
+
+            double* probabilities[1] = {
+                dlibProbabilities
+            };
+            const char* listNames[1] = {
+                "Dlib"
+            };
+
+            assert(
+                sizeof(probabilities) / sizeof(probabilities[0]) ==
+                    sizeof(listNames) / sizeof(listNames[0]) &&
+                "List of probabilities and names of the lists should be the same size"
+            );
+
+            bool queryPrinted = false;
+            for (
+                size_t listNum = 0;
+                listNum < sizeof(probabilities) / sizeof(probabilities[0]);
+                ++listNum
+            )
+            {
+                for (int i = 0; i < NUM_PROBABILITIES; ++i)
+                {
+                    if (!file && probabilities[listNum][i] > 0.0)
+                    {
+                        cout << names[i] << ": " << probabilities[listNum][i] << endl;
+                    }
+                    else if (probabilities[listNum][i] > CUTOFF)
+                    {
+                        if (!queryPrinted)
+                        {
+                            cout << query << endl;
+                            queryPrinted = true;
+                        }
+                        cout << names[i] << ": " << probabilities[listNum][i] << endl;
+                    }
+                    // NANs mean something is wrong with the network or with
+                    // the Bayesian library
+                    else if (probabilities[listNum][i] != probabilities[listNum][i])
+                    {
+                        cerr << "Got a NAN for probability of " << names[i] << "!!!\n"
+                            << "This is likely due to an error in either the Bayesian library,"
+                            << " or the Bayesian net file." << endl;
+                    }
+                }
+            }
+        }
+        else
+        {
+            cerr << "Query #" << queryCount << " did not parse" << endl;
+        }
+    }
+    /*
+    // Print the counts of types of queries that were seen
+    for (int i = 0; i < NUM_QUERY_TYPES; ++i)
+    {
+        cout << "Query type " << i + 1 << ": " << queryTypes[i] << endl;
+    }
+    */
+
+    return 0;
 }

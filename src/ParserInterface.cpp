@@ -1,19 +1,19 @@
 /*
  * SQLassie - database firewall
  * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
- * 
+ *
  * This file is part of SQLassie.
  *
  * SQLassie is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * SQLassie is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -53,13 +53,13 @@ extern int yyparse(QueryRisk* const qrPtr, ParserInterface* const pi);
 class ParserInterfaceScannerMembers
 {
 public:
-	ParserInterfaceScannerMembers(const char* const query);
-	~ParserInterfaceScannerMembers();
-	yyscan_t scanner_;
-	YY_BUFFER_STATE bufferState_;
+    ParserInterfaceScannerMembers(const char* const query);
+    ~ParserInterfaceScannerMembers();
+    yyscan_t scanner_;
+    YY_BUFFER_STATE bufferState_;
 private:
-	ParserInterfaceScannerMembers(const ParserInterfaceScannerMembers&);
-	ParserInterfaceScannerMembers& operator=(const ParserInterfaceScannerMembers&);
+    ParserInterfaceScannerMembers(const ParserInterfaceScannerMembers&);
+    ParserInterfaceScannerMembers& operator=(const ParserInterfaceScannerMembers&);
 };
 
 
@@ -74,45 +74,45 @@ private:
  * and so that we can store the hash of the query's tokens.
  */
 int yylex(
-	YYSTYPE* const lvalp,
-	QueryRisk* const qr,
-	ParserInterface* const pi
+    YYSTYPE* const lvalp,
+    QueryRisk* const qr,
+    ParserInterface* const pi
 );
 
 
 ParserInterface::ParserInterface(const string& buffer) :
-	scannerContext_(),
-	scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str())),
-	tokensHash_(),
-	parsed_(false),
-	qr_(),
-	parserStatus_(0),
-	bufferLen_(buffer.size())
+    scannerContext_(),
+    scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str())),
+    tokensHash_(),
+    parsed_(false),
+    qr_(),
+    parserStatus_(0),
+    bufferLen_(buffer.size())
 {
 }
 
 
 ParserInterface::~ParserInterface()
 {
-	delete scannerPimpl_;
+    delete scannerPimpl_;
 }
 
 
 int ParserInterface::parse(QueryRisk* const qrPtr)
 {
-	assert(NULL != qrPtr);
-	if (parsed_)
-	{
-		*qrPtr = qr_;
-		return parserStatus_;
-	}
+    assert(NULL != qrPtr);
+    if (parsed_)
+    {
+        *qrPtr = qr_;
+        return parserStatus_;
+    }
 
-	int parserStatus;
+    int parserStatus;
     // Clear the stacks before every parsing attempt
     clearStack(&scannerContext_.identifiers);
     clearStack(&scannerContext_.quotedStrings);
     clearStack(&scannerContext_.numbers);
-    
+
     parserStatus = yyparse(qrPtr, this);
 
     #ifndef NDEBUG
@@ -123,77 +123,77 @@ int ParserInterface::parse(QueryRisk* const qrPtr)
             assert(scannerContext_.numbers.empty() && "Numbers stack not empty");
         }
     #endif
-	
-	qr_ = *qrPtr;
-	parserStatus_ = parserStatus;
-	parsed_ = true;
 
-	// If the parser failed, we still need to manually calculate the rest of
-	// the hash for this query. That calculation is handled in yylex, so just
-	// keep calling yylex ourselves until it hits the end of the buffer.
-	if (parserStatus != 0)
-	{
-		const int MIN_VALID_TOKEN = 255;
-		while (yylex(nullptr, qrPtr, this) > MIN_VALID_TOKEN);
-	}
-	
-	return parserStatus;
+    qr_ = *qrPtr;
+    parserStatus_ = parserStatus;
+    parsed_ = true;
+
+    // If the parser failed, we still need to manually calculate the rest of
+    // the hash for this query. That calculation is handled in yylex, so just
+    // keep calling yylex ourselves until it hits the end of the buffer.
+    if (parserStatus != 0)
+    {
+        const int MIN_VALID_TOKEN = 255;
+        while (yylex(nullptr, qrPtr, this) > MIN_VALID_TOKEN);
+    }
+
+    return parserStatus;
 }
 
 
 ParserInterface::QueryHash ParserInterface::getHash() const
 {
-	assert(parsed_ && "gethash() called before parse(QueryRisk* const)");
-	return tokensHash_;
+    assert(parsed_ && "gethash() called before parse(QueryRisk* const)");
+    return tokensHash_;
 }
 
 
 ParserInterface::QueryHash::QueryHash() :
-	hash(0),
-	tokensCount(0)
+    hash(0),
+    tokensCount(0)
 {
 }
 
 
 bool operator==(
-	const ParserInterface::QueryHash& hash1,
-	const ParserInterface::QueryHash& hash2
+    const ParserInterface::QueryHash& hash1,
+    const ParserInterface::QueryHash& hash2
 )
 {
-	return hash1.hash == hash2.hash
-		&& hash1.tokensCount == hash2.tokensCount;
+    return hash1.hash == hash2.hash
+        && hash1.tokensCount == hash2.tokensCount;
 }
 
 
 size_t hash_value(const ParserInterface::QueryHash& qh)
 {
-	return static_cast<std::size_t>(qh.hash + qh.tokensCount);
+    return static_cast<std::size_t>(qh.hash + qh.tokensCount);
 }
 
 
 ParserInterfaceScannerMembers::ParserInterfaceScannerMembers(
-	const char* const query
+    const char* const query
 ) :
-	scanner_(),
-	bufferState_(nullptr)
+    scanner_(),
+    bufferState_(nullptr)
 {
-	if (0 != sql_lex_init(&scanner_))
-	{
-		throw bad_alloc();
-	}
-	bufferState_ = sql__scan_string(query, scanner_);
-	if (nullptr == bufferState_)
-	{
-		sql_lex_destroy(scanner_);
-		throw bad_alloc();
-	}
+    if (0 != sql_lex_init(&scanner_))
+    {
+        throw bad_alloc();
+    }
+    bufferState_ = sql__scan_string(query, scanner_);
+    if (nullptr == bufferState_)
+    {
+        sql_lex_destroy(scanner_);
+        throw bad_alloc();
+    }
 }
 
 
 ParserInterfaceScannerMembers::~ParserInterfaceScannerMembers()
 {
-	sql__delete_buffer(bufferState_, scanner_);
-	sql_lex_destroy(scanner_);
+    sql__delete_buffer(bufferState_, scanner_);
+    sql_lex_destroy(scanner_);
 }
 
 
@@ -203,16 +203,16 @@ ParserInterfaceScannerMembers::~ParserInterfaceScannerMembers()
  * @param ht The previous hash.
  */
 static ParserInterface::hashType sdbmHash(
-	const int lexCode,
-	const ParserInterface::hashType ht
+    const int lexCode,
+    const ParserInterface::hashType ht
 );
 
 
 extern int sql_lex(
-	YYSTYPE* const lvalp,
-	ScannerContext* const context,
-	QueryRisk* const qr,
-	yyscan_t const yyscanner
+    YYSTYPE* const lvalp,
+    ScannerContext* const context,
+    QueryRisk* const qr,
+    yyscan_t const yyscanner
 );
 
 
@@ -227,34 +227,34 @@ extern int sql_lex(
  * and so that we can store the hash of the query's tokens.
  */
 int yylex(
-	YYSTYPE* const lvalp,
-	QueryRisk* const qr,
-	ParserInterface* const pi
+    YYSTYPE* const lvalp,
+    QueryRisk* const qr,
+    ParserInterface* const pi
 )
 {
-	assert(nullptr != qr);
-	assert(nullptr != pi);
+    assert(nullptr != qr);
+    assert(nullptr != pi);
 
-	int lexCode = sql_lex(
-		lvalp,
-		&pi->scannerContext_,
-		qr,
-		pi->scannerPimpl_->scanner_
-	);
-	// Don't calculate the hash anymore once we've hit the end of the buffer
-	if (lexCode > 255)
-	{
-		++pi->tokensHash_.tokensCount;
-		pi->tokensHash_.hash = sdbmHash(lexCode, pi->tokensHash_.hash);
-	}
-	return lexCode;
+    int lexCode = sql_lex(
+        lvalp,
+        &pi->scannerContext_,
+        qr,
+        pi->scannerPimpl_->scanner_
+    );
+    // Don't calculate the hash anymore once we've hit the end of the buffer
+    if (lexCode > 255)
+    {
+        ++pi->tokensHash_.tokensCount;
+        pi->tokensHash_.hash = sdbmHash(lexCode, pi->tokensHash_.hash);
+    }
+    return lexCode;
 }
 
 
 static ParserInterface::hashType sdbmHash(
-	const int lexCode,
-	const ParserInterface::hashType ht
+    const int lexCode,
+    const ParserInterface::hashType ht
 )
 {
-	return lexCode + (ht << 6) + (ht << 16) - ht;
+    return lexCode + (ht << 6) + (ht << 16) - ht;
 }

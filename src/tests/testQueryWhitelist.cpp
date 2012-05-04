@@ -1,19 +1,19 @@
 /*
  * SQLassie - database firewall
  * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
- * 
+ *
  * This file is part of SQLassie.
  *
  * SQLassie is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * SQLassie is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -54,139 +54,139 @@ static void testRiskChangedRisks();
 // Called directly from the test suite
 void testParseWhitelist()
 {
-	testParseBlank();
-	testParseKeywords();
-	testParseChangingStrings();
+    testParseBlank();
+    testParseKeywords();
+    testParseChangingStrings();
 }
 
 
 // Called directly from the test suite
 void testRiskWhitelist()
 {
-	testRiskChangedRisks();
+    testRiskChangedRisks();
 }
 
 
 void testParseBlank()
 {
-	checkParseWhitelisted(";");
-	checkParseNotWhitelisted(";;");
+    checkParseWhitelisted(";");
+    checkParseNotWhitelisted(";;");
 }
 
 
 void testParseKeywords()
 {
-	checkParseWhitelisted("SELECT select FROM from WHERE where = not AND and = or");
+    checkParseWhitelisted("SELECT select FROM from WHERE where = not AND and = or");
 }
 
 
 void testParseChangingStrings()
 {
-	// Identical to the query in the whitelist
-	checkParseWhitelisted("SELECT \"foo\" FROM \"bar\" JOIN \"baz\"");
+    // Identical to the query in the whitelist
+    checkParseWhitelisted("SELECT \"foo\" FROM \"bar\" JOIN \"baz\"");
 
-	// Different string literals
-	checkParseWhitelisted("SELECT \"bar\" FROM \"baz\" JOIN \"foo\"");
-	checkParseWhitelisted("SELECT \"foo\" FROM \"foo\" JOIN \"foo\"");
+    // Different string literals
+    checkParseWhitelisted("SELECT \"bar\" FROM \"baz\" JOIN \"foo\"");
+    checkParseWhitelisted("SELECT \"foo\" FROM \"foo\" JOIN \"foo\"");
 
-	// Changing quotation marks
-	checkParseWhitelisted("SELECT 'foo' FROM 'foo' JOIN 'foo'");
-	checkParseWhitelisted("SELECT \"foo\" FROM 'foo' JOIN \"foo\"");
+    // Changing quotation marks
+    checkParseWhitelisted("SELECT 'foo' FROM 'foo' JOIN 'foo'");
+    checkParseWhitelisted("SELECT \"foo\" FROM 'foo' JOIN \"foo\"");
 }
 
 
 void testRiskChangedRisks()
 {
-	// The original query to be blocked is:
-	// SELECT * FROM something WHERE age > '21' OR 1 = 1 UNION SELECT username, password FROM user -- '
-	
-	// Test that changing the literal values still blocks the query
-	checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR 1 = 1 UNION SELECT username, password FROM user -- '");
-	checkRiskWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user -- '");
-	checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR -1 = -1 UNION SELECT username, password FROM user -- '");
-	/// @TODO(bskari) should this be blocked? The lexeme stream differs, but
-	/// nothing significantly changed
-	checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR 2 = 1 + 1 UNION SELECT username, password FROM user -- '");
+    // The original query to be blocked is:
+    // SELECT * FROM something WHERE age > '21' OR 1 = 1 UNION SELECT username, password FROM user -- '
 
-	// Test that changing the comment type still blocks the query
-	checkRiskWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user #'");
+    // Test that changing the literal values still blocks the query
+    checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR 1 = 1 UNION SELECT username, password FROM user -- '");
+    checkRiskWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user -- '");
+    checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR -1 = -1 UNION SELECT username, password FROM user -- '");
+    /// @TODO(bskari) should this be blocked? The lexeme stream differs, but
+    /// nothing significantly changed
+    checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR 2 = 1 + 1 UNION SELECT username, password FROM user -- '");
 
-	// Test that changing the query risks won't block the query
+    // Test that changing the comment type still blocks the query
+    checkRiskWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user #'");
 
-	// Drop the commented out quote
-	checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user");
-	checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user -- ");
+    // Test that changing the query risks won't block the query
 
-	// UNION something other than password
-	checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT favorite_color, age FROM user -- '");
+    // Drop the commented out quote
+    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user");
+    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user -- ");
 
-	// UNION against a table other than user
-	checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM diamonds -- '");
+    // UNION something other than password
+    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT favorite_color, age FROM user -- '");
 
-	// Get rid of the always true conditional
-	checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR 1 = 0 UNION SELECT username, password FROM user -- '");
-	checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' AND -1 = -1 UNION SELECT username, password FROM user -- '");
+    // UNION against a table other than user
+    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM diamonds -- '");
+
+    // Get rid of the always true conditional
+    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR 1 = 0 UNION SELECT username, password FROM user -- '");
+    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' AND -1 = -1 UNION SELECT username, password FROM user -- '");
 }
 
 
 #if GCC_VERSION >= 40600
-	#pragma GCC diagnostic push
+    #pragma GCC diagnostic push
 #endif
 #pragma GCC diagnostic ignored "-Wunused-variable"
 void checkParseWhitelisted(const string& query)
 {
-	ParserInterface pi(query);
-	QueryRisk qr;
-	// Save the return code so that I don't get compiler warnings
-	const int _ = pi.parse(&qr);
-	BOOST_CHECK_MESSAGE(
-		QueryWhitelist::isParseWhitelisted(pi.getHash()),
-		'"' << query << "\" should be parse whitelisted"
-	);
+    ParserInterface pi(query);
+    QueryRisk qr;
+    // Save the return code so that I don't get compiler warnings
+    const int _ = pi.parse(&qr);
+    BOOST_CHECK_MESSAGE(
+        QueryWhitelist::isParseWhitelisted(pi.getHash()),
+        '"' << query << "\" should be parse whitelisted"
+    );
 }
 
 
 void checkParseNotWhitelisted(const string& query)
 {
-	ParserInterface pi(query);
-	QueryRisk qr;
-	// Save the return code so that I don't get compiler warnings
-	const int _ = pi.parse(&qr);
-	BOOST_CHECK_MESSAGE(
-		!QueryWhitelist::isParseWhitelisted(pi.getHash()),
-		'"' << query << "\" should not be parse whitelisted"
-	);
+    ParserInterface pi(query);
+    QueryRisk qr;
+    // Save the return code so that I don't get compiler warnings
+    const int _ = pi.parse(&qr);
+    BOOST_CHECK_MESSAGE(
+        !QueryWhitelist::isParseWhitelisted(pi.getHash()),
+        '"' << query << "\" should not be parse whitelisted"
+    );
 }
 
 
 void checkRiskWhitelisted(const string &query)
 {
-	ParserInterface pi(query);
-	QueryRisk qr;
-	// Save the return code so that I don't get compiler warnings
-	const int _ = pi.parse(&qr);
-	BOOST_CHECK_MESSAGE(
-		QueryWhitelist::isBlockWhitelisted(pi.getHash(), qr),
-		'"' << query << "\" should be risk whitelisted"
-	);
+    ParserInterface pi(query);
+    QueryRisk qr;
+    // Save the return code so that I don't get compiler warnings
+    const int _ = pi.parse(&qr);
+    BOOST_CHECK_MESSAGE(
+        QueryWhitelist::isBlockWhitelisted(pi.getHash(), qr),
+        '"' << query << "\" should be risk whitelisted"
+    );
 }
 
 
 void checkRiskNotWhitelisted(const string &query)
 {
-	ParserInterface pi(query);
-	QueryRisk qr;
-	// Save the return code so that I don't get compiler warnings
-	const int _ = pi.parse(&qr);
-	BOOST_CHECK_MESSAGE(
-		!QueryWhitelist::isBlockWhitelisted(pi.getHash(), qr),
-		'"' << query << "\" should not be risk whitelisted"
-	);
+    ParserInterface pi(query);
+    QueryRisk qr;
+    // Save the return code so that I don't get compiler warnings
+    const int _ = pi.parse(&qr);
+    BOOST_CHECK_MESSAGE(
+        !QueryWhitelist::isBlockWhitelisted(pi.getHash(), qr),
+        '"' << query << "\" should not be risk whitelisted"
+    );
 }
 
 
 #if GCC_VERSION >= 40600
-	#pragma GCC diagnostic pop
+    #pragma GCC diagnostic pop
 #else
-	#pragma GCC diagnostic warning "-Wunused-variable"
+    #pragma GCC diagnostic warning "-Wunused-variable"
 #endif

@@ -1,19 +1,19 @@
 /*
  * SQLassie - database firewall
  * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
- * 
+ *
  * This file is part of SQLassie.
  *
  * SQLassie is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * SQLassie is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,8 +29,8 @@
 #define NEED_TO_DEFINE_nullptrPTR 1
 // GNU g++ didn't support the __cplusplus macro until version 4.7
 #if (__GNUC__ && __GNUC_VERSION__ >= 40700 && __cplusplus > 199711L) \
-	|| (__GNUC__ && __GXX_EXPERIMENTAL_CXX0X__)
-		#undef NEED_TO_DEFINE_nullptrPTR
+    || (__GNUC__ && __GXX_EXPERIMENTAL_CXX0X__)
+        #undef NEED_TO_DEFINE_nullptrPTR
 #endif
 
 #if NEED_TO_DEFINE_nullptrPTR
@@ -42,18 +42,18 @@
  * @date January 14 2012
  */
 
-const							// this is a const object...
+const                            // this is a const object...
 class {
 public:
-	template<class T>			// convertible to any type
-	operator T*() const			// of null non-member
-		{ return 0; }			// pointer...
-	template<class C, class T>	// or any type of null
-	operator T C::*() const		// member pointer...
-		{ return 0; }
+    template<class T>            // convertible to any type
+    operator T*() const            // of null non-member
+        { return 0; }            // pointer...
+    template<class C, class T>    // or any type of null
+    operator T C::*() const        // member pointer...
+        { return 0; }
 private:
-	void operator&() const;		// whose address can't be taken
-} nullptr = {};					// and whose name is nullptr
+    void operator&() const;        // whose address can't be taken
+} nullptr = {};                    // and whose name is nullptr
 
 #endif // #if NEED_TO_DEFINE_nullptrPTR
 #endif // #ifndef nullptrPTR_HPP

@@ -24,11 +24,11 @@
 #include <string>
 
 ScannerContext::ScannerContext() :
-	identifiers(),
-	identifier(),
-	quotedStrings(),
-	quotedString(),
-	numbers()
+    identifiers(),
+    identifier(),
+    quotedStrings(),
+    quotedString(),
+    numbers()
 {
 }
 

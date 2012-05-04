@@ -1,19 +1,19 @@
 /*
  * SQLassie - database firewall
  * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
- * 
+ *
  * This file is part of SQLassie.
  *
  * SQLassie is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * SQLassie is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -52,85 +52,85 @@ mutex Logger::LoggerStream::streamLock_;
 
 
 Logger::Logger(ostream& out) :
-	out_(out),
-	level_(WARN.level_)
+    out_(out),
+    level_(WARN.level_)
 {
 }
 
 
 void Logger::initialize(ostream& out)
 {
-	// Prevent race conditions between threads
-	mutex m;
-	lock_guard<mutex> lg(m);
+    // Prevent race conditions between threads
+    mutex m;
+    lock_guard<mutex> lg(m);
 
-	if (nullptr == instance_)
-	{
-		instance_ = new Logger(out);
-	}
+    if (nullptr == instance_)
+    {
+        instance_ = new Logger(out);
+    }
 }
 
 
 Logger::LoggerStream Logger::log(const LogLevel& logLevelObject)
 {
-	assert(instance_ != nullptr && "Called Logger singleton without initializing");
-	return LoggerStream(instance_->out_, logLevelObject, instance_->level_);
+    assert(instance_ != nullptr && "Called Logger singleton without initializing");
+    return LoggerStream(instance_->out_, logLevelObject, instance_->level_);
 }
 
 
 void Logger::setLevel(const int level)
 {
-	assert(instance_ != nullptr && "Called Logger singleton without initializing");
-	instance_->level_ = level;
+    assert(instance_ != nullptr && "Called Logger singleton without initializing");
+    instance_->level_ = level;
 }
 
 
 void Logger::setLevel(const LogLevel& level)
 {
-	assert(instance_ != nullptr && "Called Logger singleton without initializing");
-	instance_->level_ = level.level_;
+    assert(instance_ != nullptr && "Called Logger singleton without initializing");
+    instance_->level_ = level.level_;
 }
 
 
 Logger::LoggerStream::LoggerStream(ostream& out, const LogLevel& logLevel, const int level) :
-	out_(out),
-	enabled_(logLevel.level_ >= level),
-	guard_(streamLock_)
+    out_(out),
+    enabled_(logLevel.level_ >= level),
+    guard_(streamLock_)
 {
-	if (enabled_)
-	{
-		try
-		{
-			ptime now(second_clock::local_time());
-			out_ << now << ' ' << logLevel.description_ << ' ';
-		}
-		catch (...)
-		{
-			// Logger should never throw
-		}
-	}
+    if (enabled_)
+    {
+        try
+        {
+            ptime now(second_clock::local_time());
+            out_ << now << ' ' << logLevel.description_ << ' ';
+        }
+        catch (...)
+        {
+            // Logger should never throw
+        }
+    }
 }
 
 
 Logger::LoggerStream::LoggerStream(const Logger::LoggerStream& rhs) :
-	out_(rhs.out_),
-	enabled_(rhs.enabled_),
-	guard_(streamLock_, adopt_lock_t()) // Take ownership of the lock
+    out_(rhs.out_),
+    enabled_(rhs.enabled_),
+    guard_(streamLock_, adopt_lock_t()) // Take ownership of the lock
 {
 }
 
 
 Logger::LoggerStream::~LoggerStream()
 {
-	if (enabled_)
-	{
-		try
-		{
-			out_ << endl;
-		}
-		catch (...)
-		{
-			// Logger should never throw
-		}
-	}
+    if (enabled_)
+    {
+        try
+        {
+            out_ << endl;
+        }
+        catch (...)
+        {
+            // Logger should never throw
+        }
+    }
 }

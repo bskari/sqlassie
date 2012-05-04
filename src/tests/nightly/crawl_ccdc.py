@@ -21,7 +21,7 @@ def get_all_pages_links(soup):
         if link[0] == '/':
             return 'http://localhost' + link
         return link
-    
+
     links = [relative_to_localhost(link) for link in raw_links]
     return links
 

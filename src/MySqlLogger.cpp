@@ -125,7 +125,9 @@ void MySqlLogger::handleMessage(std::vector<uint8_t>& rawMessage) const
         }
         cout << endl;
         #endif
-        Logger::log(Logger::ERROR) << "Unexpected message structure " << commandCode;
+        Logger::log(Logger::ERROR)
+            << "Unexpected message structure "
+            << commandCode;
         assert(false);
         ProxyHalf::handleMessage(rawMessage);
         return;
@@ -133,8 +135,16 @@ void MySqlLogger::handleMessage(std::vector<uint8_t>& rawMessage) const
 
     /*
     cout << "MySqlLogger::handleMessage(), messageCode = "
-        << "0x" << hex << setfill('0') << setw(2) << (int)commandCode << dec
-        << " message = '" << string(rawMessage.begin() + 5, rawMessage.end()) << '\'' << endl;
+        << "0x"
+        << hex
+        << setfill('0')
+        << setw(2)
+        << (int)commandCode
+        << dec
+        << " message = '"
+        << string(rawMessage.begin() + 5, rawMessage.end())
+        << '\''
+        << endl;
     */
 
     switch (commandCode)

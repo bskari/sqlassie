@@ -265,7 +265,9 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
                         break;
 
                     default:
-                        Logger::log(Logger::ERROR) << "Unexpected case in MySqlGuard::handleMessage() " << type;
+                        Logger::log(Logger::ERROR)
+                            << "Unexpected case in MySqlGuard::handleMessage() "
+                            << type;
                         assert(false);
                         checkBadNumbers(
                             string(
@@ -279,7 +281,9 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
             break;
 
         default:
-            Logger::log(Logger::ERROR) << "Unexpected MySQL message code " << commandCode_;
+            Logger::log(Logger::ERROR)
+                << "Unexpected MySQL message code "
+                << commandCode_;
             assert(false);
             // Default to just sending it
             ProxyHalf::handleMessage(rawMessage);

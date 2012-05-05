@@ -124,7 +124,9 @@ bool ComparisonNode::isAlwaysTrue() const
             == MySqlConstants::soundex(expr2->getValue());
     }
 
-    Logger::log(Logger::ERROR) << "Unknown comparison operator in ComparisonNode " << compareType_;
+    Logger::log(Logger::ERROR)
+        << "Unknown comparison operator in ComparisonNode "
+        << compareType_;
     assert(false);
     return true;
 }
@@ -152,7 +154,10 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
     );
 
     // Only check for equality comparisons to password field
-    if ("=" != compareType_ || SensitiveNameChecker::get().isPasswordField(expr1->getValue()))
+    if (
+        "=" != compareType_
+        || SensitiveNameChecker::get().isPasswordField(expr1->getValue())
+    )
     {
         return QueryRisk::PASSWORD_NOT_USED;
     }

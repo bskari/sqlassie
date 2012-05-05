@@ -18,7 +18,13 @@ template<typename T>
 class accumulator_type : public boost::program_options::value_semantic
 {
 public:
-    accumulator_type(T* store) : _store(store), _notifier(), _interval(1), _default(0) {}
+    accumulator_type(T* store)
+        : _store(store)
+        , _notifier()
+        , _interval(1)
+        , _default(0)
+    {
+    }
 
     /// Set the notifier function.
     accumulator_type* notifier(boost::function1<void, const T&> f) {

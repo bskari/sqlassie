@@ -70,7 +70,11 @@ enum ATTACK_TYPES
 
 const int FAILED_TO_PARSE = 100;
 
-void setProbabilities(QueryRisk& qr, AttackProbabilities* probs, double probabilities[])
+void setProbabilities(
+    QueryRisk& qr,
+    AttackProbabilities* probs,
+    double probabilities[]
+)
 {
     assert(nullptr != probs &&
         "The probability calculator should not be null");
@@ -181,8 +185,11 @@ int main(int argc, char* argv[])
     // If the query was successfully parsed (i.e. was a valid query)
     if (0 == status && qr.valid)
     {
-        assert(qr.queryType < NUM_QUERY_TYPES &&
-            "queryTypes array is too small for the number of query types in the QueryRisk::QueryType enum");
+        assert(
+            qr.queryType < NUM_QUERY_TYPES
+            && "queryTypes array is too small for the number of query types "
+            && "in the QueryRisk::QueryType enum"
+        );
 
         double probabilities[NUM_PROBABILITIES];
 
@@ -216,7 +223,8 @@ int main(int argc, char* argv[])
             switch (qr.queryType)
             {
                 case QueryRisk::TYPE_UNKNOWN:
-                    Logger::log(Logger::ERROR) << "Unknown query types should not be parsed";
+                    Logger::log(Logger::ERROR)
+                        << "Unknown query types should not be parsed";
                     assert(false);
                     sqlassieResponse = FAKE_EMPTY_SET;
                     break;
@@ -233,12 +241,15 @@ int main(int argc, char* argv[])
                 case QueryRisk::TYPE_SET:
                 case QueryRisk::TYPE_EXPLAIN:
                 case QueryRisk::TYPE_DESCRIBE:
-                    Logger::log(Logger::ERROR) << "Non-risky query type was mistakenly blocked";
+                    Logger::log(Logger::ERROR)
+                        << "Non-risky query type was mistakenly blocked";
                     assert(false);
                     sqlassieResponse = FAKE_EMPTY_SET;
                     break;
                 default:
-                    Logger::log(Logger::ERROR) << "Unexpected attack type in switch " << qr.queryType;
+                    Logger::log(Logger::ERROR)
+                        << "Unexpected attack type in switch "
+                        << qr.queryType;
                     assert(false);
                     sqlassieResponse = FAKE_EMPTY_SET;
             }

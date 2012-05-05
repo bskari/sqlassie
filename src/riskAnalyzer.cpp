@@ -49,7 +49,11 @@ const double CUTOFF = 0.5;
 const int NUM_PROBABILITIES = 6;
 const int NUM_QUERY_TYPES = 10;
 
-void setProbabilities(QueryRisk& qr, AttackProbabilities* probs, double probabilities[])
+void setProbabilities(
+    QueryRisk& qr,
+    AttackProbabilities* probs,
+    double probabilities[]
+)
 {
     assert(
         nullptr != probs &&
@@ -187,8 +191,9 @@ int main(int argc, char* argv[])
         if (0 == status && qr.valid)
         {
             assert(
-                qr.queryType < NUM_QUERY_TYPES &&
-                "queryTypes array is too small for the number of query types in the QueryRisk::QueryType enum"
+                qr.queryType < NUM_QUERY_TYPES
+                && "queryTypes array is too small for the number of query "
+                && "types in the QueryRisk::QueryType enum"
             );
             ++queryTypes[qr.queryType];
 
@@ -220,8 +225,9 @@ int main(int argc, char* argv[])
 
             assert(
                 sizeof(probabilities) / sizeof(probabilities[0]) ==
-                    sizeof(listNames) / sizeof(listNames[0]) &&
-                "List of probabilities and names of the lists should be the same size"
+                    sizeof(listNames) / sizeof(listNames[0])
+                && "List of probabilities and names of the lists should be "
+                && "the same size"
             );
 
             bool queryPrinted = false;
@@ -235,7 +241,10 @@ int main(int argc, char* argv[])
                 {
                     if (!file && probabilities[listNum][i] > 0.0)
                     {
-                        cout << names[i] << ": " << probabilities[listNum][i] << endl;
+                        cout << names[i]
+                            << ": "
+                            << probabilities[listNum][i]
+                            << endl;
                     }
                     else if (probabilities[listNum][i] > CUTOFF)
                     {
@@ -244,15 +253,23 @@ int main(int argc, char* argv[])
                             cout << query << endl;
                             queryPrinted = true;
                         }
-                        cout << names[i] << ": " << probabilities[listNum][i] << endl;
+                        cout << names[i]
+                            << ": "
+                            << probabilities[listNum][i]
+                            << endl;
                     }
                     // NANs mean something is wrong with the network or with
                     // the Bayesian library
-                    else if (probabilities[listNum][i] != probabilities[listNum][i])
+                    else if (
+                        probabilities[listNum][i] != probabilities[listNum][i]
+                    )
                     {
-                        cerr << "Got a NAN for probability of " << names[i] << "!!!\n"
-                            << "This is likely due to an error in either the Bayesian library,"
-                            << " or the Bayesian net file." << endl;
+                        cerr << "Got a NAN for probability of "
+                            << names[i]
+                            << "!!!\n"
+                            << "This is likely due to an error in either the "
+                            << "Bayesian library, or the Bayesian net file."
+                            << endl;
                     }
                 }
             }

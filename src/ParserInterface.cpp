@@ -59,7 +59,9 @@ public:
     YY_BUFFER_STATE bufferState_;
 private:
     ParserInterfaceScannerMembers(const ParserInterfaceScannerMembers&);
-    ParserInterfaceScannerMembers& operator=(const ParserInterfaceScannerMembers&);
+    ParserInterfaceScannerMembers& operator=(
+        const ParserInterfaceScannerMembers&
+    );
 };
 
 
@@ -118,9 +120,18 @@ int ParserInterface::parse(QueryRisk* const qrPtr)
     #ifndef NDEBUG
         if (0 == parserStatus && qrPtr->valid)
         {
-            assert(scannerContext_.identifiers.empty() && "Identifiers stack not empty");
-            assert(scannerContext_.quotedStrings.empty() && "Quoted strings stack not empty");
-            assert(scannerContext_.numbers.empty() && "Numbers stack not empty");
+            assert(
+                scannerContext_.identifiers.empty()
+                && "Identifiers stack not empty"
+            );
+            assert(
+                scannerContext_.quotedStrings.empty()
+                && "Quoted strings stack not empty"
+            );
+            assert(
+                scannerContext_.numbers.empty()
+                && "Numbers stack not empty"
+            );
         }
     #endif
 

@@ -76,7 +76,9 @@ void testParseBlank()
 
 void testParseKeywords()
 {
-    checkParseWhitelisted("SELECT select FROM from WHERE where = not AND and = or");
+    checkParseWhitelisted(
+        "SELECT select FROM from WHERE where = not AND and = or"
+    );
 }
 
 
@@ -98,34 +100,59 @@ void testParseChangingStrings()
 void testRiskChangedRisks()
 {
     // The original query to be blocked is:
-    // SELECT * FROM something WHERE age > '21' OR 1 = 1 UNION SELECT username, password FROM user -- '
+    // SELECT * FROM something WHERE age > '21' OR 1 = 1 UNION SELECT
+    // username, password FROM user -- '
+
+    string longQuery;
 
     // Test that changing the literal values still blocks the query
-    checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR 1 = 1 UNION SELECT username, password FROM user -- '");
-    checkRiskWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user -- '");
-    checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR -1 = -1 UNION SELECT username, password FROM user -- '");
+    longQuery = "SELECT * FROM something WHERE age > '80' OR 1 = 1 ";
+    longQuery += "UNION SELECT username, password FROM user -- '";
+    checkRiskWhitelisted(longQuery);
+    longQuery = "SELECT * FROM something WHERE age > '21' OR -1 = -1 ";
+    longQuery += "UNION SELECT username, password FROM user -- '";
+    checkRiskWhitelisted(longQuery);
+    longQuery = "SELECT * FROM something WHERE age > '80' OR -1 = -1 ";
+    longQuery += "UNION SELECT username, password FROM user -- '";
+    checkRiskWhitelisted(longQuery);
     /// @TODO(bskari) should this be blocked? The lexeme stream differs, but
     /// nothing significantly changed
-    checkRiskWhitelisted("SELECT * FROM something WHERE age > '80' OR 2 = 1 + 1 UNION SELECT username, password FROM user -- '");
+    longQuery = "SELECT * FROM something WHERE age > '80' OR 2 = 1 + 1 ";
+    longQuery += "UNION SELECT username, password FROM user -- '";
+    checkRiskWhitelisted(longQuery);
 
     // Test that changing the comment type still blocks the query
-    checkRiskWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user #'");
+    longQuery = "SELECT * FROM something WHERE age > '21' OR -1 = -1 ";
+    longQuery += "UNION SELECT username, password FROM user #'";
+    checkRiskWhitelisted(longQuery);
 
     // Test that changing the query risks won't block the query
 
     // Drop the commented out quote
-    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user");
-    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM user -- ");
+    longQuery = "SELECT * FROM something WHERE age > '21' OR -1 = -1 ";
+    longQuery += "UNION SELECT username, password FROM user";
+    checkRiskNotWhitelisted(longQuery);
+    longQuery = "SELECT * FROM something WHERE age > '21' OR -1 = -1 ";
+    longQuery += "UNION SELECT username, password FROM user -- ";
+    checkRiskNotWhitelisted(longQuery);
 
     // UNION something other than password
-    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT favorite_color, age FROM user -- '");
+    longQuery = "SELECT * FROM something WHERE age > '21' OR -1 = -1 ";
+    longQuery += "UNION SELECT favorite_color, age FROM user -- '";
+    checkRiskNotWhitelisted(longQuery);
 
     // UNION against a table other than user
-    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR -1 = -1 UNION SELECT username, password FROM diamonds -- '");
+    longQuery = "SELECT * FROM something WHERE age > '21' OR -1 = -1 ";
+    longQuery += "UNION SELECT username, password FROM diamonds -- '";
+    checkRiskNotWhitelisted(longQuery);
 
     // Get rid of the always true conditional
-    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' OR 1 = 0 UNION SELECT username, password FROM user -- '");
-    checkRiskNotWhitelisted("SELECT * FROM something WHERE age > '21' AND -1 = -1 UNION SELECT username, password FROM user -- '");
+    longQuery = "SELECT * FROM something WHERE age > '21' OR 1 = 0 ";
+    longQuery += "UNION SELECT username, password FROM user -- '";
+    checkRiskNotWhitelisted(longQuery);
+    longQuery = "SELECT * FROM something WHERE age > '21' AND -1 = -1 ";
+    longQuery += "UNION SELECT username, password FROM user -- '";
+    checkRiskNotWhitelisted(longQuery);
 }
 
 

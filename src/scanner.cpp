@@ -78,7 +78,13 @@ int main()
         {
             assert(tokenCodes.end() != tokenCodes.find(lexCode) &&
                 "Token code doesn't have an associated name");
-            cout << '"' << sql_get_text(scanner) << "\": " << lexCode << ", " << tokenCodes[lexCode] << endl;
+            cout << '"'
+                << sql_get_text(scanner)
+                << "\": "
+                << lexCode
+                << ", "
+                << tokenCodes[lexCode]
+                << endl;
             lexCode = sql_lex(nullptr, &context, &qr, scanner);
         }
         while (lexCode > 255);

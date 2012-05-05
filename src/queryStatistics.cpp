@@ -67,10 +67,11 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    cout << "# Multi-line comments, hash comments, dash dash comments,"
-        << "MySQL comments, MySQL versioned comments, risky tables, or statements,"
-        << "union statements, union all statements, brute force commands, if statements,"
-        << "hex strings, benchmark statements, user statements, empty password,"
+    cout << "# Multi-line comments, hash comments, dash dash comments, "
+        << "MySQL comments, MySQL versioned comments, risky tables, "
+        << "or statements, union statements, union all statements, "
+        << "brute force commands, if statements, hex strings, "
+        << "benchmark statements, user statements, empty password, "
         << "multiple queries, order by number, always true, information schema"
         << endl;
 

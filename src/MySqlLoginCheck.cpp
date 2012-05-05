@@ -139,7 +139,10 @@ bool MySqlLoginCheck::getUserHostsFromMySql()
         return false;
     }
 
-    assert(2 == numFields && "That select query should return exactly 2 fields");
+    assert(
+        2 == numFields
+        && "That select query should return exactly 2 fields"
+    );
     if (2 != numFields)
     {
         return false;
@@ -156,7 +159,9 @@ bool MySqlLoginCheck::getUserHostsFromMySql()
         if (0 == strcmp("localhost", row[1]))
         {
             regex localhostRegex(
-                MySqlConstants::mySqlRegexToPerlRegex("127.0.0.1"), regex::perl);
+                MySqlConstants::mySqlRegexToPerlRegex("127.0.0.1"),
+                regex::perl
+            );
             userHostLogins_[row[0]].insert(localhostRegex);
         }
 

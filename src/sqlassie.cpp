@@ -110,7 +110,10 @@ int main(int argc, char* argv[])
         visibleOptions.add(getConfigurationOptions());
 
         store(
-            options::command_line_parser(argc, argv).options(visibleOptions).run(),
+            options::command_line_parser(
+                argc,
+                argv
+            ).options(visibleOptions).run(),
             commandLineVm
         );
         // Notify any functions for user-specified notify functions and store
@@ -121,7 +124,9 @@ int main(int argc, char* argv[])
         ifstream optionsFile(commandLineVm["config"].as<string>().c_str());
         if (optionsFile.is_open())
         {
-            Logger::log(Logger::INFO) << "Reading configuration from file " << commandLineVm["config"].as<string>();
+            Logger::log(Logger::INFO)
+                << "Reading configuration from file "
+                << commandLineVm["config"].as<string>();
             options::options_description fileOptions("File options");
             fileOptions.add(getConfigurationOptions());
             fileOptions.add(getFileOptions());
@@ -133,7 +138,9 @@ int main(int argc, char* argv[])
         // Ignore unable to find the file if it's set to default
         else if (commandLineVm["config"].as<string>() != DEFAULT_CONFIG_FILE)
         {
-            cerr << "Unable to open config file: " << commandLineVm["config"].as<string>() << endl;
+            cerr << "Unable to open config file: "
+                << commandLineVm["config"].as<string>()
+                << endl;
             exit(EXIT_FAILURE);
         }
 
@@ -169,7 +176,8 @@ int main(int argc, char* argv[])
     // Override logging level in debug builds
     #ifndef NDEBUG
         Logger::setLevel(Logger::ALL);
-        Logger::log(Logger::INFO) << "This is a testing/debug build of SQLassie.";
+        Logger::log(Logger::INFO)
+            << "This is a testing/debug build of SQLassie.";
         Logger::log(Logger::INFO) << "Log level is being set to ALL.";
     #endif
 
@@ -202,48 +210,112 @@ int main(int argc, char* argv[])
             : getOption("host", commandLineVm, fileVm).as<string>()
         );
 
-        const string username = getOption("user", commandLineVm, fileVm).as<string>();
-        const string password = getOption("password", commandLineVm, fileVm).as<string>();
+        const string username = getOption(
+            "user",
+            commandLineVm,
+            fileVm
+        ).as<string>();
+        const string password = getOption(
+            "password",
+            commandLineVm,
+            fileVm
+        ).as<string>();
 
         if (useListenPort)
         {
-            Logger::log(Logger::WARN) << "Listening on a port causes a large performance penalty.";
-            Logger::log(Logger::WARN) << "Listening on a domain socket (using -d) is strongly recommended.";
+            Logger::log(Logger::WARN)
+                << "Listening on a port causes a large performance penalty.";
+            Logger::log(Logger::WARN)
+                << "Listening on a domain socket (using -d) is recommended.";
 
-            const uint16_t listenPort = getOption("listen-port", commandLineVm, fileVm).as<int>();
+            const uint16_t listenPort = getOption(
+                "listen-port",
+                commandLineVm,
+                fileVm
+            ).as<int>();
             Logger::log(Logger::DEBUG) << "Listening on port " << listenPort;
             if (useConnectPort)
             {
-                const uint16_t connectPort = getOption("connect-port", commandLineVm, fileVm).as<int>();
-                Logger::log(Logger::DEBUG) << "Connecting to port " << connectPort;
-                mysqlGuard = new MySqlGuardListenSocket(listenPort,
-                    connectPort, connectHost, username, password);
+                const uint16_t connectPort = getOption(
+                    "connect-port",
+                    commandLineVm,
+                    fileVm
+                ).as<int>();
+                Logger::log(Logger::DEBUG)
+                    << "Connecting to port "
+                    << connectPort;
+                mysqlGuard = new MySqlGuardListenSocket(
+                    listenPort,
+                    connectPort,
+                    connectHost,
+                    username,
+                    password
+                );
             }
             else
             {
-                const string domainSocket(getOption("connect-socket", commandLineVm, fileVm).as<string>());
-                Logger::log(Logger::DEBUG) << "Connecting to socket " << domainSocket;
+                const string domainSocket(
+                    getOption(
+                        "connect-socket",
+                        commandLineVm,
+                        fileVm
+                    ).as<string>()
+                );
+                Logger::log(Logger::DEBUG)
+                    << "Connecting to socket "
+                    << domainSocket;
                 mysqlGuard = new MySqlGuardListenSocket(listenPort,
                     domainSocket, username, password);
             }
         }
         else
         {
-            const string listenDomain(getOption("listen-socket", commandLineVm, fileVm).as<string>());
-            Logger::log(Logger::DEBUG) << "Listening on socket " << listenDomain;
+            const string listenDomain(
+                getOption(
+                    "listen-socket",
+                    commandLineVm,
+                    fileVm
+                ).as<string>()
+            );
+            Logger::log(Logger::DEBUG)
+                << "Listening on socket "
+                << listenDomain;
             if (useConnectPort)
             {
-                const uint16_t connectPort = getOption("connect-port", commandLineVm, fileVm).as<int>();
-                Logger::log(Logger::DEBUG) << "Connecting to port" << connectPort;
-                mysqlGuard = new MySqlGuardListenSocket(listenDomain,
-                    connectPort, connectHost, username, password);
+                const uint16_t connectPort = getOption(
+                    "connect-port",
+                    commandLineVm,
+                    fileVm
+                ).as<int>();
+                Logger::log(Logger::DEBUG)
+                    << "Connecting to port"
+                    << connectPort;
+                mysqlGuard = new MySqlGuardListenSocket(
+                    listenDomain,
+                    connectPort,
+                    connectHost,
+                    username,
+                    password
+                );
             }
             else
             {
-                const string connectDomain(getOption("connect-socket", commandLineVm, fileVm).as<string>());
-                Logger::log(Logger::DEBUG) << "Connecting to socket " << connectDomain;
-                mysqlGuard = new MySqlGuardListenSocket(listenDomain,
-                    connectDomain, username, password);
+                const string connectDomain(
+                    getOption(
+                        "connect-socket",
+                        commandLineVm,
+                        fileVm
+                    ).as<string>()
+                );
+                Logger::log(Logger::DEBUG)
+                    << "Connecting to socket "
+                    << connectDomain;
+                mysqlGuard = new MySqlGuardListenSocket(
+                    listenDomain,
+                    connectDomain,
+                    username,
+                    password
+                );
             }
         }
         mysqlGuard->acceptClients();
@@ -251,7 +323,8 @@ int main(int argc, char* argv[])
     #ifdef NDEBUG
         catch(std::exception& e)
         {
-            Logger::log(Logger::FATAL) << "SQLassie quitting after catching exception: "
+            Logger::log(Logger::FATAL)
+                << "SQLassie quitting after catching exception: "
                 << e.what();
             quit();
         }
@@ -395,27 +468,27 @@ options::options_description getFileOptions()
         (
             PARSER_WHITELIST_OPTION,
             options::value<string>()->default_value(""),
-            "A file containing queries that SQLassie has failed to parse but should be forwarded anyway."
+            "A file containing queries that SQLassie has failed to parse but should be forwarded anyway." // NOLINT(whitespace/line_length)
         )
         (
             PASSWORD_REGEX,
             options::value<string>()->default_value(""),
-            "SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name matching this Perl style regular expression will be considered a password field."
+"SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name matching this Perl style regular expression will be considered a password field." // NOLINT(whitespace/line_length)
         )
         (
             PASSWORD_SUBSTRING,
             options::value<string>()->default_value(""),
-            "SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name containing this word will be considered a password field."
+            "SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name containing this word will be considered a password field." // NOLINT(whitespace/line_length)
         )
         (
             USER_REGEX,
             options::value<string>()->default_value(""),
-            "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name matching this Perl style regular expression will be considered a user table."
+            "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name matching this Perl style regular expression will be considered a user table." // NOLINT(whitespace/line_length)
         )
         (
             USER_SUBSTRING,
             options::value<string>()->default_value(""),
-            "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name containing this word will be considered a user table."
+            "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name containing this word will be considered a user table." // NOLINT(whitespace/line_length)
         );
     return configuration;
 }
@@ -455,7 +528,12 @@ bool optionsAreValid(
     const bool fConnectSocket = !fileVm["connect-socket"].defaulted();
     if (
         (clConnectPort && clConnectSocket)
-        || (!clConnectPort && !clConnectSocket && !fConnectPort && !fConnectSocket)
+        || (
+            !clConnectPort
+            && !clConnectSocket
+            && !fConnectPort
+            && !fConnectSocket
+        )
     )
     {
         *error = "You must specify one method for connecting";
@@ -465,7 +543,8 @@ bool optionsAreValid(
     // Make sure that port numbers are in a valid range
     if (clListenPort || fListenPort)
     {
-        const options::variables_map& vm = (clListenPort ? commandLineVm : fileVm);
+        const options::variables_map& vm =
+            (clListenPort ? commandLineVm : fileVm);
         const int portNumber = vm["listen-port"].as<int>();
         if (portNumber < 1 || portNumber > 65535)
         {
@@ -478,7 +557,8 @@ bool optionsAreValid(
     const bool connectPort = clConnectPort || fConnectPort;
     if (connectPort)
     {
-        const options::variables_map& vm = (clConnectPort ? commandLineVm : fileVm);
+        const options::variables_map& vm =
+            (clConnectPort ? commandLineVm : fileVm);
         const int portNumber = vm["connect-port"].as<int>();
         if (portNumber < 1 || portNumber > 65535)
         {
@@ -527,14 +607,14 @@ bool optionsAreValid(
     const bool pwRegex = !fileVm[PASSWORD_REGEX].as<string>().empty();
     if (pwSubstr == pwRegex)
     {
-        *error = "You must specify either a password field word or regular expression";
+        *error = "You must specify either a password field word or regex";
         return false;
     }
     const bool userSubstr = !fileVm[USER_SUBSTRING].as<string>().empty();
     const bool userRegex = !fileVm[USER_REGEX].as<string>().empty();
     if (userSubstr == userRegex)
     {
-        *error = "You must specify either a user table word or regular expression";
+        *error = "You must specify either a user table word or regex";
         return false;
     }
 
@@ -593,7 +673,13 @@ void setupOptions(
         ++i
     )
     {
-        if (!getOption(optionNames[i], commandLineVm, fileVm).as<string>().empty())
+        if (
+            !getOption(
+                optionNames[i],
+                commandLineVm,
+                fileVm
+            ).as<string>().empty()
+        )
         {
             whitelistFilenames[i] = new string(
                 getOption(optionNames[i], commandLineVm, fileVm).as<string>()
@@ -611,23 +697,68 @@ void setupOptions(
     }
 
     // Set the sensitive tables and fields
-    typedef pair<const char*, boost::function<void (const string&)> > optionAndSetter;
+    typedef pair<
+        const char*,
+        boost::function<void (const string&)>
+    > optionAndSetter;
     SensitiveNameChecker& ref = SensitiveNameChecker::get();
     SensitiveNameChecker* inst = &ref;
 
-    boost::function<void (const string&)> test(boost::bind(&SensitiveNameChecker::setPasswordRegex, inst, _1));
+    boost::function<void (const string&)> test(
+        boost::bind(
+            &SensitiveNameChecker::setPasswordRegex,
+            inst,
+            _1
+        )
+    );
 
     optionAndSetter sensitiveNames[] = {
-        optionAndSetter(PASSWORD_REGEX, boost::bind(&SensitiveNameChecker::setPasswordRegex, inst, _1)),
-        optionAndSetter(PASSWORD_SUBSTRING, boost::bind(&SensitiveNameChecker::setPasswordSubstring, inst, _1)),
-        optionAndSetter(USER_REGEX, boost::bind(&SensitiveNameChecker::setUserRegex, inst, _1)),
-        optionAndSetter(USER_SUBSTRING, boost::bind(&SensitiveNameChecker::setUserSubstring, inst, _1))
+        optionAndSetter(
+            PASSWORD_REGEX,
+            boost::bind(
+                &SensitiveNameChecker::setPasswordRegex,
+                inst,
+                _1
+            )
+        ),
+        optionAndSetter(
+            PASSWORD_SUBSTRING,
+            boost::bind(
+                &SensitiveNameChecker::setPasswordSubstring,
+                inst,
+                _1
+            )
+        ),
+        optionAndSetter(
+            USER_REGEX,
+            boost::bind(
+                &SensitiveNameChecker::setUserRegex,
+                inst,
+                _1
+            )
+        ),
+        optionAndSetter(
+            USER_SUBSTRING,
+            boost::bind(
+                &SensitiveNameChecker::setUserSubstring,
+                inst,
+                _1
+            )
+        )
     };
-    for (size_t i = 0; i < sizeof(sensitiveNames) / sizeof(sensitiveNames[0]); ++i)
+    for (
+        size_t i = 0;
+        i < sizeof(sensitiveNames) / sizeof(sensitiveNames[0]);
+        ++i
+    )
     {
         const char* const optionName = sensitiveNames[i].first;
         boost::function<void (const string&)> setter = sensitiveNames[i].second;
-        const string& option = getOption(optionName, commandLineVm, fileVm).as<string>();
+        const string& option = getOption(
+            optionName,
+            commandLineVm,
+            fileVm
+        ).as<string>();
         if (!option.empty())
         {
             setter(option);

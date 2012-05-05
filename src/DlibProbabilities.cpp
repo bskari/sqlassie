@@ -54,7 +54,11 @@ using std::stack;
 using std::string;
 
 // Stuff from the parser
-extern int hugin_parse(DlibProbabilities::bayes_net* network, bool firstTime, void* scanner);
+extern int hugin_parse(
+    DlibProbabilities::bayes_net* network,
+    bool firstTime,
+    void* scanner
+);
 extern stack<string> hugin_identifiers;
 extern stack<string> hugin_numbers;
 
@@ -169,8 +173,10 @@ double DlibProbabilities::getProbabilityOfAccessAttack(const QueryRisk& qr)
         OrStmts
     };
     assert(
-        static_cast<int>(OrStmts) + 1 == bayesNets_[ATTACK_DATA_ACCESS].number_of_nodes() &&
-        "The number of nodes loaded from file and the number of states in the nodes enum should match"
+        static_cast<int>(OrStmts) + 1 ==
+        bayesNets_[ATTACK_DATA_ACCESS].number_of_nodes()
+        && "The number of nodes loaded from file and the number of states in "
+        && "the nodes enum should match"
     );
 
     int states[static_cast<int>(OrStmts) + 1];
@@ -216,7 +222,8 @@ double DlibProbabilities::getProbabilityOfAccessAttack(const QueryRisk& qr)
         OrStmts
     };
 
-    const int SIZE = sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
+    const int SIZE =
+        sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
     const int ATTACK_STATE = 0;
     return computeProbabilityOfState(
         ATTACK_DATA_ACCESS,
@@ -251,8 +258,10 @@ double DlibProbabilities::getProbabilityOfBypassAttack(const QueryRisk& qr)
         CommentedConditionals
     };
     assert(
-        static_cast<int>(CommentedConditionals) + 1 == bayesNets_[ATTACK_BYPASS_AUTHENTICATION].number_of_nodes() &&
-        "The number of nodes loaded from file and the number of states in the nodes enum should match"
+        static_cast<int>(CommentedConditionals) + 1 ==
+        bayesNets_[ATTACK_BYPASS_AUTHENTICATION].number_of_nodes()
+        && "The number of nodes loaded from file and the number of states in "
+        && "the nodes enum should match"
     );
 
     int states[static_cast<int>(CommentedConditionals) + 1];
@@ -283,9 +292,12 @@ double DlibProbabilities::getProbabilityOfBypassAttack(const QueryRisk& qr)
         // Don't set the state at all - it will be ignored and not set
         break;
     default:
-        Logger::log(Logger::ERROR) << "Unexpected value of qr.emptyPassword " << qr.emptyPassword;
+        Logger::log(Logger::ERROR)
+            << "Unexpected value of qr.emptyPassword "
+            << qr.emptyPassword;
         assert(false);
-        const_cast<QueryRisk&>(qr).emptyPassword = QueryRisk::PASSWORD_NOT_USED;
+        const_cast<QueryRisk&>(qr).emptyPassword =
+            QueryRisk::PASSWORD_NOT_USED;
     }
 
     states[CommentedConditionals] = qr.commentedConditionals ? 0 : 1;
@@ -327,8 +339,9 @@ double DlibProbabilities::getProbabilityOfBypassAttack(const QueryRisk& qr)
     assert(
         sizeof(evidenceNodeNumbersWithPassword)
             - sizeof(evidenceNodeNumbersWithoutPassword)
-                == sizeof(evidenceNodeNumbersWithPassword[0]) &&
-        "Evidence node numbers with and without password should differ by only one element"
+                == sizeof(evidenceNodeNumbersWithPassword[0])
+        && "Evidence node numbers with and without password should differ by"
+        && "only one element"
     );
 
     int SIZE;
@@ -358,7 +371,9 @@ double DlibProbabilities::getProbabilityOfBypassAttack(const QueryRisk& qr)
 }
 
 
-double DlibProbabilities::getProbabilityOfModificationAttack(const QueryRisk& qr)
+double DlibProbabilities::getProbabilityOfModificationAttack(
+    const QueryRisk& qr
+)
 {
     // This should be the order of the nodes in the Hugin net file
     enum NODE_TYPES
@@ -380,8 +395,9 @@ double DlibProbabilities::getProbabilityOfModificationAttack(const QueryRisk& qr
     };
     assert(
         static_cast<int>(SensitiveTables) + 1 ==
-            bayesNets_[ATTACK_DATA_MODIFICATION].number_of_nodes() &&
-        "The number of nodes loaded from file and the number of states in the nodes enum should match"
+            bayesNets_[ATTACK_DATA_MODIFICATION].number_of_nodes()
+        && "The number of nodes loaded from file and the number of states in "
+        && "the nodes enum should match"
     );
 
     int states[static_cast<int>(SensitiveTables) + 1];
@@ -417,7 +433,8 @@ double DlibProbabilities::getProbabilityOfModificationAttack(const QueryRisk& qr
         SensitiveTables
     };
 
-    const int SIZE = sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
+    const int SIZE =
+        sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
     const int ATTACK_STATE = 0;
     return computeProbabilityOfState(
         ATTACK_DATA_MODIFICATION,
@@ -430,7 +447,9 @@ double DlibProbabilities::getProbabilityOfModificationAttack(const QueryRisk& qr
 }
 
 
-double DlibProbabilities::getProbabilityOfFingerprintingAttack(const QueryRisk& qr)
+double DlibProbabilities::getProbabilityOfFingerprintingAttack(
+    const QueryRisk& qr
+)
 {
     // This should be the order of the nodes in the Hugin net file
     enum NODE_TYPES
@@ -462,8 +481,9 @@ double DlibProbabilities::getProbabilityOfFingerprintingAttack(const QueryRisk& 
     };
     assert(
         static_cast<int>(OrAlwaysTrue) + 1 ==
-            bayesNets_[ATTACK_FINGERPRINTING].number_of_nodes() &&
-        "The number of nodes loaded from file and the number of states in the nodes enum should match"
+            bayesNets_[ATTACK_FINGERPRINTING].number_of_nodes()
+        && "The number of nodes loaded from file and the number of states in "
+        && "the nodes enum should match"
     );
 
     int states[static_cast<int>(OrAlwaysTrue) + 1];
@@ -519,7 +539,8 @@ double DlibProbabilities::getProbabilityOfFingerprintingAttack(const QueryRisk& 
         OrAlwaysTrue
     };
 
-    const int SIZE = sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
+    const int SIZE =
+        sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
     const int ATTACK_STATE = 0;
     return computeProbabilityOfState(
         ATTACK_FINGERPRINTING,
@@ -560,8 +581,10 @@ double DlibProbabilities::getProbabilityOfSchemaAttack(const QueryRisk& qr)
         Select
     };
     assert(
-        static_cast<int>(Select) + 1 == bayesNets_[ATTACK_SCHEMA].number_of_nodes() &&
-        "The number of nodes loaded from file and the number of states in the nodes enum should match"
+        static_cast<int>(Select) + 1 ==
+            bayesNets_[ATTACK_SCHEMA].number_of_nodes()
+            && "The number of nodes loaded from file and the number of "
+            && "states in the nodes enum should match"
     );
 
     int states[static_cast<int>(Select) + 1];
@@ -583,8 +606,11 @@ double DlibProbabilities::getProbabilityOfSchemaAttack(const QueryRisk& qr)
     states[OrAlwaysTrue] =
         (qr.alwaysTrue && qr.orStatements && qr.alwaysTrueConditional ? 0 : 1);
     states[AlwaysTrueConditional] = qr.alwaysTrueConditional ? 0 : 1;
-    states[StringManipulation] =
-        (qr.stringManipulationStatements <= 3 ? qr.stringManipulationStatements : 4);
+    states[StringManipulation] = (
+        qr.stringManipulationStatements <= 3
+        ? qr.stringManipulationStatements
+        : 4
+    );
     states[Select] = (QueryRisk::TYPE_SELECT == qr.queryType) ? 0 : 1;
 
     const int evidenceNodeNumbers[] = {
@@ -611,7 +637,8 @@ double DlibProbabilities::getProbabilityOfSchemaAttack(const QueryRisk& qr)
         Select
     };
 
-    const int SIZE = sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
+    const int SIZE =
+        sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
     const int ATTACK_STATE = 0;
     return computeProbabilityOfState(
         ATTACK_SCHEMA,
@@ -638,8 +665,10 @@ double DlibProbabilities::getProbabilityOfDenialAttack(const QueryRisk& qr)
         RegexLength
     };
     assert(
-        static_cast<int>(RegexLength) + 1 == bayesNets_[ATTACK_DENIAL_OF_SERVICE].number_of_nodes() &&
-        "The number of nodes loaded from file and the number of states in the nodes enum should match"
+        static_cast<int>(RegexLength) + 1 ==
+            bayesNets_[ATTACK_DENIAL_OF_SERVICE].number_of_nodes()
+        && "The number of nodes loaded from file and the number of states in "
+        && "the nodes enum should match"
     );
 
     int states[static_cast<int>(RegexLength) + 1];
@@ -661,7 +690,8 @@ double DlibProbabilities::getProbabilityOfDenialAttack(const QueryRisk& qr)
         RegexLength
     };
 
-    const int SIZE = sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
+    const int SIZE =
+        sizeof(evidenceNodeNumbers) / sizeof(evidenceNodeNumbers[0]);
     const int ATTACK_STATE = 0;
     return computeProbabilityOfState(
         ATTACK_DENIAL_OF_SERVICE,
@@ -721,9 +751,10 @@ int DlibProbabilities::loadNetwork(
             if (0 == status)
             {
                 assert(
-                    hugin_identifiers.empty() &&
-                    hugin_numbers.empty() &&
-                    "After parsing a Hugins network file, stacks should be empty"
+                    hugin_identifiers.empty()
+                    && hugin_numbers.empty()
+                    && "After parsing a Hugins network file, "
+                    && "stacks should be empty"
                 );
             }
         #endif
@@ -753,7 +784,8 @@ double DlibProbabilities::computeProbabilityOfState(
     const Evidence encodedEvidence =
         encodeEvidence(evidenceNodes, evidenceStates, evidenceSize);
 
-    // Set some static variables so that we can compute the probability if necessary
+    // Set some static variables so that we can compute the probability if
+    // necessary
     lock_guard<mutex> lg(cep_->computeMutex_);
     cep_->attackType_ = type;
     cep_->node_ = node;

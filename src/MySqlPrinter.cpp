@@ -43,19 +43,24 @@ using std::setfill;
 using boost::replace_all;
 
 
-MySqlPrinter::MySqlPrinter(Socket* incomingConnection, Socket* outgoingConnection) :
-    ProxyHalf(incomingConnection, outgoingConnection),
-    lastCommandCode_('\0'),
-    firstPacket_(true),
-    database_()
+MySqlPrinter::MySqlPrinter(
+    Socket* incomingConnection,
+    Socket* outgoingConnection
+)
+    : ProxyHalf(incomingConnection, outgoingConnection)
+    , lastCommandCode_('\0')
+    , firstPacket_(true)
+    , database_()
 {
 }
 
 
 void MySqlPrinter::handleMessage(std::vector<uint8_t>& rawMessage) const
 {
-    assert(rawMessage.size() >= 5 &&
-        "MySQL message in MySqlPrinter is unexpectedly short");
+    assert(
+        rawMessage.size() >= 5 &&
+        "MySQL message in MySqlPrinter is unexpectedly short"
+    );
 
     // The first packet is the authentication packet, so don't print it
     if (firstPacket_)
@@ -79,7 +84,10 @@ void MySqlPrinter::handleMessage(std::vector<uint8_t>& rawMessage) const
     else if (MySqlConstants::COM_QUERY == lastCommandCode_)
     {
         // If it's the continuation of a query, then log it
-        cout.write(reinterpret_cast<const char*>(&rawMessage.at(0)), rawMessage.size());
+        cout.write(
+            reinterpret_cast<const char*>(&rawMessage.at(0)),
+            rawMessage.size()
+        );
         ProxyHalf::handleMessage(rawMessage);
         return;
     }
@@ -96,7 +104,8 @@ void MySqlPrinter::handleMessage(std::vector<uint8_t>& rawMessage) const
         }
         cout << endl;
         #endif
-        Logger::log(Logger::ERROR) << "Unexpected message structure " << lastCommandCode_;
+        Logger::log(Logger::ERROR) << "Unexpected message structure "
+            << lastCommandCode_;
         assert(false);
         ProxyHalf::handleMessage(rawMessage);
         return;

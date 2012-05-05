@@ -36,8 +36,14 @@ void testSoundex()
     // Make sure extra punctuation is removed
     BOOST_CHECK(MySqlConstants::soundex("brandonskari") == "B653526");
     BOOST_CHECK(MySqlConstants::soundex("   B ran don Sk ari") == "B653526");
-    BOOST_CHECK(MySqlConstants::soundex("\t\t&Bran42`d~on \t\t%%%^()Ska-9989ri---++=") == "B653526");
-    BOOST_CHECK(MySqlConstants::soundex("rupert") == MySqlConstants::soundex("robert"));
+    BOOST_CHECK(
+        MySqlConstants::soundex(
+            "\t\t&Bran42`d~on \t\t%%%^()Ska-9989ri---++="
+        ) == "B653526"
+    );
+    BOOST_CHECK(
+        MySqlConstants::soundex("rupert") == MySqlConstants::soundex("robert")
+    );
     BOOST_CHECK(MySqlConstants::soundex("") == "");
     BOOST_CHECK(MySqlConstants::soundex("aardvark") == "A63162");
     BOOST_CHECK(MySqlConstants::soundex("euouae") == "E000");
@@ -444,16 +450,32 @@ void testSoundex()
 
 void testConvertRegex()
 {
-    BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("abc_de") == "^abc.de$");
+    BOOST_CHECK(
+        MySqlConstants::mySqlRegexToPerlRegex("abc_de") == "^abc.de$"
+    );
     BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("%ab_a") == "^.*ab.a$");
-    BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("abc_de") == "^abc.de$");
-    BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("_%%__") == "^..*.*..$");
+    BOOST_CHECK(
+        MySqlConstants::mySqlRegexToPerlRegex("abc_de") == "^abc.de$"
+    );
+    BOOST_CHECK(
+        MySqlConstants::mySqlRegexToPerlRegex("_%%__") == "^..*.*..$"
+    );
     BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("%\\_%") == "^.*_.*$");
     BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("\\%_\\%") == "^%.%$");
     BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex(".*") == "^\\.\\*$");
-    BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("%\\%%.%*%") == "^.*%.*\\..*\\*.*$");
-    BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("(a[^b]){2,3}|(c|d|[^e]+)*") ==
-        "^\\(a\\[\\^b\\]\\)\\{2\\,3\\}\\|\\(c\\|d\\|\\[\\^e\\]\\+\\)\\*$");
-    BOOST_CHECK(MySqlConstants::mySqlRegexToPerlRegex("ab_cd\\_sf.e?kl%l(k|)f*j%e\\%") ==
-        "^ab.cd_sf\\.e\\?kl.*l\\(k\\|\\)f\\*j.*e%$");
+    BOOST_CHECK(
+        MySqlConstants::mySqlRegexToPerlRegex(
+            "%\\%%.%*%"\
+        ) == "^.*%.*\\..*\\*.*$"
+    );
+    BOOST_CHECK(
+        MySqlConstants::mySqlRegexToPerlRegex(
+            "(a[^b]){2,3}|(c|d|[^e]+)*"
+        ) == "^\\(a\\[\\^b\\]\\)\\{2\\,3\\}\\|\\(c\\|d\\|\\[\\^e\\]\\+\\)\\*$"
+    );
+    BOOST_CHECK(
+        MySqlConstants::mySqlRegexToPerlRegex(
+            "ab_cd\\_sf.e?kl%l(k|)f*j%e\\%"
+        ) == "^ab.cd_sf\\.e\\?kl.*l\\(k\\|\\)f\\*j.*e%$"
+    );
 }

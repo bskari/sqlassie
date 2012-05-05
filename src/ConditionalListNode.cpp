@@ -76,7 +76,9 @@ bool ConditionalListNode::isAlwaysTrue() const
     }
     else
     {
-        Logger::log(Logger::ERROR) << "Unexpected binary logical operator in conditionalList " << logicalOp_;
+        Logger::log(Logger::ERROR)
+            << "Unexpected binary logical operator in conditionalList "
+            << logicalOp_;
         assert(false);
         return false;
     }

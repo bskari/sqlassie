@@ -382,7 +382,13 @@ void Socket::setPeerName()
 {
     sockaddr_storage address;
     socklen_t length = sizeof(address);
-    if (0 == getpeername(socketFD_, reinterpret_cast<sockaddr*>(&address), &length))
+    if (
+        0 == getpeername(
+            socketFD_,
+            reinterpret_cast<sockaddr*>(&address),
+            &length
+        )
+    )
     {
         assert(length <= sizeof(address) &&
             "getpeername used up too much buffer space");

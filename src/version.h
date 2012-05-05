@@ -39,7 +39,7 @@ const char* sqlassieCopyright()
 const char* sqlassieShortLicense()
 {
     return
-"This is free software; see the source for copying conditions. There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
+"This is free software; see the source for copying conditions. There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."; // NOLINT(whitespace/line_length)
 }
 
 #endif  // SRC_VERSION_H_

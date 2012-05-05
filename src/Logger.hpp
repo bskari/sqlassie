@@ -102,7 +102,11 @@ private:
     class LoggerStream
     {
     public:
-        LoggerStream(std::ostream& out, const LogLevel& logLevel, const int level);
+        LoggerStream(
+            std::ostream& out,
+            const LogLevel& logLevel,
+            const int level
+        );
         LoggerStream(const LoggerStream& rhs);
 
         ~LoggerStream();

@@ -68,24 +68,42 @@ public:
      * Constants used in handshake initialization.
      */
     ///@{
-    static const uint32_t CLIENT_LONG_PASSWORD = 1; /// New more secure passwords
-    static const uint32_t CLIENT_FOUND_ROWS = 2; /// Found instead of affected rows
-    static const uint32_t CLIENT_LONG_FLAG = 4; /// Get all column flags
-    static const uint32_t CLIENT_CONNECT_WITH_DB = 8; /// One can specify db on connect
-    static const uint32_t CLIENT_NO_SCHEMA = 16; /// Don't allow database.table.column
-    static const uint32_t CLIENT_COMPRESS = 32; /// Can use compression protocol
-    static const uint32_t CLIENT_ODBC = 64; /// Odbc client
-    static const uint32_t CLIENT_LOCAL_FILES = 128; /// Can use LOAD DATA LOCAL
-    static const uint32_t CLIENT_IGNORE_SPACE = 256; /// Ignore spaces before '('
-    static const uint32_t CLIENT_PROTOCOL_41= 512; /// New 4.1 protocol
-    static const uint32_t CLIENT_uint32_tERACTIVE = 1024; /// This is an uint32_teractive client
-    static const uint32_t CLIENT_SSL = 2048; /// Switch to SSL after handshake
-    static const uint32_t CLIENT_IGNORE_SIGPIPE = 4096; /// IGNORE sigpipes
-    static const uint32_t CLIENT_TRANSACTIONS = 8192; /// Client knows about transactions
-    static const uint32_t CLIENT_RESERVED = 16384; /// Old flag for 4.1 protocol
-    static const uint32_t CLIENT_SECURE_CONNECTION = 32768; /// New 4.1 authentication
-    static const uint32_t CLIENT_MULTI_STATEMENTS = 65536; /// Enable/disable multi-stmt support
-    static const uint32_t CLIENT_MULTI_RESULTS = 131072; /// Enable/disable multi-results
+    /// New more secure passwords
+    static const uint32_t CLIENT_LONG_PASSWORD = 1;
+    /// Found instead of affected rows
+    static const uint32_t CLIENT_FOUND_ROWS = 2;
+    /// Get all column flags
+    static const uint32_t CLIENT_LONG_FLAG = 4;
+    /// One can specify db on connect
+    static const uint32_t CLIENT_CONNECT_WITH_DB = 8;
+    /// Don't allow database.table.column
+    static const uint32_t CLIENT_NO_SCHEMA = 16;
+    /// Can use compression protocol
+    static const uint32_t CLIENT_COMPRESS = 32;
+    /// Odbc client
+    static const uint32_t CLIENT_ODBC = 64;
+    /// Can use LOAD DATA LOCAL
+    static const uint32_t CLIENT_LOCAL_FILES = 128;
+    /// Ignore spaces before '('
+    static const uint32_t CLIENT_IGNORE_SPACE = 256;
+    /// New 4.1 protocol
+    static const uint32_t CLIENT_PROTOCOL_41= 512;
+    /// This is an uint32_teractive client
+    static const uint32_t CLIENT_uint32_tERACTIVE = 1024;
+    /// Switch to SSL after handshake
+    static const uint32_t CLIENT_SSL = 2048;
+    /// IGNORE sigpipes
+    static const uint32_t CLIENT_IGNORE_SIGPIPE = 4096;
+    /// Client knows about transactions
+    static const uint32_t CLIENT_TRANSACTIONS = 8192;
+    /// Old flag for 4.1 protocol
+    static const uint32_t CLIENT_RESERVED = 16384;
+    /// New 4.1 authentication
+    static const uint32_t CLIENT_SECURE_CONNECTION = 32768;
+    /// Enable/disable multi-stmt support
+    static const uint32_t CLIENT_MULTI_STATEMENTS = 65536;
+    /// Enable/disable multi-results
+    static const uint32_t CLIENT_MULTI_RESULTS = 131072;
     ///@}
 
     /**
@@ -888,9 +906,9 @@ public:
     static std::string mySqlRegexToPerlRegex(const std::string& mySqlRegex);
 
     /**
-     * Implementation of the Soundex algorithm use1d for converting a string into
-     * another string such that similar sounding strings are converted into the
-     * same string.
+     * Implementation of the Soundex algorithm use1d for converting a string
+     * into another string such that similar sounding strings are converted
+     * into the same string.
      * Used in MySQL, this implementation is written from a description by
      * Knuth in TAoCP volume 3.
      */

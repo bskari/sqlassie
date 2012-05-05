@@ -114,7 +114,9 @@ Type& AutoPtrWithOperatorParens<Type>::operator->() const throw()
 
 
 template <class Type>
-Type& AutoPtrWithOperatorParens<Type>::operator=(AutoPtrWithOperatorParens<Type>& rhs) throw()
+Type& AutoPtrWithOperatorParens<Type>::operator=(
+    AutoPtrWithOperatorParens<Type>& rhs
+) throw()
 {
     object_ = rhs.object_;
     rhs.object_ = nullptr;

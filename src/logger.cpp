@@ -33,7 +33,10 @@ int main(int argc, char* argv[])
     Logger::initialize();
     if (argc < 4)
     {
-        cerr << "Usage: " << argv[0] << " listenPort MySQL-port MySQL-host" << endl;
+        cerr << "Usage: "
+            << argv[0]
+            << " listenPort MySQL-port MySQL-host"
+            << endl;
         return -1;
     }
     const uint16_t listenPort = lexical_cast<uint16_t>(argv[1]);

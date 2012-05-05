@@ -163,7 +163,10 @@ void MySqlErrorMessageBlocker::handleMessage(vector<uint8_t>& rawMessage) const
                 break;
 
             default:
-                Logger::log(Logger::ERROR) << "Unexpected case for last query type in MySqlErrorMessageBlocker " << lastQueryType_;
+                Logger::log(Logger::ERROR)
+                    << "Unexpected case for last query type "
+                    << "in MySqlErrorMessageBlocker "
+                    << lastQueryType_;
                 assert(false);
                 mySqlSocketPtr->sendErrorPacket(packetNumber);
         }

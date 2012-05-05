@@ -242,8 +242,10 @@ std::ostream& operator<<(std::ostream& out, const QueryRisk& rhs)
         &rhs.regexLength,
         &rhs.slowRegexes
     };
-    const int sizeShortDescriptions = sizeof(shortDescriptions) / sizeof(shortDescriptions[0]);
-    const int sizeShortAddresses = sizeof(shortAddresses) / sizeof(shortAddresses[0]);
+    const int sizeShortDescriptions =
+        sizeof(shortDescriptions) / sizeof(shortDescriptions[0]);
+    const int sizeShortAddresses =
+        sizeof(shortAddresses) / sizeof(shortAddresses[0]);
     assert(
         sizeShortDescriptions == sizeShortAddresses &&
         "Bad array descriptions for QueryRisk shorts"
@@ -289,8 +291,10 @@ std::ostream& operator<<(std::ostream& out, const QueryRisk& rhs)
         &rhs.valid,
         &rhs.userTable
     };
-    const int sizeBoolDescriptions = sizeof(boolDescriptions) / sizeof(boolDescriptions[0]);
-    const int sizeBoolAddresses = sizeof(boolAddresses) / sizeof(boolAddresses[0]);
+    const int sizeBoolDescriptions =
+        sizeof(boolDescriptions) / sizeof(boolDescriptions[0]);
+    const int sizeBoolAddresses =
+        sizeof(boolAddresses) / sizeof(boolAddresses[0]);
     assert(
         sizeBoolDescriptions == sizeBoolAddresses &&
         "Bad array descriptions for QueryRisk bools"

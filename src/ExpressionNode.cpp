@@ -201,7 +201,10 @@ string ExpressionNode::getValue() const
     }
     else
     {
-        Logger::log(Logger::ERROR) << "Unknown operator in ExpressionNode: '" << oper << '\'';
+        Logger::log(Logger::ERROR)
+            << "Unknown operator in ExpressionNode: '"
+            << oper
+            << '\'';
         assert(false);
         return "0.0";
     }

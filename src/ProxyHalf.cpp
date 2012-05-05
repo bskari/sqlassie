@@ -74,7 +74,8 @@ void ProxyHalf::operator()()
     }
     catch (exception& e)
     {
-        Logger::log(Logger::ERROR) << "ProxyHalf::operator() exited unexpectedly with error: "
+        Logger::log(Logger::ERROR)
+            << "ProxyHalf::operator() exited unexpectedly with error: "
             << e.what();
 
         // Close the remaining connections

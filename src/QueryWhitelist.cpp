@@ -65,7 +65,11 @@ QueryWhitelist::QueryWhitelist(
     const string* const failToParseFilename,
     const string* const allowedFilename
 ) :
-    failToParseFilename_(nullptr != failToParseFilename ? *failToParseFilename : ""),
+    failToParseFilename_(
+        nullptr != failToParseFilename
+        ? *failToParseFilename
+        : ""
+    ),
     allowedFilename_(nullptr != allowedFilename ? *allowedFilename : ""),
     failToParseList_(),
     allowedList_()
@@ -187,7 +191,9 @@ QueryWhitelist::queryList QueryWhitelist::readQueriesFromFile(
     ifstream fin(filename.c_str());
     if (!fin)
     {
-        throw DescribedException("Unable to open whitelist file \"" + filename + "\"");
+        throw DescribedException(
+            "Unable to open whitelist file \"" + filename + "\""
+        );
     }
     queryList queries;
     string query;

@@ -125,7 +125,9 @@ int main(int argc, char* argv[])
                 << '|'
                 << given + 1
                 << ") = "
-                << static_cast<double>(conditionals.at(i)) / conditionalsCount.at(i)
+                << static_cast<double>(
+                        conditionals.at(i)
+                    ) / conditionalsCount.at(i)
                 << endl;
         }
     }

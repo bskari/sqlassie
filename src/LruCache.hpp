@@ -89,7 +89,8 @@ template<typename KeyType, typename ValueType>
 ValueType LruCache<KeyType, ValueType>::operator()(const KeyType& key)
 {
     // Look for existing value
-    const typename container_type::left_iterator iter = container_.left.find(key);
+    const typename container_type::left_iterator iter =
+        container_.left.find(key);
     if (container_.left.end() == iter)
     {
         // We don't have it, evaluate the function and insert its value
@@ -112,7 +113,10 @@ ValueType LruCache<KeyType, ValueType>::operator()(const KeyType& key)
 
 
 template<typename KeyType, typename ValueType>
-void LruCache<KeyType, ValueType>::insert(const KeyType& key, const ValueType& value)
+void LruCache<KeyType, ValueType>::insert(
+    const KeyType& key,
+    const ValueType& value
+)
 {
     assert(container_.size() <= capacity_);
 

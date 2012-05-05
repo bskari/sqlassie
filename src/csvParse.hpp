@@ -94,7 +94,10 @@ void parseCsvFile(std::vector<std::vector<int32_t> >& values, std::istream& in)
     in.get(digits[charCount]);
     while (!in.eof())
     {
-        if (static_cast<unsigned int32_t>(charCount) > sizeof(digits) / sizeof(digits[0]))
+        if (
+            static_cast<unsigned int32_t>(charCount) >
+                sizeof(digits) / sizeof(digits[0])
+        )
         {
             throw std::exception();
         }

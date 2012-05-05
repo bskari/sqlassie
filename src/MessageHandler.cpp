@@ -55,7 +55,9 @@ void MessageHandler::operator()()
         }
         catch (SocketException& e)
         {
-            Logger::log(Logger::ERROR) << "MessageHandler caught a SocketException: " << e.what();
+            Logger::log(Logger::ERROR)
+                << "MessageHandler caught a SocketException: "
+                << e.what();
             break;
         }
 

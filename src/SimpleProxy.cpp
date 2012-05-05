@@ -82,7 +82,9 @@ void SimpleProxy::operator()()
     }
     catch (exception& e)
     {
-        cerr << "in Thread exited unexpectedly with error: " << e.what() << endl;
+        cerr << "in Thread exited unexpectedly with error: "
+            << e.what()
+            << endl;
     }
 }
 

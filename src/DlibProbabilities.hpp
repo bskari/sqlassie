@@ -59,12 +59,24 @@ public:
      * @throw BayesException The probability was not correctly computed.
      */
     ///@{
-    double getProbabilityOfAccessAttack(const QueryRisk& qr) WARN_UNUSED_RESULT;
-    double getProbabilityOfBypassAttack(const QueryRisk& qr) WARN_UNUSED_RESULT;
-    double getProbabilityOfModificationAttack(const QueryRisk& qr) WARN_UNUSED_RESULT;
-    double getProbabilityOfFingerprintingAttack(const QueryRisk& qr) WARN_UNUSED_RESULT;
-    double getProbabilityOfSchemaAttack(const QueryRisk& qr) WARN_UNUSED_RESULT;
-    double getProbabilityOfDenialAttack(const QueryRisk& qr) WARN_UNUSED_RESULT;
+    double getProbabilityOfAccessAttack(
+        const QueryRisk& qr
+    ) WARN_UNUSED_RESULT;
+    double getProbabilityOfBypassAttack(
+        const QueryRisk& qr
+    ) WARN_UNUSED_RESULT;
+    double getProbabilityOfModificationAttack(
+        const QueryRisk& qr
+    ) WARN_UNUSED_RESULT;
+    double getProbabilityOfFingerprintingAttack(
+        const QueryRisk& qr
+    ) WARN_UNUSED_RESULT;
+    double getProbabilityOfSchemaAttack(
+        const QueryRisk& qr
+    ) WARN_UNUSED_RESULT;
+    double getProbabilityOfDenialAttack(
+        const QueryRisk& qr
+    ) WARN_UNUSED_RESULT;
     ///@}
 
     typedef dlib::directed_graph<dlib::bayes_node>::kernel_1a_c bayes_net;
@@ -94,9 +106,8 @@ private:
     };
 
     // I don't know why, but this needs an unsigned long and won't compile
-    // with a uint_32t, so just use a typedef so that cpplint is happy
-    typedef unsigned long ul;
-    typedef dlib::set<ul>::compare_1b_c set_type;
+    // with a uint_32t
+    typedef dlib::set<uint32_t>::compare_1b_c set_type; // NOLINT(runtime/int)
     typedef dlib::graph<set_type, set_type>::kernel_1a_c join_tree_type;
 
     join_tree_type joinTrees_[numAttackTypes];

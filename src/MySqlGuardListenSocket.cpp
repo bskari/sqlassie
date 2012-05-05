@@ -171,8 +171,11 @@ void MySqlGuardListenSocket::handleConnection(
     MySqlSocket* clientPtr;
     #ifndef NDEBUG
         clientPtr = dynamic_cast<MySqlSocket*>(clientConnection.get());
-        assert(nullptr != clientPtr &&
-            "MySqlGuardListenSocket::handleConnection should be given MySqlSockets");
+        assert(
+            nullptr != clientPtr
+            && "MySqlGuardListenSocket::handleConnection should be given "
+            && "MySqlSockets"
+        );
     #else
         clientPtr = static_cast<MySqlSocket*>(clientConnection.get());
     #endif
@@ -190,5 +193,7 @@ void MySqlGuardListenSocket::handleConnection(
     // Create a new Proxy thread
     Proxy proxy(client, server, clientConnection, serverConnection);
     thread newThread(proxy);
-    Logger::log(Logger::DEBUG) << "New client connected, spawned thread #" << newThread.get_id();
+    Logger::log(Logger::DEBUG)
+        << "New client connected, spawned thread #"
+        << newThread.get_id();
 }

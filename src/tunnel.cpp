@@ -69,9 +69,21 @@ int main(int argc, char* argv[])
     try
     {
         // Read command line options
-        visibleOptions.add(getCommandLineOptions()).add(getConfigurationOptions());
+        visibleOptions.add(
+            getCommandLineOptions()
+        ).add(
+            getConfigurationOptions()
+        );
 
-        store(options::command_line_parser(argc, argv).options(visibleOptions).run(), vm);
+        store(
+            options::command_line_parser(
+                argc,
+                argv
+            ).options(
+                visibleOptions
+            ).run(),
+            vm
+        );
         notify(vm);
 
         // Read options from file
@@ -80,11 +92,19 @@ int main(int argc, char* argv[])
             ifstream optionsFile(vm["config"].as<string>().c_str());
             if (optionsFile.is_open())
             {
-                store(parse_config_file(optionsFile, getConfigurationOptions()), vm);
+                store(
+                    parse_config_file(
+                        optionsFile,
+                        getConfigurationOptions()
+                    ),
+                    vm
+                );
             }
             else
             {
-                cerr << "Unable to open config file: " << vm["config"].as<string>() << endl;
+                cerr << "Unable to open config file: "
+                    << vm["config"].as<string>()
+                    << endl;
                 exit(EXIT_FAILURE);
             }
         }
@@ -146,22 +166,33 @@ int main(int argc, char* argv[])
         try
     #endif
     {
-        const bool useListenPort = (vm["listen-port"].as<int>() != UNSPECIFIED_OPTION);
-        const bool useConnectPort = (vm["connect-port"].as<int>() != UNSPECIFIED_OPTION);
+        const bool useListenPort =
+            (vm["listen-port"].as<int>() != UNSPECIFIED_OPTION);
+        const bool useConnectPort =
+            (vm["connect-port"].as<int>() != UNSPECIFIED_OPTION);
 
-        const string connectHost = !vm["host"].as<string>().empty() ? vm["host"].as<string>() : DEFAULT_HOST;
+        const string connectHost =
+            !vm["host"].as<string>().empty()
+            ? vm["host"].as<string>()
+            : DEFAULT_HOST;
 
         if (useListenPort)
         {
-            Logger::log(Logger::WARN) << "Warning: Listening on a port causes a large performance penalty.";
-            Logger::log(Logger::WARN) << "Listening on a domain socket (using -d) is strongly recommended.";
+            Logger::log(Logger::WARN)
+                << "Warning: Listening on a port causes a "
+                << "large performance penalty.";
+            Logger::log(Logger::WARN)
+                << "Listening on a domain socket (using -d) "
+                << "is strongly recommended.";
 
             const uint16_t listenPort = vm["listen-port"].as<int>();
             Logger::log(Logger::DEBUG) << "Listening on port " << listenPort;
             if (useConnectPort)
             {
                 const uint16_t connectPort = vm["connect-port"].as<int>();
-                Logger::log(Logger::DEBUG) << "Connecting to port " << connectPort;
+                Logger::log(Logger::DEBUG)
+                    << "Connecting to port "
+                    << connectPort;
                 pls = new ProxyListenSocket(
                     listenPort,
                     connectPort,
@@ -171,7 +202,9 @@ int main(int argc, char* argv[])
             else
             {
                 const string domainSocket = vm["domain-socket"].as<string>();
-                Logger::log(Logger::DEBUG) << "Connecting to socket " << domainSocket;
+                Logger::log(Logger::DEBUG)
+                    << "Connecting to socket "
+                    << domainSocket;
                 pls = new ProxyListenSocket(
                     listenPort,
                     domainSocket
@@ -181,11 +214,15 @@ int main(int argc, char* argv[])
         else
         {
             const string listenDomain = vm["listen-domain"].as<string>();
-            Logger::log(Logger::DEBUG) << "Listening on socket " << listenDomain;
+            Logger::log(Logger::DEBUG)
+                << "Listening on socket "
+                << listenDomain;
             if (useConnectPort)
             {
                 const uint16_t connectPort = vm["connect-port"].as<int>();
-                Logger::log(Logger::DEBUG) << "Connecting to port" << connectPort;
+                Logger::log(Logger::DEBUG)
+                    << "Connecting to port"
+                    << connectPort;
                 pls = new ProxyListenSocket(
                     listenDomain,
                     connectPort,
@@ -195,7 +232,9 @@ int main(int argc, char* argv[])
             else
             {
                 const string connectDomain = vm["connect-domain"].as<string>();
-                Logger::log(Logger::DEBUG) << "Connecting to socket " << connectDomain;
+                Logger::log(Logger::DEBUG)
+                    << "Connecting to socket "
+                    << connectDomain;
                 pls = new ProxyListenSocket(
                     listenDomain,
                     connectDomain
@@ -207,7 +246,8 @@ int main(int argc, char* argv[])
     #ifdef NDEBUG
         catch(std::exception& e)
         {
-            Logger::log(Logger::FATAL) << "tunnel quitting after catching exception: "
+            Logger::log(Logger::FATAL)
+                << "tunnel quitting after catching exception: "
                 << e.what();
             quit();
         }
@@ -316,14 +356,16 @@ options::options_description getConfigurationOptions()
 void checkOptions(const options::variables_map& opts)
 {
     // The user should have exactly one of each of these pairs
-    const bool listenPort = (opts["listen-port"].as<int>() != UNSPECIFIED_OPTION);
+    const bool listenPort =
+        (opts["listen-port"].as<int>() != UNSPECIFIED_OPTION);
     const bool listenSocket = !opts["listen-socket"].as<string>().empty();
     if (listenPort == listenSocket)
     {
         throw DescribedException("You must specify one method for listening");
     }
 
-    const bool connectPort = (opts["connect-port"].as<int>() != UNSPECIFIED_OPTION);
+    const bool connectPort =
+        (opts["connect-port"].as<int>() != UNSPECIFIED_OPTION);
     const bool connectSocket = !opts["connect-socket"].as<string>().empty();
     if (connectPort == connectSocket)
     {
@@ -336,7 +378,9 @@ void checkOptions(const options::variables_map& opts)
         const int portNumber = opts["listen-port"].as<int>();
         if (portNumber < 1 || portNumber > 65535)
         {
-            throw DescribedException("Port number is out of range; valid values are 1-65535");
+            throw DescribedException(
+                "Port number is out of range; valid values are 1-65535"
+            );
         }
     }
     if (connectPort)
@@ -344,7 +388,9 @@ void checkOptions(const options::variables_map& opts)
         const int portNumber = opts["connect-port"].as<int>();
         if (portNumber < 1 || portNumber > 65535)
         {
-            throw DescribedException("Port number is out of range; valid values are 1-65535");
+            throw DescribedException(
+                "Port number is out of range; valid values are 1-65535"
+            );
         }
     }
 
@@ -352,6 +398,8 @@ void checkOptions(const options::variables_map& opts)
     const bool host = !opts["host"].as<string>().empty();
     if (host && !connectPort)
     {
-        throw DescribedException("Host is only valid when connecting using ports");
+        throw DescribedException(
+            "Host is only valid when connecting using ports"
+        );
     }
 }

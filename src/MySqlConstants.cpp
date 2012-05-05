@@ -385,12 +385,23 @@ string MySqlConstants::soundex(const string& str)
     static const regex four("[l]", regex::perl | regex::icase);
     static const regex five("[nm]", regex::perl | regex::icase);
     static const regex six("[r]", regex::perl | regex::icase);
-    static const regex* const search[6] = {&one, &two, &three, &four, &five, &six};
+    static const regex* const search[6] = {
+        &one,
+        &two,
+        &three,
+        &four,
+        &five,
+        &six
+    };
     static const char* const replace[6] = {"1", "2", "3", "4", "5", "6"};
     char firstLettersCode = '\0';
     string firstLetterStr;
     firstLetterStr += firstLetter;
-    for (int i = 0; i < static_cast<int>(sizeof(search) / sizeof(search[0])); ++i)
+    for (
+        int i = 0;
+        i < static_cast<int>(sizeof(search) / sizeof(search[0]));
+        ++i
+    )
     {
         dropped = regex_replace(dropped, *search[i], replace[i]);
         if (regex_match(firstLetterStr, *search[i]))

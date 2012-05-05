@@ -112,7 +112,11 @@ void AstNode::print(
 }
 
 
-void AstNode::printChildren(ostream& out, const int depth, const char indent) const
+void AstNode::printChildren(
+    ostream& out,
+    const int depth,
+    const char indent
+) const
 {
     const vector<const AstNode*>::const_iterator end(children_.end());
     for (vector<const AstNode*>::const_iterator i(children_.begin());

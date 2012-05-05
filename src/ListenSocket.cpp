@@ -58,8 +58,13 @@ ListenSocket::ListenSocket(const uint16_t port) :
     sockAddr.sin_port = htons(port);
 
     // Bind to the port
-    if (bind(
-        socketFD_, reinterpret_cast<sockaddr*>(&sockAddr), sizeof(sockAddr)) < 0)
+    if (
+        bind(
+            socketFD_,
+            reinterpret_cast<sockaddr*>(&sockAddr),
+            sizeof(sockAddr)
+        ) < 0
+    )
     {
         string error("Unable to bind to port: ");
         error += strerror(errno);
@@ -108,7 +113,13 @@ ListenSocket::ListenSocket(const string& domainSocket) :
     sockAddr.sun_path[domainSocket.size()] = '\0';
 
     // Bind to the domain socket
-    if (bind(socketFD_, reinterpret_cast<sockaddr*>(&sockAddr), sockAddrLength) < 0)
+    if (
+        bind(
+            socketFD_,
+            reinterpret_cast<sockaddr*>(&sockAddr),
+            sockAddrLength
+        ) < 0
+    )
     {
         string error("Unable to bind to domain socket: ");
         error += strerror(errno);
@@ -138,8 +149,11 @@ void ListenSocket::acceptClients() const
         socklen_t addressLength = sizeof(sockaddr_in);
         sockaddr_in newAddr;
         int newSocketFD;
-        newSocketFD = accept(socketFD_, reinterpret_cast<sockaddr*>(&newAddr),
-            reinterpret_cast<socklen_t*>(&addressLength));
+        newSocketFD = accept(
+            socketFD_,
+            reinterpret_cast<sockaddr*>(&newAddr),
+            reinterpret_cast<socklen_t*>(&addressLength)
+        );
 
         if (newSocketFD < 0)
         {
@@ -155,5 +169,7 @@ void ListenSocket::handleConnection(auto_ptr<Socket> s) const
 {
     MessageHandler mh(s);
     thread newThread(mh);
-    Logger::log(Logger::DEBUG) << "New client connected, spawned thread #" << newThread.get_id();
+    Logger::log(Logger::DEBUG)
+        << "New client connected, spawned thread #"
+        << newThread.get_id();
 }

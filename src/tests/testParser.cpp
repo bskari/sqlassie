@@ -79,7 +79,10 @@ void testParseKnownGoodQueries()
                 ParserInterface parser(line);
                 QueryRisk qr;
                 const int status = parser.parse(&qr);
-                BOOST_CHECK_MESSAGE(0 == status && qr.valid, "Failed to parse: " << line);
+                BOOST_CHECK_MESSAGE(
+                    0 == status && qr.valid,
+                    "Failed to parse: " << line
+                );
             }
             fin.close();
         }
@@ -220,7 +223,9 @@ void testQueryRiskComments()
     BOOST_CHECK(0 == qr.mySqlComments);
     BOOST_CHECK(1 == qr.mySqlVersionedComments);
 
-    qr = parseQuery("SELECT * FROM foo /*!123457 long still counts as version */");
+    qr = parseQuery(
+        "SELECT * FROM foo /*!123457 long still counts as version */"
+    );
     BOOST_CHECK(0 == qr.multiLineComments);
     BOOST_CHECK(0 == qr.mySqlComments);
     BOOST_CHECK(1 == qr.mySqlVersionedComments);
@@ -240,6 +245,7 @@ void testQueryRiskComments()
 void testQueryRiskAlwaysTrue()
 {
     QueryRisk qr;
+    string longQuery;
 
     // ------------------------------------------------------------------------
     // expression IN (expression, expression, expression, ...)
@@ -258,7 +264,9 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE 1 IN (4, 3, 2, 1)");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (4, 3, 2, (SELECT age FROM user), 1)");
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 1 IN (4, 3, 2, (SELECT age FROM user), 1)"
+    );
     BOOST_CHECK(qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE -45 IN (-50, -45, -40)");
@@ -273,7 +281,9 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE '1' IN ('3' - '2')");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM foo WHERE 'a' IN ('aa', 'ab', 'ac', 'a', 'ad')");
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 'a' IN ('aa', 'ab', 'ac', 'a', 'ad')"
+    );
     BOOST_CHECK(qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
@@ -293,7 +303,9 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE 1 IN (4, 3, 2, 0)");
     BOOST_CHECK(!qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN (4, 3, 2, (SELECT age FROM user), 0)");
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 1 NOT IN (4, 3, 2, (SELECT age FROM user), 0)"
+    );
     BOOST_CHECK(qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE -45 NOT IN (-50, -40)");
@@ -308,7 +320,9 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE '1' NOT IN ('3' + '2')");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM foo WHERE 'a' NOT IN ('aa', 'ab', 'ac', 'ad')");
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 'a' NOT IN ('aa', 'ab', 'ac', 'ad')"
+    );
     BOOST_CHECK(qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
@@ -369,10 +383,14 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE (1 << 2) | 0x10 = 0x14");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM foo WHERE (0x08 >> 3) | (0x04 >> 2) | (0x02 >> 1) | (0x01 >> 0) = 0x01");
+    longQuery = "SELECT * FROM foo WHERE (0x08 >> 3) |";
+    longQuery += " (0x04 >> 2) | (0x02 >> 1) | (0x01 >> 0) = 0x01";
+    qr = parseQuery(longQuery);
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM foo WHERE (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) = 15");
+    longQuery = "SELECT * FROM foo WHERE (1 << 0) |";
+    longQuery += "(1 << 1) | (1 << 2) | (1 << 4) = 15";
+    qr = parseQuery(longQuery);
     BOOST_CHECK(qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
@@ -407,7 +425,9 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE (1 = 2 OR 2 = 2) AND (1 = 1)");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM foo WHERE ((1 = 1) AND (1 = 2)) OR (1 = 1 AND (1 = 2 OR 2 = 3))");
+    longQuery = "SELECT * FROM foo WHERE ((1 = 1) AND (1 = 2)) ";
+    longQuery += "OR (1 = 1 AND (1 = 2 OR 2 = 3))";
+    qr = parseQuery(longQuery);
     BOOST_CHECK(!qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 3)");

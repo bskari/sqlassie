@@ -40,7 +40,9 @@ public:
     virtual double getProbabilityOfAccessAttack(const QueryRisk& qr) = 0;
     virtual double getProbabilityOfBypassAttack(const QueryRisk& qr) = 0;
     virtual double getProbabilityOfModificationAttack(const QueryRisk& qr) = 0;
-    virtual double getProbabilityOfFingerprintingAttack(const QueryRisk& qr) = 0;
+    virtual double getProbabilityOfFingerprintingAttack(
+        const QueryRisk& qr
+    ) = 0;
     virtual double getProbabilityOfSchemaAttack(const QueryRisk& qr) = 0;
     virtual double getProbabilityOfDenialAttack(const QueryRisk& qr) = 0;
     ///@}

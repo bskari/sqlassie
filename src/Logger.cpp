@@ -73,26 +73,39 @@ void Logger::initialize(ostream& out)
 
 Logger::LoggerStream Logger::log(const LogLevel& logLevelObject)
 {
-    assert(instance_ != nullptr && "Called Logger singleton without initializing");
+    assert(
+        instance_ != nullptr
+        && "Called Logger singleton without initializing"
+    );
     return LoggerStream(instance_->out_, logLevelObject, instance_->level_);
 }
 
 
 void Logger::setLevel(const int level)
 {
-    assert(instance_ != nullptr && "Called Logger singleton without initializing");
+    assert(
+        instance_ != nullptr
+        && "Called Logger singleton without initializing"
+    );
     instance_->level_ = level;
 }
 
 
 void Logger::setLevel(const LogLevel& level)
 {
-    assert(instance_ != nullptr && "Called Logger singleton without initializing");
+    assert(
+        instance_ != nullptr
+        && "Called Logger singleton without initializing"
+    );
     instance_->level_ = level.level_;
 }
 
 
-Logger::LoggerStream::LoggerStream(ostream& out, const LogLevel& logLevel, const int level) :
+Logger::LoggerStream::LoggerStream(
+    ostream& out,
+    const LogLevel& logLevel,
+    const int level
+) :
     out_(out),
     enabled_(logLevel.level_ >= level),
     guard_(streamLock_)

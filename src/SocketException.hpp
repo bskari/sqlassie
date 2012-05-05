@@ -41,7 +41,7 @@ public:
      * Constructor with explicit description.
      * @param description The descritiption to return from what .
      */
-    SocketException(const std::string& description) :
+    explicit SocketException(const std::string& description) :
         DescribedException("SocketException: " + description) {}
 };
 

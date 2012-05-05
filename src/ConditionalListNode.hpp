@@ -43,7 +43,7 @@ public:
      * @param logicalOp The binary logical operator between the two
      * ConditionalNodes that are this node's children.
      */
-    ConditionalListNode(char logicalOp);
+    explicit ConditionalListNode(char logicalOp);
 
     virtual ~ConditionalListNode();
 

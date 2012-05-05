@@ -75,7 +75,7 @@ private:
      * concurrent access for that number of threads.
      * @throw DescribedException Unable to open a file.
      */
-    MySqlGuardObjectContainer(int numObjects);
+    explicit MySqlGuardObjectContainer(int numObjects);
 
     ~MySqlGuardObjectContainer();
 

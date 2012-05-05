@@ -41,7 +41,7 @@ public:
      * Default constructor.
      * @param name What kind of ConditionalNode this is.
      */
-    ConditionalNode(const std::string& name);
+    explicit ConditionalNode(const std::string& name);
 
     virtual ~ConditionalNode();
 

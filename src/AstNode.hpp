@@ -40,7 +40,7 @@ public:
      * Default constructor.
      * @param name The name of this node.
      */
-    AstNode(const std::string& name);
+    explicit AstNode(const std::string& name);
 
     virtual ~AstNode();
 

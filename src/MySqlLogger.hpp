@@ -54,7 +54,7 @@ public:
      */
     ///@{
     MySqlLogger(MySqlLogger& rhs);
-    MySqlLogger(ProxyHalf& rhs);
+    explicit MySqlLogger(ProxyHalf& rhs);
     ///@}
 
     /**

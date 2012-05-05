@@ -93,7 +93,7 @@ public:
     //@}
 
 private:
-    Logger(std::ostream& out);
+    explicit Logger(std::ostream& out);
 
     static Logger* instance_;
     std::ostream& out_;

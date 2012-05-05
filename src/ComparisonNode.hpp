@@ -42,7 +42,7 @@ public:
      * Default constructor.
      * @param compareType The type of comparison being used.
      */
-    ComparisonNode(const std::string& compareType);
+    explicit ComparisonNode(const std::string& compareType);
 
     virtual ~ComparisonNode();
 

@@ -44,7 +44,7 @@ public:
     /**
      * Default constructor.
      */
-    InSubselectNode(const ExpressionNode* const expression);
+    explicit InSubselectNode(const ExpressionNode* const expression);
 
     virtual ~InSubselectNode();
 

@@ -53,7 +53,7 @@ extern int yyparse(QueryRisk* const qrPtr, ParserInterface* const pi);
 class ParserInterfaceScannerMembers
 {
 public:
-    ParserInterfaceScannerMembers(const char* const query);
+    explicit ParserInterfaceScannerMembers(const char* const query);
     ~ParserInterfaceScannerMembers();
     yyscan_t scanner_;
     YY_BUFFER_STATE bufferState_;

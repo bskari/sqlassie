@@ -215,7 +215,7 @@ std::ostream& operator<<(std::ostream& out, const QueryRisk& rhs)
         "regexLength",
         "slowRegexes"
     };
-    const unsigned short* shortAddresses[] = {
+    const size_t* shortAddresses[] = {
         &rhs.multiLineComments,
         &rhs.hashComments,
         &rhs.dashDashComments,

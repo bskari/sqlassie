@@ -105,11 +105,11 @@ public:
     inline const std::string& getPeerName() const { return peerName_; }
 
 protected:
-    static const ssize_t MAX_RECEIVE = 4096;
-    static const long TIMEOUT_SECONDS = 1;
-    static const long TIMEOUT_MILLISECONDS = 0;
+    static const size_t MAX_RECEIVE = 4096;
+    static const size_t TIMEOUT_SECONDS = 1;
+    static const size_t TIMEOUT_MILLISECONDS = 0;
 
-    const ssize_t socketFD_;
+    const int socketFD_;
     bool open_;
     mutable std::vector<uint8_t> buffer_;
     const std::string peerName_;

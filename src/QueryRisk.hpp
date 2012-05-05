@@ -70,31 +70,31 @@ public:
      */
     ///@{
     QueryType queryType; // Done
-    unsigned short multiLineComments; // Done
-    unsigned short hashComments; // Done
-    unsigned short dashDashComments; // Done
-    unsigned short mySqlComments; // Done
-    unsigned short mySqlVersionedComments; // Done
-    unsigned short sensitiveTables; // Done
-    unsigned short orStatements; // Done
-    unsigned short unionStatements; // Done
-    unsigned short unionAllStatements; // Done
-    unsigned short bruteForceCommands; // Done
-    unsigned short ifStatements; // Done
-    unsigned short hexStrings; // Done
-    unsigned short benchmarkStatements; // Done
-    unsigned short userStatements; // Done
-    unsigned short fingerprintingStatements; // Done
-    unsigned short mySqlStringConcat; // Done
-    unsigned short stringManipulationStatements; // Done
-    unsigned short alwaysTrueConditional; // Done
-    unsigned short commentedConditionals; // Done
-    unsigned short commentedQuotes; // Done
-    unsigned short globalVariables; // Done
-    unsigned short joinStatements; // Done
-    unsigned short crossJoinStatements;
-    unsigned short regexLength; // Done
-    unsigned short slowRegexes; // Done
+    size_t multiLineComments; // Done
+    size_t hashComments; // Done
+    size_t dashDashComments; // Done
+    size_t mySqlComments; // Done
+    size_t mySqlVersionedComments; // Done
+    size_t sensitiveTables; // Done
+    size_t orStatements; // Done
+    size_t unionStatements; // Done
+    size_t unionAllStatements; // Done
+    size_t bruteForceCommands; // Done
+    size_t ifStatements; // Done
+    size_t hexStrings; // Done
+    size_t benchmarkStatements; // Done
+    size_t userStatements; // Done
+    size_t fingerprintingStatements; // Done
+    size_t mySqlStringConcat; // Done
+    size_t stringManipulationStatements; // Done
+    size_t alwaysTrueConditional; // Done
+    size_t commentedConditionals; // Done
+    size_t commentedQuotes; // Done
+    size_t globalVariables; // Done
+    size_t joinStatements; // Done
+    size_t crossJoinStatements;
+    size_t regexLength; // Done
+    size_t slowRegexes; // Done
     EmptyPassword emptyPassword; // Done
     bool multipleQueries; // Done (not allowed in my parser)
     bool orderByNumber; // Done

@@ -44,9 +44,9 @@ using std::min;
 using std::string;
 using boost::lexical_cast;
 
-const ssize_t Socket::MAX_RECEIVE;
-const long Socket::TIMEOUT_SECONDS;
-const long Socket::TIMEOUT_MILLISECONDS;
+const size_t Socket::MAX_RECEIVE;
+const size_t Socket::TIMEOUT_SECONDS;
+const size_t Socket::TIMEOUT_MILLISECONDS;
 
 
 Socket::Socket(const uint16_t port, const string& address, bool blocking) :
@@ -318,7 +318,7 @@ vector<uint8_t> Socket::receive() const
     // The entity we connected to closed the socket
     // The socket is still open, we just have to keep waiting for data
     // Some other error occurred
-    ssize_t returnedBytes = 0;
+    size_t returnedBytes = 0;
     while (returnedBytes <= 0)
     {
         returnedBytes = ::recv(socketFD_, &buffer_[0], buffer_.size(), 0);
@@ -354,8 +354,10 @@ vector<uint8_t> Socket::receive() const
             break;
         }
     }
-    return vector<uint8_t>(buffer_.begin(),
-        buffer_.begin() + min(MAX_RECEIVE, returnedBytes));
+    return vector<uint8_t>(
+        buffer_.begin(),
+        buffer_.begin() + min(MAX_RECEIVE, returnedBytes)
+    );
 }
 
 

@@ -93,7 +93,10 @@ private:
         numAttackTypes
     };
 
-    typedef dlib::set<unsigned long>::compare_1b_c set_type;
+    // I don't know why, but this needs an unsigned long and won't compile
+    // with a uint_32t, so just use a typedef so that cpplint is happy
+    typedef unsigned long ul;
+    typedef dlib::set<ul>::compare_1b_c set_type;
     typedef dlib::graph<set_type, set_type>::kernel_1a_c join_tree_type;
 
     join_tree_type joinTrees_[numAttackTypes];

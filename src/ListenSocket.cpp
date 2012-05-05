@@ -98,8 +98,13 @@ ListenSocket::ListenSocket(const string& domainSocket) :
     {
         throw SocketException("Domain socket filename is too long");
     }
-    sockAddrLength = sizeof(sockAddr.sun_family) +
-        sprintf(sockAddr.sun_path, "%s", domainSocket.c_str()) + 1;
+    const int charsPrinted = snprintf(
+        sockAddr.sun_path,
+        sizeof(sockAddr.sun_path),
+        "%s",
+        domainSocket.c_str()
+    );
+    sockAddrLength = sizeof(sockAddr.sun_family) + charsPrinted + 1;
     sockAddr.sun_path[domainSocket.size()] = '\0';
 
     // Bind to the domain socket

@@ -32,14 +32,18 @@
 
 #include <boost/cstdint.hpp>
 #include <boost/program_options.hpp>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <signal.h>
+#include <string>
 #include <unistd.h>
 
-using namespace std;
-using namespace boost;
+using std::ifstream;
+using std::cerr;
+using std::cout;
+using std::endl;
 namespace options = boost::program_options;
+using std::string;
 
 static const int UNSPECIFIED_OPTION = -1;
 static const char* DEFAULT_HOST = "127.0.0.1";
@@ -249,8 +253,7 @@ options::options_description getCommandLineOptions()
             "config",
             options::value<string>()->default_value(""),
             "File to read configuration options from."
-        )
-        ;
+        );
     return cli;
 }
 
@@ -300,8 +303,7 @@ options::options_description getConfigurationOptions()
             "host,h",
             options::value<string>()->default_value(""),
             "The host to connect to."
-        )
-    ;
+        );
     return configuration;
 }
 

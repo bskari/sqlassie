@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MYSQL_GUARD_LISTEN_SOCKET_HPP
-#define MYSQL_GUARD_LISTEN_SOCKET_HPP
+#ifndef SRC_MYSQLGUARDLISTENSOCKET_HPP_
+#define SRC_MYSQLGUARDLISTENSOCKET_HPP_
 
 #include "ListenSocket.hpp"
 #include "Socket.hpp"
@@ -137,4 +137,4 @@ private:
     MySqlGuardListenSocket& operator=(const MySqlGuardListenSocket& rhs);
 };
 
-#endif
+#endif  // SRC_MYSQLGUARDLISTENSOCKET_HPP_

@@ -41,9 +41,16 @@
 #include <unistd.h>
 #include <utility>
 
-using namespace std;
-using namespace boost;
+using boost::bind;
+using boost::lexical_cast;
 namespace options = boost::program_options;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::exception;
+using std::ifstream;
+using std::string;
+using std::pair;
 
 static const int UNSPECIFIED_OPTION = -1;
 static const int DEFAULT_CONNECT_PORT = 3306;
@@ -299,8 +306,7 @@ options::options_description getCommandLineOptions()
             "config",
             options::value<string>()->default_value(DEFAULT_CONFIG_FILE),
             "File to read configuration options from."
-        )
-        ;
+        );
     return cli;
 }
 
@@ -369,8 +375,7 @@ options::options_description getConfigurationOptions()
             "password,p",
             options::value<string>()->default_value(""),
             "The password to use when reading MySQL user permissions."
-        )
-    ;
+        );
     return configuration;
 }
 
@@ -411,8 +416,7 @@ options::options_description getFileOptions()
             USER_SUBSTRING,
             options::value<string>()->default_value(""),
             "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name containing this word will be considered a user table."
-        )
-    ;
+        );
     return configuration;
 }
 

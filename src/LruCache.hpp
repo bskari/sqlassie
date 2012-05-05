@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LRU_CACHE_HPP
-#define LRU_CACHE_HPP
+#ifndef SRC_LRUCACHE_HPP_
+#define SRC_LRUCACHE_HPP_
 
 #include <boost/bimap.hpp>
 #include <boost/bimap/list_of.hpp>
@@ -127,4 +127,4 @@ void LruCache<KeyType, ValueType>::insert(const KeyType& key, const ValueType& v
     );
 }
 
-#endif
+#endif  // SRC_LRUCACHE_HPP_

@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SENSITIVE_NAME_CHECKER_HPP
-#define SENSITIVE_NAME_CHECKER_HPP
+#ifndef SRC_SENSITIVENAMECHECKER_HPP_
+#define SRC_SENSITIVENAMECHECKER_HPP_
 
 /**
  * Singleton class that defines methods to check identify sensitive fields and
@@ -80,4 +80,4 @@ private:
     std::string userSubstring_;
 };
 
-#endif
+#endif  // SRC_SENSITIVENAMECHECKER_HPP_

@@ -31,11 +31,11 @@
 #include <boost/test/included/unit_test.hpp>
 #include <string>
 
-using namespace boost::unit_test;
+namespace test = boost::unit_test;
 using std::string;
 
 
-test_suite* init_unit_test_suite(int, char*[])
+test::test_suite* init_unit_test_suite(int, char*[])
 {
     Logger::initialize();
     Logger::setLevel(Logger::ALL);
@@ -54,24 +54,24 @@ test_suite* init_unit_test_suite(int, char*[])
     Logger::setLevel(Logger::ALL);
 
     // Tests from parserTest.cpp
-    framework::master_test_suite().add(BOOST_TEST_CASE(testParseKnownGoodQueries));
-    framework::master_test_suite().add(BOOST_TEST_CASE(testQueryRiskSafe));
-    framework::master_test_suite().add(BOOST_TEST_CASE(testQueryRiskComments));
-    framework::master_test_suite().add(BOOST_TEST_CASE(testQueryRiskAlwaysTrue));
-    framework::master_test_suite().add(BOOST_TEST_CASE(testSelectItems));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testParseKnownGoodQueries));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testQueryRiskSafe));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testQueryRiskComments));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testQueryRiskAlwaysTrue));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testSelectItems));
 
     // Tests from nodeTest.cpp
-    framework::master_test_suite().add(BOOST_TEST_CASE(testAstNode));
-    framework::master_test_suite().add(BOOST_TEST_CASE(testAlwaysSomethingNode));
-    framework::master_test_suite().add(BOOST_TEST_CASE(testComparisonNode));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testAstNode));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testAlwaysSomethingNode));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testComparisonNode));
 
     // Tests from testMySqlConstants.cpp
-    framework::master_test_suite().add(BOOST_TEST_CASE(testSoundex));
-    framework::master_test_suite().add(BOOST_TEST_CASE(testConvertRegex));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testSoundex));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testConvertRegex));
 
     // Tests from testQueryWhitelist.cpp
-    framework::master_test_suite().add(BOOST_TEST_CASE(testParseWhitelist));
-    framework::master_test_suite().add(BOOST_TEST_CASE(testRiskWhitelist));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testParseWhitelist));
+    test::framework::master_test_suite().add(BOOST_TEST_CASE(testRiskWhitelist));
 
     return 0;
 }

@@ -18,15 +18,15 @@
 
 BINARY_DIR = ../bin
 BINARIES = $(BINARY_DIR)/logger \
-    $(BINARY_DIR)/tunnel \
-    $(BINARY_DIR)/scanner \
-    $(BINARY_DIR)/parser \
-    $(BINARY_DIR)/riskAnalyzer \
-    $(BINARY_DIR)/queryStatistics \
-    $(BINARY_DIR)/probabilities \
-    $(BINARY_DIR)/sqlassie \
-    $(BINARY_DIR)/test \
-    $(BINARY_DIR)/demo
+	$(BINARY_DIR)/tunnel \
+	$(BINARY_DIR)/scanner \
+	$(BINARY_DIR)/parser \
+	$(BINARY_DIR)/riskAnalyzer \
+	$(BINARY_DIR)/queryStatistics \
+	$(BINARY_DIR)/probabilities \
+	$(BINARY_DIR)/sqlassie \
+	$(BINARY_DIR)/test \
+	$(BINARY_DIR)/demo
 
 LEX = flex
 YACC = bison
@@ -49,205 +49,205 @@ endif
 
 # Specific Targets
 
-all:    $(BINARIES) $(OPTIONAL_STRIP)
+all:	$(BINARIES) $(OPTIONAL_STRIP)
 
-$(BINARY_DIR)/demo:    demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
-    ComparisonNode.o ConditionalListNode.o ConditionalNode.o ExpressionNode.o \
-    InValuesListNode.o AlwaysSomethingNode.o \
-    ParserInterface.o AttackProbabilities.o parser.tab.hpp \
-    DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
-    Logger.o InSubselectNode.o NegationNode.o ScannerContext.o SensitiveNameChecker.o
-    $(CXX) $(CXXFLAGS) demo.o parser.tab.o scanner.yy.o \
-        QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
-        ExpressionNode.o ConditionalNode.o InValuesListNode.o \
-        AlwaysSomethingNode.o ParserInterface.o \
-        AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
-        huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
-        NegationNode.o ScannerContext.o SensitiveNameChecker.o \
-        -lboost_regex -lboost_thread -o $(BINARY_DIR)/demo
+$(BINARY_DIR)/demo:	demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
+	ComparisonNode.o ConditionalListNode.o ConditionalNode.o ExpressionNode.o \
+	InValuesListNode.o AlwaysSomethingNode.o \
+	ParserInterface.o AttackProbabilities.o parser.tab.hpp \
+	DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
+	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o SensitiveNameChecker.o
+	$(CXX) $(CXXFLAGS) demo.o parser.tab.o scanner.yy.o \
+		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
+		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
+		AlwaysSomethingNode.o ParserInterface.o \
+		AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
+		huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
+		NegationNode.o ScannerContext.o SensitiveNameChecker.o \
+		-lboost_regex -lboost_thread -o $(BINARY_DIR)/demo
 
-$(BINARY_DIR)/logger:    logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
-    ProxyHalf.o ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \
-    MessageHandler.o Logger.o
-    $(CXX) $(CXXFLAGS) logger.o Socket.o Proxy.o ProxyHalf.o \
-        ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \
-        MessageHandler.o Logger.o \
-        -lboost_thread -o $(BINARY_DIR)/logger
+$(BINARY_DIR)/logger:	logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
+	ProxyHalf.o ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \
+	MessageHandler.o Logger.o
+	$(CXX) $(CXXFLAGS) logger.o Socket.o Proxy.o ProxyHalf.o \
+		ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \
+		MessageHandler.o Logger.o \
+		-lboost_thread -o $(BINARY_DIR)/logger
 
-$(BINARY_DIR)/parser:    parser.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
-    ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
-    ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
-    ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
-    NegationNode.o ScannerContext.o SensitiveNameChecker.o
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) parser.o parser.tab.o scanner.yy.o \
-        QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
-        ExpressionNode.o ConditionalNode.o InValuesListNode.o \
-        AlwaysSomethingNode.o ParserInterface.o MySqlConstants.o \
-        Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
-        SensitiveNameChecker.o \
-        -lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/parser
+$(BINARY_DIR)/parser:	parser.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
+	ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
+	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
+	ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
+	NegationNode.o ScannerContext.o SensitiveNameChecker.o
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) parser.o parser.tab.o scanner.yy.o \
+		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
+		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
+		AlwaysSomethingNode.o ParserInterface.o MySqlConstants.o \
+		Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
+		SensitiveNameChecker.o \
+		-lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/parser
 
-$(BINARY_DIR)/probabilities:    probabilities.o csvParse.hpp
-    $(CXX) $(CXXFLAGS) probabilities.o -o $(BINARY_DIR)/probabilities
+$(BINARY_DIR)/probabilities:	probabilities.o csvParse.hpp
+	$(CXX) $(CXXFLAGS) probabilities.o -o $(BINARY_DIR)/probabilities
 
-$(BINARY_DIR)/queryStatistics:    queryStatistics.o parser.tab.o scanner.yy.o QueryRisk.o \
-    AstNode.o ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
-    ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
-    ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
-    NegationNode.o ScannerContext.o SensitiveNameChecker.o
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) queryStatistics.o parser.tab.o  \
-        QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
-        ExpressionNode.o ConditionalNode.o InValuesListNode.o \
-        AlwaysSomethingNode.o ParserInterface.o scanner.yy.o MySqlConstants.o \
-        Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
-        SensitiveNameChecker.o \
-        -lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/queryStatistics
+$(BINARY_DIR)/queryStatistics:	queryStatistics.o parser.tab.o scanner.yy.o QueryRisk.o \
+	AstNode.o ComparisonNode.o ConditionalNode.o ConditionalListNode.o \
+	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
+	ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
+	NegationNode.o ScannerContext.o SensitiveNameChecker.o
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) queryStatistics.o parser.tab.o  \
+		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
+		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
+		AlwaysSomethingNode.o ParserInterface.o scanner.yy.o MySqlConstants.o \
+		Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
+		SensitiveNameChecker.o \
+		-lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/queryStatistics
 
-$(BINARY_DIR)/riskAnalyzer:    riskAnalyzer.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
-    ComparisonNode.o ConditionalListNode.o ConditionalNode.o ExpressionNode.o \
-    InValuesListNode.o AlwaysSomethingNode.o NegationNode.o \
-    ParserInterface.o AttackProbabilities.o parser.tab.hpp \
-    DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
-    Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
-    SensitiveNameChecker.o
-    $(CXX) $(CXXFLAGS) riskAnalyzer.o parser.tab.o scanner.yy.o \
-        QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
-        ExpressionNode.o ConditionalNode.o InValuesListNode.o \
-        AlwaysSomethingNode.o ParserInterface.o \
-        AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
-        huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
-        NegationNode.o ScannerContext.o SensitiveNameChecker.o \
-        -lboost_regex -lboost_thread -o $(BINARY_DIR)/riskAnalyzer
+$(BINARY_DIR)/riskAnalyzer:	riskAnalyzer.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
+	ComparisonNode.o ConditionalListNode.o ConditionalNode.o ExpressionNode.o \
+	InValuesListNode.o AlwaysSomethingNode.o NegationNode.o \
+	ParserInterface.o AttackProbabilities.o parser.tab.hpp \
+	DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
+	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
+	SensitiveNameChecker.o
+	$(CXX) $(CXXFLAGS) riskAnalyzer.o parser.tab.o scanner.yy.o \
+		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
+		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
+		AlwaysSomethingNode.o ParserInterface.o \
+		AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
+		huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
+		NegationNode.o ScannerContext.o SensitiveNameChecker.o \
+		-lboost_regex -lboost_thread -o $(BINARY_DIR)/riskAnalyzer
 
-$(BINARY_DIR)/scanner:    scanner.o scanner.yy.o QueryRisk.o parser.tab.hpp Logger.o \
-    ScannerContext.o
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) scanner.o scanner.yy.o QueryRisk.o \
-        Logger.o ScannerContext.o \
-        -lboost_regex -lboost_thread -o $(BINARY_DIR)/scanner
+$(BINARY_DIR)/scanner:	scanner.o scanner.yy.o QueryRisk.o parser.tab.hpp Logger.o \
+	ScannerContext.o
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) scanner.o scanner.yy.o QueryRisk.o \
+		Logger.o ScannerContext.o \
+		-lboost_regex -lboost_thread -o $(BINARY_DIR)/scanner
 
-$(BINARY_DIR)/sqlassie:    sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
-    ProxyHalf.o ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
-    parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
-    ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
-    AlwaysSomethingNode.o DlibProbabilities.o MySqlGuardObjectContainer.o \
-    ConditionalNode.o ParserInterface.o MySqlErrorMessageBlocker.o \
-    AttackProbabilities.o MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o \
-    huginScanner.yy.o huginParser.tab.o MessageHandler.o Logger.o \
-    InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o \
-    SensitiveNameChecker.o
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) sqlassie.o Socket.o Proxy.o ProxyHalf.o \
-        ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
-        parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
-        ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
-        ConditionalNode.o AlwaysSomethingNode.o DlibProbabilities.o \
-        MySqlGuardObjectContainer.o ParserInterface.o \
-        MySqlErrorMessageBlocker.o AttackProbabilities.o \
-        MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o \
-        huginParser.tab.o MessageHandler.o Logger.o InSubselectNode.o \
-        NegationNode.o QueryWhitelist.o ScannerContext.o SensitiveNameChecker.o \
-        -lboost_program_options -lboost_regex -lboost_thread -lmysqlclient \
-        -lpthread \
-        -o $(BINARY_DIR)/sqlassie
+$(BINARY_DIR)/sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
+	ProxyHalf.o ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
+	parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
+	ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
+	AlwaysSomethingNode.o DlibProbabilities.o MySqlGuardObjectContainer.o \
+	ConditionalNode.o ParserInterface.o MySqlErrorMessageBlocker.o \
+	AttackProbabilities.o MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o \
+	huginScanner.yy.o huginParser.tab.o MessageHandler.o Logger.o \
+	InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o \
+	SensitiveNameChecker.o
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlassie.o Socket.o Proxy.o ProxyHalf.o \
+		ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
+		parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
+		ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
+		ConditionalNode.o AlwaysSomethingNode.o DlibProbabilities.o \
+		MySqlGuardObjectContainer.o ParserInterface.o \
+		MySqlErrorMessageBlocker.o AttackProbabilities.o \
+		MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o \
+		huginParser.tab.o MessageHandler.o Logger.o InSubselectNode.o \
+		NegationNode.o QueryWhitelist.o ScannerContext.o SensitiveNameChecker.o \
+		-lboost_program_options -lboost_regex -lboost_thread -lmysqlclient \
+		-lpthread \
+		-o $(BINARY_DIR)/sqlassie
 
-$(BINARY_DIR)/test:    tests/test.o tests/testNode.o tests/testParser.o \
-    tests/testMySqlConstants.o tests/testQueryWhitelist.o \
-    Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp    ProxyHalf.o \
-    ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o parser.tab.o \
-    scanner.yy.hpp scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
-    ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
-    AlwaysSomethingNode.o DlibProbabilities.o MySqlGuardObjectContainer.o \
-    ConditionalNode.o ParserInterface.o MySqlErrorMessageBlocker.o \
-    AttackProbabilities.o MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o \
-    huginScanner.yy.o huginParser.tab.o MessageHandler.o Logger.o \
-    InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o \
-    SensitiveNameChecker.o
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) tests/test.o tests/testNode.o \
-        tests/testParser.o tests/testMySqlConstants.o \
-        tests/testQueryWhitelist.o \
-        Socket.o Proxy.o ProxyHalf.o \
-        ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
-        parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
-        ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
-        ConditionalNode.o AlwaysSomethingNode.o DlibProbabilities.o \
-        MySqlGuardObjectContainer.o ParserInterface.o \
-        MySqlErrorMessageBlocker.o AttackProbabilities.o \
-        MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o \
-        huginParser.tab.o MessageHandler.o Logger.o InSubselectNode.o \
-        NegationNode.o QueryWhitelist.o ScannerContext.o SensitiveNameChecker.o \
-        -lboost_regex -lboost_thread -lmysqlclient \
-        -lboost_unit_test_framework -lboost_filesystem -lboost_system \
-        -lpthread \
-        -o $(BINARY_DIR)/test
+$(BINARY_DIR)/test:	tests/test.o tests/testNode.o tests/testParser.o \
+	tests/testMySqlConstants.o tests/testQueryWhitelist.o \
+	Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp	ProxyHalf.o \
+	ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o parser.tab.o \
+	scanner.yy.hpp scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
+	ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
+	AlwaysSomethingNode.o DlibProbabilities.o MySqlGuardObjectContainer.o \
+	ConditionalNode.o ParserInterface.o MySqlErrorMessageBlocker.o \
+	AttackProbabilities.o MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o \
+	huginScanner.yy.o huginParser.tab.o MessageHandler.o Logger.o \
+	InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o \
+	SensitiveNameChecker.o
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) tests/test.o tests/testNode.o \
+		tests/testParser.o tests/testMySqlConstants.o \
+		tests/testQueryWhitelist.o \
+		Socket.o Proxy.o ProxyHalf.o \
+		ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
+		parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
+		ConditionalListNode.o ExpressionNode.o InValuesListNode.o \
+		ConditionalNode.o AlwaysSomethingNode.o DlibProbabilities.o \
+		MySqlGuardObjectContainer.o ParserInterface.o \
+		MySqlErrorMessageBlocker.o AttackProbabilities.o \
+		MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o \
+		huginParser.tab.o MessageHandler.o Logger.o InSubselectNode.o \
+		NegationNode.o QueryWhitelist.o ScannerContext.o SensitiveNameChecker.o \
+		-lboost_regex -lboost_thread -lmysqlclient \
+		-lboost_unit_test_framework -lboost_filesystem -lboost_system \
+		-lpthread \
+		-o $(BINARY_DIR)/test
 
-$(BINARY_DIR)/tunnel:    tunnel.o ProxyListenSocket.hpp \
-    Socket.o Proxy.o ProxyHalf.o ListenSocket.o MySqlPrinter.o \
-    ProxyListenSocket.o MessageHandler.o Logger.o
-    $(CXX) $(CXXFLAGS) tunnel.o Socket.o Proxy.o ProxyHalf.o \
-        ListenSocket.o MySqlPrinter.o ProxyListenSocket.o MessageHandler.o \
-        Logger.o \
-        -lboost_thread -lboost_program_options -o $(BINARY_DIR)/tunnel
+$(BINARY_DIR)/tunnel:	tunnel.o ProxyListenSocket.hpp \
+	Socket.o Proxy.o ProxyHalf.o ListenSocket.o MySqlPrinter.o \
+	ProxyListenSocket.o MessageHandler.o Logger.o
+	$(CXX) $(CXXFLAGS) tunnel.o Socket.o Proxy.o ProxyHalf.o \
+		ListenSocket.o MySqlPrinter.o ProxyListenSocket.o MessageHandler.o \
+		Logger.o \
+		-lboost_thread -lboost_program_options -o $(BINARY_DIR)/tunnel
 
-parser.tab.cpp parser.tab.hpp:    parser.y
-    $(YACC) -o parser.tab.cpp --defines=parser.tab.hpp -v parser.y
+parser.tab.cpp parser.tab.hpp:	parser.y
+	$(YACC) -o parser.tab.cpp --defines=parser.tab.hpp -v parser.y
 
-parser.tab.o:    parser.tab.cpp parser.tab.hpp AlwaysSomethingNode.hpp \
-    AstNode.hpp ComparisonNode.hpp ConditionalListNode.hpp ConditionalNode.hpp \
-    ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp InSubselectNode.hpp
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) parser.tab.cpp -c -o parser.tab.o
+parser.tab.o:	parser.tab.cpp parser.tab.hpp AlwaysSomethingNode.hpp \
+	AstNode.hpp ComparisonNode.hpp ConditionalListNode.hpp ConditionalNode.hpp \
+	ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp InSubselectNode.hpp
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) parser.tab.cpp -c -o parser.tab.o
 
-huginParser.tab.cpp huginParser.tab.hpp:    huginParser.y clearStack.hpp
-    $(YACC) -o huginParser.tab.cpp --defines=huginParser.tab.hpp \
-        -v huginParser.y
+huginParser.tab.cpp huginParser.tab.hpp:	huginParser.y clearStack.hpp
+	$(YACC) -o huginParser.tab.cpp --defines=huginParser.tab.hpp \
+		-v huginParser.y
 
-huginParser.tab.o:    huginParser.tab.cpp
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) huginParser.tab.cpp -c -o \
-        huginParser.tab.o
+huginParser.tab.o:	huginParser.tab.cpp
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) huginParser.tab.cpp -c -o \
+		huginParser.tab.o
 
-scanner.yy.cpp scanner.yy.hpp:    scanner.l parser.tab.hpp
-    $(LEX) --case-insensitive --outfile=scanner.yy.cpp \
-        --header-file=scanner.yy.hpp scanner.l
+scanner.yy.cpp scanner.yy.hpp:	scanner.l parser.tab.hpp
+	$(LEX) --case-insensitive --outfile=scanner.yy.cpp \
+		--header-file=scanner.yy.hpp scanner.l
 
-scanner.yy.o:    scanner.yy.cpp scanner.yy.hpp
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) scanner.yy.cpp -c -o scanner.yy.o
+scanner.yy.o:	scanner.yy.cpp scanner.yy.hpp
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) scanner.yy.cpp -c -o scanner.yy.o
 
-huginScanner.yy.cpp huginScanner.yy.hpp:    huginScanner.l huginParser.tab.hpp
-    $(LEX) --case-insensitive --outfile=huginScanner.yy.cpp \
-        --header-file=huginScanner.yy.hpp huginScanner.l
+huginScanner.yy.cpp huginScanner.yy.hpp:	huginScanner.l huginParser.tab.hpp
+	$(LEX) --case-insensitive --outfile=huginScanner.yy.cpp \
+		--header-file=huginScanner.yy.hpp huginScanner.l
 
-huginScanner.yy.o:    huginScanner.yy.cpp huginScanner.yy.hpp
-    $(CXX) $(CXXFLAGS_NO_WARNINGS) huginScanner.yy.cpp -c \
-        -o huginScanner.yy.o
+huginScanner.yy.o:	huginScanner.yy.cpp huginScanner.yy.hpp
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) huginScanner.yy.cpp -c \
+		-o huginScanner.yy.o
 
-ParserInterface.hpp:    parser.tab.hpp scanner.yy.hpp
+ParserInterface.hpp:	parser.tab.hpp scanner.yy.hpp
 
-strip:    $(BINARIES)
-    strip $(BINARIES)
+strip:	$(BINARIES)
+	strip $(BINARIES)
 
 .PHONY: doxygen
 doxygen: Doxyfile
-    rm -rf doxygen
-    doxygen Doxyfile
+	rm -rf doxygen
+	doxygen Doxyfile
 
-.PHONY:    dependencies
-dependencies:    dependencies.py
-    # These files mess up the dependencies
-    rm -f parser.tab.hpp parser.tab.cpp parser.tab.o
-    rm -f scanner.yy.hpp scanner.yy.cpp scanner.yy.o
-    rm -f huginParser.tab.hpp huginParser.tab.cpp huginParser.tab.o
-    rm -f huginScanner.yy.hpp huginScanner.yy.cpp huginScanner.yy.o
-    ./dependencies.py *cpp tests/*cpp > Makefile.dependencies
+.PHONY:	dependencies
+dependencies:	dependencies.py
+	# These files mess up the dependencies
+	rm -f parser.tab.hpp parser.tab.cpp parser.tab.o
+	rm -f scanner.yy.hpp scanner.yy.cpp scanner.yy.o
+	rm -f huginParser.tab.hpp huginParser.tab.cpp huginParser.tab.o
+	rm -f huginScanner.yy.hpp huginScanner.yy.cpp huginScanner.yy.o
+	./dependencies.py *cpp tests/*cpp > Makefile.dependencies
 
 .PHONY: clean
 clean:
-    rm -f *.o *.gch *~
-    rm -f src/tests/*.o src/tests/*~
-    rm -f scanner.yy.cpp scanner.yy.hpp \
-    parser.output parser.tab.cpp parser.tab.hpp \
-    huginScanner.yy.cpp huginScanner.yy.hpp \
-    huginParser.output huginParser.tab.cpp huginParser.tab.hpp
-    rm -rf queries/formatQueries queries/formatMySqlLog
-    rm -f $(BINARIES)
-    rm -rf doxygen
+	rm -f *.o *.gch *~
+	rm -f src/tests/*.o src/tests/*~
+	rm -f scanner.yy.cpp scanner.yy.hpp \
+	parser.output parser.tab.cpp parser.tab.hpp \
+	huginScanner.yy.cpp huginScanner.yy.hpp \
+	huginParser.output huginParser.tab.cpp huginParser.tab.hpp
+	rm -rf queries/formatQueries queries/formatMySqlLog
+	rm -f $(BINARIES)
+	rm -rf doxygen
 
 # The following dependencies generated by a Python script
 include Makefile.dependencies

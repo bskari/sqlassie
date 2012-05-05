@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MYSQL_LOGGER_LISTEN_SOCKET_HPP
-#define MYSQL_LOGGER_LISTEN_SOCKET_HPP
+#ifndef SRC_MYSQLLOGGERLISTENSOCKET_HPP_
+#define SRC_MYSQLLOGGERLISTENSOCKET_HPP_
 
 #include "ListenSocket.hpp"
 #include "Socket.hpp"
@@ -55,4 +55,4 @@ private:
     const std::string mySqlHost_;
 };
 
-#endif
+#endif  // SRC_MYSQLLOGGERLISTENSOCKET_HPP_

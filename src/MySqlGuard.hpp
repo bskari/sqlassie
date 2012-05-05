@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MYSQL_GUARD_HPP
-#define MYSQL_GUARD_HPP
+#ifndef SRC_MYSQLGUARD_HPP_
+#define SRC_MYSQLGUARD_HPP_
 
 class MySqlSocket;
 class MySqlGuardObjectContainer;
@@ -132,7 +132,7 @@ private:
     MySqlGuard& operator=(const MySqlGuard&);
 };
 
-const static double PROBABILITY_BLOCK_LEVEL = 0.75;
-const static double PROBABILITY_LOG_LEVEL = 0.5;
+static const double PROBABILITY_BLOCK_LEVEL = 0.75;
+static const double PROBABILITY_LOG_LEVEL = 0.5;
 
-#endif
+#endif  // SRC_MYSQLGUARD_HPP_

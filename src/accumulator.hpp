@@ -4,8 +4,8 @@
 //  Software License, Version 1.0. (See accompanying file
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef PROGRAM_OPTIONS_ACCUMULATOR_HPP
-#define PROGRAM_OPTIONS_ACCUMULATOR_HPP
+#ifndef SRC_ACCUMULATOR_HPP_
+#define SRC_ACCUMULATOR_HPP_
 
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/any.hpp>
@@ -18,7 +18,6 @@ template<typename T>
 class accumulator_type : public boost::program_options::value_semantic
 {
 public:
-
     accumulator_type(T* store) : _store(store), _notifier(), _interval(1), _default(0) {}
 
     /// Set the notifier function.
@@ -102,4 +101,4 @@ accumulator_type<T>* accumulator(T* store) {
     return new accumulator_type<T>(store);
 }
 
-#endif
+#endif  // SRC_ACCUMULATOR_HPP_

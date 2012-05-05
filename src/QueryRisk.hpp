@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUERY_RISK_HPP
-#define QUERY_RISK_HPP
+#ifndef SRC_QUERYRISK_HPP_
+#define SRC_QUERYRISK_HPP_
 
 #include <boost/regex.hpp>
 #include <ostream>
@@ -36,7 +36,7 @@ class QueryRisk
 public:
     /**
      * Default constructor.
-     * @TODO This should read configuration from a configuration file
+     * @TODO(bskari) This should read configuration from a configuration file.
      */
     QueryRisk();
 
@@ -143,4 +143,4 @@ bool operator==(const QueryRisk& qr1, const QueryRisk& qr2);
 size_t hash_value(const QueryRisk& qr);
 /// @}
 
-#endif
+#endif  // SRC_QUERYRISK_HPP_

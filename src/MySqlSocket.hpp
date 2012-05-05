@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MYSQL_SOCKET_HPP
-#define MYSQL_SOCKET_HPP
+#ifndef SRC_MYSQLSOCKET_HPP_
+#define SRC_MYSQLSOCKET_HPP_
 
 #include "Socket.hpp"
 
@@ -117,4 +117,4 @@ private:
     MySqlSocket(MySqlSocket& rhs);
 };
 
-#endif
+#endif  // SRC_MYSQLSOCKET_HPP_

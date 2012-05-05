@@ -25,7 +25,11 @@
 #include <vector>
 #include <boost/foreach.hpp>
 
-using namespace std;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::vector;
 
 /**
  * Reads in frequencies from a comma separated value and computes propabilities
@@ -82,8 +86,11 @@ int main(int argc, char* argv[])
     // Single probabilities
     for (size_t i = 0; i < totals.size(); ++i)
     {
-        cout << "P(" << i + 1  << ") = "
-            << (double)totals.at(i) / numberQueries << endl;
+        cout << "P("
+            << i + 1
+            << ") = "
+            << static_cast<double>(totals.at(i)) / numberQueries
+            << endl;
     }
 
     for (size_t given = 0; given < values.at(0).size(); ++given)
@@ -113,8 +120,13 @@ int main(int argc, char* argv[])
             {
                 continue;
             }
-            cout << "P(" << i + 1 << '|' << given + 1 << ") = "
-                << (double)conditionals.at(i) / conditionalsCount.at(i) << endl;
+            cout << "P("
+                << i + 1
+                << '|'
+                << given + 1
+                << ") = "
+                << static_cast<double>(conditionals.at(i)) / conditionalsCount.at(i)
+                << endl;
         }
     }
 

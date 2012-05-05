@@ -23,17 +23,17 @@
 // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48914 for a full bug report.
 #pragma GCC diagnostic ignored "-Wc++0x-compat"
 
-#ifndef nullptrPTR_HPP
-#define nullptrPTR_HPP
+#ifndef SRC_NULLPTR_HPP_
+#define SRC_NULLPTR_HPP_
 
-#define NEED_TO_DEFINE_nullptrPTR 1
+#define NEED_TO_DEFINE_NULLPTR 1
 // GNU g++ didn't support the __cplusplus macro until version 4.7
 #if (__GNUC__ && __GNUC_VERSION__ >= 40700 && __cplusplus > 199711L) \
     || (__GNUC__ && __GXX_EXPERIMENTAL_CXX0X__)
-        #undef NEED_TO_DEFINE_nullptrPTR
+        #undef NEED_TO_DEFINE_NULLPTR
 #endif
 
-#if NEED_TO_DEFINE_nullptrPTR
+#if NEED_TO_DEFINE_NULLPTR
 
 /**
  * Forward compatible definition of nullptr. Taken from the official
@@ -52,8 +52,11 @@ public:
     operator T C::*() const        // member pointer...
         { return 0; }
 private:
-    void operator&() const;        // whose address can't be taken
+    // Break the line between 'operator' and '&()' so that cppcheck doesn't
+    // produce a false positive
+    void operator
+        &() const;        // whose address can't be taken
 } nullptr = {};                    // and whose name is nullptr
 
-#endif // #if NEED_TO_DEFINE_nullptrPTR
-#endif // #ifndef nullptrPTR_HPP
+#endif  // #if NEED_TO_DEFINE_NULLPTR
+#endif  // SRC_NULLPTR_HPP_

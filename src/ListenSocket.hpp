@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LISTEN_SOCKET_HPP
-#define LISTEN_SOCKET_HPP
+#ifndef SRC_LISTENSOCKET_HPP_
+#define SRC_LISTENSOCKET_HPP_
 
 class Socket;
 class MessageHandlerFactory;
@@ -52,4 +52,4 @@ protected:
     const int socketFD_;
 };
 
-#endif
+#endif  // SRC_LISTENSOCKET_HPP_

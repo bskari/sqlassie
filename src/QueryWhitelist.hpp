@@ -19,8 +19,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUERY_WHITELIST_HPP
-#define QUERY_WHITELIST_HPP
+#ifndef SRC_QUERYWHITELIST_HPP_
+#define SRC_QUERYWHITELIST_HPP_
 
 /**
  * Singleton interface to store and access whitelisted queries.
@@ -105,4 +105,4 @@ private:
     QueryWhitelist(const QueryWhitelist&);
 };
 
-#endif
+#endif  // SRC_QUERYWHITELIST_HPP_

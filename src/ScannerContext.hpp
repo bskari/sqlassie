@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SCANNER_CONTEXT_HPP
-#define SCANNER_CONTEXT_HPP
+#ifndef SRC_SCANNERCONTEXT_HPP_
+#define SRC_SCANNERCONTEXT_HPP_
 
 #include <stack>
 #include <string>
@@ -43,4 +43,4 @@ private:
     ScannerContext& operator=(const ScannerContext& rhs);
 };
 
-#endif
+#endif  // SRC_SCANNERCONTEXT_HPP_

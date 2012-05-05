@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALWAYS_SOMETHING_NODE_HPP
-#define ALWAYS_SOMETHING_NODE_HPP
+#ifndef SRC_ALWAYSSOMETHINGNODE_HPP_
+#define SRC_ALWAYSSOMETHINGNODE_HPP_
 
 #include "AstNode.hpp"
 #include "ComparisonNode.hpp"
@@ -72,4 +72,4 @@ private:
     AlwaysSomethingNode(const AlwaysSomethingNode& rhs);
     AlwaysSomethingNode& operator=(const AlwaysSomethingNode& rhs);
 };
-#endif
+#endif  // SRC_ALWAYSSOMETHINGNODE_HPP_

@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SOCKET_EXCEPTION_HPP
-#define SOCKET_EXCEPTION_HPP
+#ifndef SRC_SOCKETEXCEPTION_HPP_
+#define SRC_SOCKETEXCEPTION_HPP_
 
 #include "DescribedException.hpp"
 
@@ -54,4 +54,4 @@ public:
     ClosedException() : SocketException("ClosedException") {}
 };
 
-#endif
+#endif  // SRC_SOCKETEXCEPTION_HPP_

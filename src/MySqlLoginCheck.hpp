@@ -18,14 +18,16 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MY_SQL_LOGIN_CHECK
-#define MY_SQL_LOGIN_CHECK
+#ifndef SRC_MYSQLLOGINCHECK_HPP_
+#define SRC_MYSQLLOGINCHECK_HPP_
 
 #include <string>
 #include <map>
 #include <set>
 #include <boost/cstdint.hpp>
 #include <boost/regex.hpp>
+
+class StaticStringsContainer;
 
 /**
  * Helper class to reduce a MySQL remote connection security bypass.
@@ -49,6 +51,8 @@
 class MySqlLoginCheck
 {
 public:
+    ~MySqlLoginCheck();
+
     /**
      * Returns an instance of MySqlLoginCheck.
      */
@@ -98,10 +102,14 @@ private:
     static std::map<std::string, std::set<boost::regex> > userHostLogins_;
     static const MySqlLoginCheck* instance_;
     static uint16_t port_;
-    static std::string hostOrUnixDomain_;
-    static std::string username_;
-    static std::string password_;
     static bool initialized_;
+
+    // cpplint.py complains about static C++ strings, so define them in a class
+    // and just access them through a pointer.
+    static StaticStringsContainer* stringsContainer_;
+
+    // Hidden methods
+    MySqlLoginCheck& operator=(const MySqlLoginCheck& rhs);
 };
 
-#endif
+#endif  // SRC_MYSQLLOGINCHECK_HPP_

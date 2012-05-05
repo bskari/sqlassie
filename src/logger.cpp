@@ -21,11 +21,12 @@
 #include "Logger.hpp"
 #include "MySqlLoggerListenSocket.hpp"
 
-#include <iostream>
 #include <boost/lexical_cast.hpp>
+#include <iostream>
 
-using namespace std;
-using namespace boost;
+using boost::lexical_cast;
+using std::cerr;
+using std::endl;
 
 int main(int argc, char* argv[])
 {
@@ -39,5 +40,5 @@ int main(int argc, char* argv[])
     const uint16_t mySqlPort = lexical_cast<uint16_t>(argv[2]);
     MySqlLoggerListenSocket logger(listenPort, mySqlPort, argv[3]);
     logger.acceptClients();
-    cout << "Exiting main" << endl;
+    Logger::log(Logger::INFO) << "Exiting main";
 }

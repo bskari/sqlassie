@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONDITIONAL_LIST_NODE_HPP
-#define CONDITIONAL_LIST_NODE_HPP
+#ifndef SRC_CONDITIONALLISTNODE_HPP_
+#define SRC_CONDITIONALLISTNODE_HPP_
 
 #include "AstNode.hpp"
 #include "ConditionalNode.hpp"
@@ -85,4 +85,4 @@ private:
     ConditionalListNode(const ConditionalListNode& rhs);
     ConditionalListNode& operator=(const ConditionalListNode& rhs);
 };
-#endif
+#endif  // SRC_CONDITIONALLISTNODE_HPP_

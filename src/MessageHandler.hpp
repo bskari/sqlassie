@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGE_HANDLER_HPP
-#define MESSAGE_HANDLER_HPP
+#ifndef SRC_MESSAGEHANDLER_HPP_
+#define SRC_MESSAGEHANDLER_HPP_
 
 #include "Socket.hpp"
 
@@ -45,7 +45,7 @@ class MessageHandler
          * Destructor.
          */
 
-        virtual ~MessageHandler() {};
+        virtual ~MessageHandler() {}
 
         /**
          * Starts listening for messages and handling them. Required starting
@@ -56,4 +56,4 @@ class MessageHandler
         std::auto_ptr<Socket> _socket;
 };
 
-#endif
+#endif  // SRC_MESSAGEHANDLER_HPP_

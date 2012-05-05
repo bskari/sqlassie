@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MY_SQL_GUARD_OBJECT_CONTAINER
-#define MY_SQL_GUARD_OBJECT_CONTAINER
+#ifndef SRC_MYSQLGUARDOBJECTCONTAINER_HPP_
+#define SRC_MYSQLGUARDOBJECTCONTAINER_HPP_
 
 #include "AttackProbabilities.hpp"
 
@@ -90,8 +90,8 @@ private:
 
     static MySqlGuardObjectContainer* instance_;
 
-    /// @TODO Rather than have locks around AttackProbabilities, have individual
-    /// locks around each probability generation method.
+    /// @TODO(bskari) Rather than have locks around AttackProbabilities, have
+    /// individual locks around each probability generation method.
     int numObjects_;
     int loadBalancer_;
     boost::mutex* attackProbsMutexes_;
@@ -102,4 +102,4 @@ private:
     MySqlGuardObjectContainer& operator=(const MySqlGuardObjectContainer& rhs);
 };
 
-#endif
+#endif  // SRC_MYSQLGUARDOBJECTCONTAINER_HPP_

@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DESCRIBED_EXCEPTION_HPP
-#define DESCRIBED_EXCEPTION_HPP
+#ifndef SRC_DESCRIBEDEXCEPTION_HPP_
+#define SRC_DESCRIBEDEXCEPTION_HPP_
 
 #include <string>
 #include <exception>
@@ -67,4 +67,4 @@ private:
     const std::string _description;
 };
 
-#endif
+#endif  // SRC_DESCRIBEDEXCEPTION_HPP_

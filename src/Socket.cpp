@@ -367,7 +367,7 @@ bool Socket::getBlocking() const
 
 void Socket::close()
 {
-    /// @TODO Fix this race condition
+    /// @TODO(bskari) Fix this race condition.
     if (open_)
     {
         open_ = false;

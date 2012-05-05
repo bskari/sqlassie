@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AUTO_PTR_WITH_OPERATOR_PARENS_HPP
-#define AUTO_PTR_WITH_OPERATOR_PARENS_HPP
+#ifndef SRC_AUTOPTRWITHOPERATORPARENS_HPP_
+#define SRC_AUTOPTRWITHOPERATORPARENS_HPP_
 
 #include "nullptr.hpp"
 
@@ -141,4 +141,4 @@ void AutoPtrWithOperatorParens<Type>::operator()()
 {
     object_->operator()();
 }
-#endif
+#endif  // SRC_AUTOPTRWITHOPERATORPARENS_HPP_

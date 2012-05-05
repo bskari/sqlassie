@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LOGGER_HPP
-#define LOGGER_HPP
+#ifndef SRC_LOGGER_HPP_
+#define SRC_LOGGER_HPP_
 
 /**
  * Singleton logger.
@@ -82,14 +82,14 @@ public:
      * Predefined log levels.
      */
     //@{
-    const static LogLevel ALL;
-    const static LogLevel TRACE;
-    const static LogLevel DEBUG;
-    const static LogLevel INFO;
-    const static LogLevel WARN;
-    const static LogLevel ERROR;
-    const static LogLevel FATAL;
-    const static LogLevel NONE;
+    static const LogLevel ALL;
+    static const LogLevel TRACE;
+    static const LogLevel DEBUG;
+    static const LogLevel INFO;
+    static const LogLevel WARN;
+    static const LogLevel ERROR;
+    static const LogLevel FATAL;
+    static const LogLevel NONE;
     //@}
 
 private:
@@ -119,11 +119,6 @@ private:
 
         // ***** Hidden methods *****
         LoggerStream& operator=(const LoggerStream& rhs);
-
-        // LoggerStream's destructor handles newlines, we shouldn't be using
-        // endl ourselves; so declare an overload but don't define it so that
-        // if we try to use endl with Logger, it won't compile.
-        LoggerStream& operator<<(LoggerStream&(*myendl)(LoggerStream&));
     };
 
     // ***** Hidden methods *****
@@ -148,4 +143,4 @@ Logger::LoggerStream& Logger::LoggerStream::operator<<(const T& object)
     return *this;
 }
 
-#endif
+#endif  // SRC_LOGGER_HPP_

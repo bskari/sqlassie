@@ -52,8 +52,11 @@ ExpressionNode::ExpressionNode(const std::string& str, bool isIdentifier_) :
     identifier_(isIdentifier_),
     quotedString_(!identifier_ && !number_)
 {
-    assert(!(number_ && identifier_) &&
-        "ExpressionNode constructor was given a number but claims to be an identifier");
+    assert(
+        !(number_ && identifier_)
+        && "ExpressionNode constructor was given a number but claims to be an"
+        && "identifier"
+    );
 }
 
 
@@ -107,16 +110,23 @@ string ExpressionNode::getValue() const
         return expression_;
     }
 
-    assert(3 == children_.size() &&
-        "Expression nodes should either have a simple expression or two \
-simple expressions with an operator for children");
+    assert(
+        3 == children_.size()
+        && "Expression nodes should either have a simple expression or two"
+        && "simple expressions with an operator for children"
+    );
 
     const ExpressionNode* expr1 = dynamic_cast<const ExpressionNode*>(
-        children_.at(0));
+        children_.at(0)
+    );
     const ExpressionNode* expr2 = dynamic_cast<const ExpressionNode*>(
-        children_.at(2));
-    assert(nullptr != expr1 && nullptr != expr2 &&
-        "ExpressionNode should only have ExpressionNode children");
+        children_.at(2)
+    );
+    assert(
+        nullptr != expr1
+        && nullptr != expr2
+        && "ExpressionNode should only have ExpressionNode children"
+    );
 
     // MySQL lets you use quoted strings as integers... but if someone is
     // computing, say, 1 + 'foo', it returns the only integer. If both are

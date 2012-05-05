@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ATTACK_PROBABILITIES_HPP
-#define ATTACK_PROBABILITIES_HPP
+#ifndef SRC_ATTACKPROBABILITIES_HPP_
+#define SRC_ATTACKPROBABILITIES_HPP_
 
 #include "QueryRisk.hpp"
 
@@ -47,4 +47,4 @@ public:
 
     virtual ~AttackProbabilities();
 };
-#endif
+#endif  // SRC_ATTACKPROBABILITIES_HPP_

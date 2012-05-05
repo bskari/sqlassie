@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NEGATION_NODE_HPP
-#define NEGATION_NODE_HPP
+#ifndef SRC_NEGATIONNODE_HPP_
+#define SRC_NEGATIONNODE_HPP_
 
 #include "ConditionalNode.hpp"
 #include "QueryRisk.hpp"
@@ -79,4 +79,4 @@ private:
     NegationNode(const NegationNode& rhs);
     NegationNode& operator=(NegationNode& rhs);
 };
-#endif
+#endif  // SRC_NEGATIONNODE_HPP_

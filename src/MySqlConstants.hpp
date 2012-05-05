@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MYSQL_CONSTANTS
-#define MYSQL_CONSTANTS
+#ifndef SRC_MYSQLCONSTANTS_HPP_
+#define SRC_MYSQLCONSTANTS_HPP_
 
 #include <boost/cstdint.hpp>
 #include <string>
@@ -68,24 +68,24 @@ public:
      * Constants used in handshake initialization.
      */
     ///@{
-    const static uint32_t CLIENT_LONG_PASSWORD = 1; /// New more secure passwords
-    const static uint32_t CLIENT_FOUND_ROWS = 2; /// Found instead of affected rows
-    const static uint32_t CLIENT_LONG_FLAG = 4; /// Get all column flags
-    const static uint32_t CLIENT_CONNECT_WITH_DB = 8; /// One can specify db on connect
-    const static uint32_t CLIENT_NO_SCHEMA = 16; /// Don't allow database.table.column
-    const static uint32_t CLIENT_COMPRESS = 32; /// Can use compression protocol
-    const static uint32_t CLIENT_ODBC = 64; /// Odbc client
-    const static uint32_t CLIENT_LOCAL_FILES = 128; /// Can use LOAD DATA LOCAL
-    const static uint32_t CLIENT_IGNORE_SPACE = 256; /// Ignore spaces before '('
-    const static uint32_t CLIENT_PROTOCOL_41= 512; /// New 4.1 protocol
-    const static uint32_t CLIENT_uint32_tERACTIVE = 1024; /// This is an uint32_teractive client
-    const static uint32_t CLIENT_SSL = 2048; /// Switch to SSL after handshake
-    const static uint32_t CLIENT_IGNORE_SIGPIPE = 4096; /// IGNORE sigpipes
-    const static uint32_t CLIENT_TRANSACTIONS = 8192; /// Client knows about transactions
-    const static uint32_t CLIENT_RESERVED = 16384; /// Old flag for 4.1 protocol
-    const static uint32_t CLIENT_SECURE_CONNECTION = 32768; /// New 4.1 authentication
-    const static uint32_t CLIENT_MULTI_STATEMENTS = 65536; /// Enable/disable multi-stmt support
-    const static uint32_t CLIENT_MULTI_RESULTS = 131072; /// Enable/disable multi-results
+    static const uint32_t CLIENT_LONG_PASSWORD = 1; /// New more secure passwords
+    static const uint32_t CLIENT_FOUND_ROWS = 2; /// Found instead of affected rows
+    static const uint32_t CLIENT_LONG_FLAG = 4; /// Get all column flags
+    static const uint32_t CLIENT_CONNECT_WITH_DB = 8; /// One can specify db on connect
+    static const uint32_t CLIENT_NO_SCHEMA = 16; /// Don't allow database.table.column
+    static const uint32_t CLIENT_COMPRESS = 32; /// Can use compression protocol
+    static const uint32_t CLIENT_ODBC = 64; /// Odbc client
+    static const uint32_t CLIENT_LOCAL_FILES = 128; /// Can use LOAD DATA LOCAL
+    static const uint32_t CLIENT_IGNORE_SPACE = 256; /// Ignore spaces before '('
+    static const uint32_t CLIENT_PROTOCOL_41= 512; /// New 4.1 protocol
+    static const uint32_t CLIENT_uint32_tERACTIVE = 1024; /// This is an uint32_teractive client
+    static const uint32_t CLIENT_SSL = 2048; /// Switch to SSL after handshake
+    static const uint32_t CLIENT_IGNORE_SIGPIPE = 4096; /// IGNORE sigpipes
+    static const uint32_t CLIENT_TRANSACTIONS = 8192; /// Client knows about transactions
+    static const uint32_t CLIENT_RESERVED = 16384; /// Old flag for 4.1 protocol
+    static const uint32_t CLIENT_SECURE_CONNECTION = 32768; /// New 4.1 authentication
+    static const uint32_t CLIENT_MULTI_STATEMENTS = 65536; /// Enable/disable multi-stmt support
+    static const uint32_t CLIENT_MULTI_RESULTS = 131072; /// Enable/disable multi-results
     ///@}
 
     /**
@@ -94,16 +94,16 @@ public:
      * sure what some of them mean.
      */
     ///@{
-    const static uint16_t STATUS_IN_TRANSACTION = 1;
-    const static uint16_t STATUS_AUTO_COMMIT = 2;
-    const static uint16_t STATUS_MORE_RESULTS = 4;
-    const static uint16_t STATUS_MULTI_QUERY = 8;
-    const static uint16_t STATUS_BAD_INDEX_USED = 16;
-    const static uint16_t STATUS_NO_INDEX_USED = 32;
-    const static uint16_t STATUS_CURSOR_EXISTS = 64;
-    const static uint16_t STATUS_LAST_ROW_SEBD = 128;
-    const static uint16_t STATUS_DATABASE_DROPPED = 256;
-    const static uint16_t STATUS_NO_BACKSLASH_ESCAPES = 512;
+    static const uint16_t STATUS_IN_TRANSACTION = 1;
+    static const uint16_t STATUS_AUTO_COMMIT = 2;
+    static const uint16_t STATUS_MORE_RESULTS = 4;
+    static const uint16_t STATUS_MULTI_QUERY = 8;
+    static const uint16_t STATUS_BAD_INDEX_USED = 16;
+    static const uint16_t STATUS_NO_INDEX_USED = 32;
+    static const uint16_t STATUS_CURSOR_EXISTS = 64;
+    static const uint16_t STATUS_LAST_ROW_SEBD = 128;
+    static const uint16_t STATUS_DATABASE_DROPPED = 256;
+    static const uint16_t STATUS_NO_BACKSLASH_ESCAPES = 512;
     ///@}
 
     /**
@@ -144,18 +144,18 @@ public:
      * Column flags sent in column descriptor packets.
      */
     ///@{
-    const static uint16_t NOT_NULL = 0x0001;
-    const static uint16_t PRIMARY_KEY = 0x0002;
-    const static uint16_t UNIQUE_KEY = 0x0004;
-    const static uint16_t MULTIPLE_KEY = 0x0008;
-    const static uint16_t BLOB = 0x0010;
-    const static uint16_t UNSIGNED = 0x0020;
-    const static uint16_t ZERO_FILL = 0x0040;
-    const static uint16_t BINARY = 0x0080;
-    const static uint16_t ENUM = 0x0100;
-    const static uint16_t AUTO_INCREMENT = 0x0200;
-    const static uint16_t TIME_STAMP = 0x0400;
-    const static uint16_t SET = 0x0800;
+    static const uint16_t NOT_NULL = 0x0001;
+    static const uint16_t PRIMARY_KEY = 0x0002;
+    static const uint16_t UNIQUE_KEY = 0x0004;
+    static const uint16_t MULTIPLE_KEY = 0x0008;
+    static const uint16_t BLOB = 0x0010;
+    static const uint16_t UNSIGNED = 0x0020;
+    static const uint16_t ZERO_FILL = 0x0040;
+    static const uint16_t BINARY = 0x0080;
+    static const uint16_t ENUM = 0x0100;
+    static const uint16_t AUTO_INCREMENT = 0x0200;
+    static const uint16_t TIME_STAMP = 0x0400;
+    static const uint16_t SET = 0x0800;
     ///@}
 
     /**
@@ -904,4 +904,4 @@ public:
     #endif
 };
 
-#endif
+#endif  // SRC_MYSQLCONSTANTS_HPP_

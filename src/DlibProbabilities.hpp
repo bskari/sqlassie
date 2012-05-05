@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DLIB_PROBABILITIES_HPP
-#define DLIB_PROBABILITIES_HPP
+#ifndef SRC_DLIBPROBABILITIES_HPP_
+#define SRC_DLIBPROBABILITIES_HPP_
 
 #include "AttackProbabilities.hpp"
 class ComputeEvidenceParameters;
@@ -138,4 +138,4 @@ private:
     double computeEvidence(const Evidence&);
 };
 
-#endif
+#endif  // SRC_DLIBPROBABILITIES_HPP_

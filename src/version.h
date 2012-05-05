@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef SRC_VERSION_H_
+#define SRC_VERSION_H_
 
 const char* sqlassieVersion()
 {
@@ -43,4 +43,4 @@ const char* sqlassieShortLicense()
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 }
 
-#endif
+#endif  // SRC_VERSION_H_

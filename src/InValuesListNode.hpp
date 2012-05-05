@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef IN_VALUES_LIST_NODE_HPP
-#define IN_VALUES_LIST_NODE_HPP
+#ifndef SRC_INVALUESLISTNODE_HPP_
+#define SRC_INVALUESLISTNODE_HPP_
 
 #include "AstNode.hpp"
 #include "ConditionalNode.hpp"
@@ -88,4 +88,4 @@ private:
     InValuesListNode(const InValuesListNode& rhs);
     InValuesListNode& operator=(const InValuesListNode& rhs);
 };
-#endif
+#endif  // SRC_INVALUESLISTNODE_HPP_

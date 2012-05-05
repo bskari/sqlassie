@@ -177,8 +177,15 @@ void MySqlLogger::handleMessage(std::vector<uint8_t>& rawMessage) const
 
         default:
             Logger::log(Logger::WARN) << "Unexpected messageCode = "
-                << "0x" << hex << setfill('0') << setw(2) << (int)commandCode << dec
-                << " message = '" << string(rawMessage.begin() + 5, rawMessage.end()) << '\'';
+                << "0x"
+                << hex
+                << setfill('0')
+                << setw(2)
+                << static_cast<int>(commandCode)
+                << dec
+                << " message = '"
+                << string(rawMessage.begin() + 5, rawMessage.end())
+                << '\'';
             break;
     }
 

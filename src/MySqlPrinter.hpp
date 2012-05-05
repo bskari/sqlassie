@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MY_SQL_PRINTER_HPP
-#define MY_SQL_PRINTER_HPP
+#ifndef SRC_MYSQLPRINTER_HPP_
+#define SRC_MYSQLPRINTER_HPP_
 
 #include "ProxyHalf.hpp"
 class Socket;
@@ -40,4 +40,4 @@ private:
     mutable std::string database_;
 };
 
-#endif
+#endif  // SRC_MYSQLPRINTER_HPP_

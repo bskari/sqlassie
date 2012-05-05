@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COMPARISON_NODE_HPP
-#define COMPARISON_NODE_HPP
+#ifndef SRC_COMPARISONNODE_HPP_
+#define SRC_COMPARISONNODE_HPP_
 
 #include "ConditionalNode.hpp"
 #include "QueryRisk.hpp"
@@ -84,4 +84,4 @@ private:
     ComparisonNode(const ComparisonNode& rhs);
     ComparisonNode& operator=(ComparisonNode& rhs);
 };
-#endif
+#endif  // SRC_COMPARISONNODE_HPP_

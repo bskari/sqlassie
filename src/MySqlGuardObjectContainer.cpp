@@ -114,7 +114,7 @@ void MySqlGuardObjectContainer::logBlockedQuery(
 
 int MySqlGuardObjectContainer::getLockOnProbabilityGenerator()
 {
-    /// @TODO Make this lock stuff exception safe
+    /// @TODO(bskari) Make this lock stuff exception safe
     // Try all the locks
     for (int i = 0; i < numObjects_; ++i)
     {

@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef IN_SUBSELECT_NODE_HPP
-#define IN_SUBSELECT_NODE_HPP
+#ifndef SRC_INSUBSELECTNODE_HPP_
+#define SRC_INSUBSELECTNODE_HPP_
 
 #include "AstNode.hpp"
 #include "ExpressionNode.hpp"
@@ -66,8 +66,7 @@ public:
     virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
 
 private:
-
     InSubselectNode(const InSubselectNode& rhs);
     InSubselectNode& operator=(const InSubselectNode& rhs);
 };
-#endif
+#endif  // SRC_INSUBSELECTNODE_HPP_

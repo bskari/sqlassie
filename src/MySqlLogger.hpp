@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MYSQL_LOGGER_HPP
-#define MYSQL_LOGGER_HPP
+#ifndef SRC_MYSQLLOGGER_HPP_
+#define SRC_MYSQLLOGGER_HPP_
 
 #include "ProxyHalf.hpp"
 
@@ -86,4 +86,4 @@ private:
     MySqlLogger& operator=(const MySqlLogger&);
 };
 
-#endif
+#endif  // SRC_MYSQLLOGGER_HPP_

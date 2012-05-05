@@ -31,7 +31,13 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
+using std::cerr;
+using std::cin;
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::istream;
+using std::string;
 
 /**
  * Parses MySQL queries and computes the probability of attack.

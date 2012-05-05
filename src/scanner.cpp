@@ -31,11 +31,16 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <stack>
 #include <string>
 
-using namespace std;
-using namespace boost;
+using boost::lexical_cast;
+using std::cerr;
+using std::cin;
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::map;
+using std::string;
 
 /**
  * Scans MySQL queries and prints out the tokens.

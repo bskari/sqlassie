@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MYSQL_ERROR_MESSAGE_BLOCKER_HPP
-#define MYSQL_ERROR_MESSAGE_BLOCKER_HPP
+#ifndef SRC_MYSQLERRORMESSAGEBLOCKER_HPP_
+#define SRC_MYSQLERRORMESSAGEBLOCKER_HPP_
 
 #include "ProxyHalf.hpp"
 #include "QueryRisk.hpp"
@@ -90,4 +90,4 @@ private:
     MySqlErrorMessageBlocker& operator=(const MySqlErrorMessageBlocker&);
 };
 
-#endif
+#endif  // SRC_MYSQLERRORMESSAGEBLOCKER_HPP_

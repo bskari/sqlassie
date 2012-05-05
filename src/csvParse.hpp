@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CSV_PARSE_HPP
-#define CSV_PARSE_HPP
+#ifndef SRC_CSVPARSE_HPP_
+#define SRC_CSVPARSE_HPP_
 
 #include <vector>
 #include <iostream>
@@ -82,21 +82,19 @@ void parseCsvFile(std::vector<std::vector<T> >& values, std::istream& in)
 // Template specialization for ints
 // This results in about a 40% speedup
 template<>
-void parseCsvFile(std::vector<std::vector<int> >& values, std::istream& in)
+void parseCsvFile(std::vector<std::vector<int32_t> >& values, std::istream& in)
 {
-    assert(4 == sizeof(int) &&
-        "parseCsvFile specialization for ints assumes 4-byte integers");
-    std::vector<int> line;
-    int value;
+    std::vector<int32_t> line;
+    int32_t value;
     char digits[12]; // -2147483647 '\0'
-    int charCount = 0;
+    int32_t charCount = 0;
     char* lastParsed;
     bool newLine = true;
 
     in.get(digits[charCount]);
     while (!in.eof())
     {
-        if (static_cast<unsigned int>(charCount) > sizeof(digits) / sizeof(digits[0]))
+        if (static_cast<unsigned int32_t>(charCount) > sizeof(digits) / sizeof(digits[0]))
         {
             throw std::exception();
         }
@@ -114,7 +112,7 @@ void parseCsvFile(std::vector<std::vector<int> >& values, std::istream& in)
                 break;
             // Ignore comments
             case '#':
-                in.ignore(std::numeric_limits<int>::max(), '\n');
+                in.ignore(std::numeric_limits<int32_t>::max(), '\n');
                 if (newLine)
                 {
                     break;
@@ -140,4 +138,4 @@ void parseCsvFile(std::vector<std::vector<int> >& values, std::istream& in)
     }
 }
 
-#endif
+#endif  // SRC_CSVPARSE_HPP_

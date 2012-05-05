@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BAYES_EXCEPTION_HPP
-#define BAYES_EXCEPTION_HPP
+#ifndef SRC_BAYESEXCEPTION_HPP_
+#define SRC_BAYESEXCEPTION_HPP_
 
 #include "DescribedException.hpp"
 #include <string>
@@ -48,4 +48,4 @@ public:
     }
 };
 
-#endif
+#endif  // SRC_BAYESEXCEPTION_HPP_

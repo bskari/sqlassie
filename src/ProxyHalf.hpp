@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROXY_HALF_HPP
-#define PROXY_HALF_HPP
+#ifndef SRC_PROXYHALF_HPP_
+#define SRC_PROXYHALF_HPP_
 
 #include <vector>
 #include <boost/cstdint.hpp>
@@ -74,4 +74,4 @@ private:
     ProxyHalf& operator=(const ProxyHalf&);
 };
 
-#endif
+#endif  // SRC_PROXYHALF_HPP_

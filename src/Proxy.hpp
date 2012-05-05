@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROXY_HPP
-#define PROXY_HPP
+#ifndef SRC_PROXY_HPP_
+#define SRC_PROXY_HPP_
 
 #include "ProxyHalf.hpp"
 #include "Socket.hpp"
@@ -77,4 +77,4 @@ private:
     Proxy& operator=(const Proxy&);
 };
 
-#endif
+#endif  // SRC_PROXY_HPP_

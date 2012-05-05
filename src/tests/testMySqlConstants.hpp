@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MY_SQL_CONSTANTS_TEST_HPP
-#define MY_SQL_CONSTANTS_TEST_HPP
+#ifndef SRC_TESTS_TESTMYSQLCONSTANTS_HPP_
+#define SRC_TESTS_TESTMYSQLCONSTANTS_HPP_
 
 /**
  * Tests that my implementation of the soundex algorithm, used in SOUNDS LIKE
@@ -34,4 +34,4 @@ void testSoundex();
  */
 void testConvertRegex();
 
-#endif
+#endif  // SRC_TESTS_TESTMYSQLCONSTANTS_HPP_

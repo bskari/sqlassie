@@ -29,6 +29,9 @@
  * @date May 5 2011
  */
 
+#ifndef SRC_GETPASS_H_
+#define SRC_GETPASS_H_
+
 char* getpass(const char* prompt, char* buffer, const int size)
 {
     struct termios oflags, nflags;
@@ -72,3 +75,5 @@ char* getpass(const char* prompt, char* buffer, const int size)
 
     return buffer;
 }
+
+#endif  // SRC_GETPASS_H_

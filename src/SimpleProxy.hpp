@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SIMPLE_PROXY_HPP
-#define SIMPLEPROXY_HPP
+#ifndef SRC_SIMPLEPROXY_HPP_
+#define SRC_SIMPLEPROXY_HPP_
 
 #include <string>
 #include <memory>
@@ -83,4 +83,4 @@ private:
     SimpleProxy& operator=(const SimpleProxy&);
 };
 
-#endif
+#endif  // SRC_SIMPLEPROXY_HPP_

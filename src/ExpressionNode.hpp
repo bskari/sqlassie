@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXPRESSION_NODE_HPP
-#define EXPRESSION_NODE_HPP
+#ifndef SRC_EXPRESSIONNODE_HPP_
+#define SRC_EXPRESSIONNODE_HPP_
 
 #include "ConditionalNode.hpp"
 #include "QueryRisk.hpp"
@@ -111,4 +111,4 @@ private:
     ExpressionNode(const ExpressionNode& rhs);
     ExpressionNode& operator=(const ExpressionNode& rhs);
 };
-#endif
+#endif  // SRC_EXPRESSIONNODE_HPP_

@@ -33,7 +33,12 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
+using std::cout;
+using std::distance;
+using std::find;
+using std::ifstream;
+using std::max_element;
+using std::string;
 
 /**
  * Demo backend for the site. Parses MySQL queries provided as the first

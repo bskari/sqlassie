@@ -18,12 +18,14 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef SRC_CLEARSTACK_HPP_
+#define SRC_CLEARSTACK_HPP_
+
 #include "nullptr.hpp"
 
 #include <cassert>
 #include <queue>
 #include <stack>
-
 
 template <typename T>
 void clearStack(std::stack<T>* aStack)
@@ -45,3 +47,5 @@ void clearQueue(std::queue<T>* aQueue)
         aQueue->pop();
     }
 }
+
+#endif  // SRC_CLEARSTACK_HPP_

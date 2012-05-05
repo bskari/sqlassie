@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PARSER_INTERFACE_HPP
-#define PARSER_INTERFACE_HPP
+#ifndef SRC_PARSERINTERFACE_HPP_
+#define SRC_PARSERINTERFACE_HPP_
 
 #include "AstNode.hpp"
 class ParserInterfaceScannerMembers;
@@ -69,9 +69,9 @@ public:
     ScannerContext scannerContext_;
 
     /**
-     * @TODO Declare yylex as a friend so that I can make these private. I
-     * tried to do it here, but yylex takes a YYSTYPE* parameter, which
-     * means I have to include parser.tab.hpp for the definition, but
+     * @TODO(bskari) Declare yylex as a friend so that I can make these
+     * private. I tried to do it here, but yylex takes a YYSTYPE* parameter,
+     * which means I have to include parser.tab.hpp for the definition, but
      * parser.tab.hpp includes this file, which creates a circular dependency.
      */
     //@{
@@ -107,4 +107,4 @@ bool operator==(
 std::size_t hash_value(const ParserInterface::QueryHash& qh);
 /// @}
 
-#endif
+#endif  // SRC_PARSERINTERFACE_HPP_

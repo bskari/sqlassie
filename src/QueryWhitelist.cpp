@@ -182,8 +182,8 @@ QueryWhitelist::queryList QueryWhitelist::readQueriesFromFile(
     const string& filename
 )
 {
-    /// @TODO Per ticket #13, this should watch this file for changes and
-    /// reload the whitelist when the files change
+    /// @TODO(bskari) This should watch this file for changes and reload the
+    /// whitelist when the files change.
     ifstream fin(filename.c_str());
     if (!fin)
     {

@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef PARSER_TEST_HPP
-#define PARSER_TEST_HPP
+#ifndef SRC_TESTS_TESTPARSER_HPP_
+#define SRC_TESTS_TESTPARSER_HPP_
 
 /**
  * Tests that some collected, known queries that are stored in files in the
@@ -47,4 +47,4 @@ void testQueryRiskAlwaysTrue();
  */
 void testSelectItems();
 
-#endif
+#endif  // SRC_TESTS_TESTPARSER_HPP_

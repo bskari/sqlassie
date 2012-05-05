@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROXY_LISTEN_SOCKET_HPP
-#define PROXY_LISTEN_SOCKET_HPP
+#ifndef SRC_PROXYLISTENSOCKET_HPP_
+#define SRC_PROXYLISTENSOCKET_HPP_
 
 #include "Socket.hpp"
 #include "Proxy.hpp"
@@ -79,4 +79,4 @@ private:
     ProxyListenSocket& operator=(const ProxyListenSocket& rhs);
 };
 
-#endif
+#endif  // SRC_PROXYLISTENSOCKET_HPP_

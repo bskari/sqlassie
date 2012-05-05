@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AST_NODE_HPP
-#define AST_NODE_HPP
+#ifndef SRC_ASTNODE_HPP_
+#define SRC_ASTNODE_HPP_
 
 #include <vector>
 #include <string>
@@ -95,5 +95,4 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const AstNode& node);
 
-#endif
-
+#endif  // SRC_ASTNODE_HPP_

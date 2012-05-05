@@ -37,14 +37,21 @@ using boost::regex;
 using boost::regex_search;
 
 
+class StaticStringsContainer
+{
+public:
+    std::string hostOrUnixDomain_;
+    std::string username_;
+    std::string password_;
+};
+
+
 // Static variables
 map<string, set<regex> > MySqlLoginCheck::userHostLogins_;
 const MySqlLoginCheck* MySqlLoginCheck::instance_ = nullptr;
 uint16_t MySqlLoginCheck::port_;
-string MySqlLoginCheck::hostOrUnixDomain_;
-string MySqlLoginCheck::username_;
-string MySqlLoginCheck::password_;
 bool MySqlLoginCheck::initialized_ = false;
+StaticStringsContainer* MySqlLoginCheck::stringsContainer_;
 
 
 const MySqlLoginCheck& MySqlLoginCheck::getInstance()
@@ -66,7 +73,10 @@ bool MySqlLoginCheck::getUserHostsFromMySql()
         return false;
     }
 
-    if (username_.empty() || hostOrUnixDomain_.empty())
+    if (
+        stringsContainer_->username_.empty() ||
+        stringsContainer_->hostOrUnixDomain_.empty()
+    )
     {
         return false;
     }
@@ -75,14 +85,30 @@ bool MySqlLoginCheck::getUserHostsFromMySql()
     // Domain socket connection
     if (0 == port_)
     {
-        success = mysql_real_connect(conn, nullptr, username_.c_str(),
-            password_.c_str(), "mysql", 0, hostOrUnixDomain_.c_str(), 0);
+        success = mysql_real_connect(
+            conn,
+            nullptr,
+            stringsContainer_->username_.c_str(),
+            stringsContainer_->password_.c_str(),
+            "mysql",
+            0,
+            stringsContainer_->hostOrUnixDomain_.c_str(),
+            0
+        );
     }
     // TCP socket connection
     else
     {
-        success = mysql_real_connect(conn, hostOrUnixDomain_.c_str(),
-            username_.c_str(), password_.c_str(), "mysql", port_, nullptr, 0);
+        success = mysql_real_connect(
+            conn,
+            stringsContainer_->hostOrUnixDomain_.c_str(),
+            stringsContainer_->username_.c_str(),
+            stringsContainer_->password_.c_str(),
+            "mysql",
+            port_,
+            nullptr,
+            0
+        );
     }
 
     if (nullptr == success)
@@ -178,12 +204,19 @@ MySqlLoginCheck::MySqlLoginCheck()
 {
     if (!initialized_)
     {
-        /// @TODO: Prevent race conditions
+        /// @TODO(bskari): Prevent race conditions
         // Prevent other threads from trying to initialize
         initialized_ = true;
 
         initialized_ = getUserHostsFromMySql();
     }
+    stringsContainer_ = new StaticStringsContainer;
+}
+
+
+MySqlLoginCheck::~MySqlLoginCheck()
+{
+    delete stringsContainer_;
 }
 
 
@@ -193,7 +226,7 @@ void MySqlLoginCheck::setHostAndPort(const string& host, const uint16_t port)
     {
         return;
     }
-    hostOrUnixDomain_ = host;
+    stringsContainer_->hostOrUnixDomain_ = host;
     port_ = port;
 }
 
@@ -204,7 +237,7 @@ void MySqlLoginCheck::setUsername(const string& username)
     {
         return;
     }
-    username_ = username;
+    stringsContainer_->username_ = username;
 }
 
 
@@ -214,7 +247,7 @@ void MySqlLoginCheck::setPassword(const std::string& password)
     {
         return;
     }
-    password_ = password;
+    stringsContainer_->password_ = password;
 }
 
 
@@ -224,6 +257,6 @@ void MySqlLoginCheck::setUnixDomain(const string& unixDomain)
     {
         return;
     }
-    hostOrUnixDomain_ = unixDomain;
+    stringsContainer_->hostOrUnixDomain_ = unixDomain;
     port_ = 0;
 }

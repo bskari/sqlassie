@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SOCKET_HPP
-#define SOCKET_HPP
+#ifndef SRC_SOCKET_HPP_
+#define SRC_SOCKET_HPP_
 
 #include <vector>
 #include <string>
@@ -121,4 +121,4 @@ private:
     Socket& operator=(const Socket& rhs);
 };
 
-#endif
+#endif  // SRC_SOCKET_HPP_

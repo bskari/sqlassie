@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef WARN_UNUSED_RESULT_H
-#define WARN_UNUSED_RESULT_H
+#ifndef SRC_WARNUNUSEDRESULT_H_
+#define SRC_WARNUNUSEDRESULT_H_
 
 /**
  * Defines a macro WARN_IF_UNUSED that can be applied as a function attribute
@@ -44,4 +44,4 @@
     #define WARN_UNUSED_RESULT
 #endif
 
-#endif
+#endif  // SRC_WARNUNUSEDRESULT_H_

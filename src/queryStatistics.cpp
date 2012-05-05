@@ -49,9 +49,11 @@ int main(int argc, char* argv[])
     SensitiveNameChecker::initialize();
     SensitiveNameChecker::get().setPasswordSubstring("password");
     SensitiveNameChecker::get().setUserSubstring("user");
-    assert(34 == sizeof(QueryRisk) &&
-"QueryStatistics size has changed; did you add more features?\n\
-If so, you need to update queryStatistics.cpp");
+    assert(
+        34 == sizeof(QueryRisk)
+        && "QueryStatistics size has changed; did you add more features?"
+        && "If so, you need to update queryStatistics.cpp"
+    );
 
     ifstream fin;
     if (argc > 1)
@@ -65,11 +67,12 @@ If so, you need to update queryStatistics.cpp");
         return 0;
     }
 
-    cout << "# Multi-line comments, hash comments, dash dash comments, \
-MySQL comments, MySQL versioned comments, risky tables, or statements, \
-union statements, union all statements, brute force commands, if statements, \
-hex strings, benchmark statements, user statements, empty password, \
-multiple queries, order by number, always true, information schema" << endl;
+    cout << "# Multi-line comments, hash comments, dash dash comments,"
+        << "MySQL comments, MySQL versioned comments, risky tables, or statements,"
+        << "union statements, union all statements, brute force commands, if statements,"
+        << "hex strings, benchmark statements, user statements, empty password,"
+        << "multiple queries, order by number, always true, information schema"
+        << endl;
 
     while (!stream.eof())
     {

@@ -144,10 +144,13 @@ void MySqlSocket::sendErrorPacket(const uint8_t packetNumber,
             errorPacket_.at(errorPacketErrorNumberPos) = errorNumberPtr[1];
             errorPacket_.at(errorPacketErrorNumberPos + 1) = errorNumberPtr[0];
         #else
-            assert(false &&
-"Unexpected endian value - if you're on a mixed endian system, you'll have to\
-write this yourself; otherwise, recompile and either define LITTLE_ENDIAN or\
-BIG_ENDIAN as appropriate");
+            assert(
+                false
+                && "Unexpected endian value - if you're on a mixed endian"
+                && "system, you'll have to write this yourself; otherwise,"
+                && "recompile and either define LITTLE_ENDIAN or BIG_ENDIAN"
+                && "as appropriate"
+            );
         #endif
     #endif
 
@@ -173,10 +176,13 @@ BIG_ENDIAN as appropriate");
             errorPacket_.at(1) = packetPtr[2];
             errorPacket_.at(2) = packetPtr[1];
         #else
-            assert(false &&
-"Unexpected endian value - if you're on a mixed endian system, you'll have to\
-write this yourself; otherwise, recompile and either define LITTLE_ENDIAN or\
-BIG_ENDIAN as appropriate");
+            assert(
+                false
+                && "Unexpected endian value - if you're on a mixed endian"
+                && "system, you'll have to write this yourself; otherwise,"
+                && "recompile and either define LITTLE_ENDIAN or BIG_ENDIAN"
+                && "as appropriate"
+            );
         #endif
     #endif
 

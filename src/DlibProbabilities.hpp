@@ -107,7 +107,7 @@ private:
 
     // I don't know why, but this needs an unsigned long and won't compile
     // with a uint_32t
-    typedef dlib::set<uint32_t>::compare_1b_c set_type; // NOLINT(runtime/int)
+    typedef dlib::set<unsigned long>::compare_1b_c set_type; // NOLINT(runtime/int)
     typedef dlib::graph<set_type, set_type>::kernel_1a_c join_tree_type;
 
     join_tree_type joinTrees_[numAttackTypes];

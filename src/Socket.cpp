@@ -44,7 +44,7 @@ using std::min;
 using std::string;
 using boost::lexical_cast;
 
-const size_t Socket::MAX_RECEIVE;
+const ssize_t Socket::MAX_RECEIVE;
 const size_t Socket::TIMEOUT_SECONDS;
 const size_t Socket::TIMEOUT_MILLISECONDS;
 
@@ -76,9 +76,9 @@ Socket::Socket(const uint16_t port, const string& address, bool blocking) :
     addrinfo* serverInfo;
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET; // IPv4
+    hints.ai_family = AF_INET;  // IPv4
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_NUMERICSERV; // Use decmimal port
+    hints.ai_flags = AI_NUMERICSERV;  // Use decimal port
 
     string portStr(lexical_cast<string>(port));
 
@@ -318,7 +318,7 @@ vector<uint8_t> Socket::receive() const
     // The entity we connected to closed the socket
     // The socket is still open, we just have to keep waiting for data
     // Some other error occurred
-    size_t returnedBytes = 0;
+    ssize_t returnedBytes = 0;
     while (returnedBytes <= 0)
     {
         returnedBytes = ::recv(socketFD_, &buffer_[0], buffer_.size(), 0);

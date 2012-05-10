@@ -105,7 +105,7 @@ public:
     inline const std::string& getPeerName() const { return peerName_; }
 
 protected:
-    static const size_t MAX_RECEIVE = 4096;
+    static const ssize_t MAX_RECEIVE = 4096;
     static const size_t TIMEOUT_SECONDS = 1;
     static const size_t TIMEOUT_MILLISECONDS = 0;
 

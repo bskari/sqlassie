@@ -44,9 +44,7 @@ using boost::thread;
 MySqlGuardListenSocket::MySqlGuardListenSocket(
     const uint16_t listenPort,
     const uint16_t mySqlPort,
-    const string mySqlHost,
-    const string username,
-    const string password
+    const string mySqlHost
 ) :
     ListenSocket(listenPort),
     mySqlNetworkSocket_(true),
@@ -54,21 +52,13 @@ MySqlGuardListenSocket::MySqlGuardListenSocket(
     mySqlHost_(mySqlHost),
     domainSocketFile_()
 {
-    if (!username.empty() && !password.empty() && !mySqlHost.empty())
-    {
-        MySqlLoginCheck::setUsername(username);
-        MySqlLoginCheck::setPassword(password);
-        MySqlLoginCheck::setHostAndPort(mySqlHost, mySqlPort);
-    }
 }
 
 
 MySqlGuardListenSocket::MySqlGuardListenSocket(
     const string& domainSocket,
     const uint16_t mySqlPort,
-    const string mySqlHost,
-    const string username,
-    const string password
+    const string mySqlHost
 ) :
     ListenSocket(domainSocket),
     mySqlNetworkSocket_(true),
@@ -76,20 +66,12 @@ MySqlGuardListenSocket::MySqlGuardListenSocket(
     mySqlHost_(mySqlHost),
     domainSocketFile_()
 {
-    if (!username.empty() && !password.empty() && !mySqlHost.empty())
-    {
-        MySqlLoginCheck::setUsername(username);
-        MySqlLoginCheck::setPassword(password);
-        MySqlLoginCheck::setHostAndPort(mySqlHost, mySqlPort);
-    }
 }
 
 
 MySqlGuardListenSocket::MySqlGuardListenSocket(
     const uint16_t listenPort,
-    const string& domainSocket,
-    const string username,
-    const string password
+    const string& domainSocket
 ) :
         ListenSocket(listenPort),
         mySqlNetworkSocket_(false),
@@ -97,20 +79,12 @@ MySqlGuardListenSocket::MySqlGuardListenSocket(
         mySqlHost_(),
         domainSocketFile_(domainSocket)
 {
-    if (!username.empty() && !password.empty() && !domainSocket.empty())
-    {
-        MySqlLoginCheck::setUsername(username);
-        MySqlLoginCheck::setPassword(password);
-        MySqlLoginCheck::setUnixDomain(domainSocket);
-    }
 }
 
 
 MySqlGuardListenSocket::MySqlGuardListenSocket(
     const string& listenDomainSocket,
-    const string& serverDomainSocket,
-    const string username,
-    const string password
+    const string& serverDomainSocket
 ) :
     ListenSocket(listenDomainSocket),
     mySqlNetworkSocket_(false),
@@ -118,12 +92,6 @@ MySqlGuardListenSocket::MySqlGuardListenSocket(
     mySqlHost_(),
     domainSocketFile_(serverDomainSocket)
 {
-    if (!username.empty() && !password.empty() && !serverDomainSocket.empty())
-    {
-        MySqlLoginCheck::setUsername(username);
-        MySqlLoginCheck::setPassword(password);
-        MySqlLoginCheck::setUnixDomain(serverDomainSocket);
-    }
 }
 
 

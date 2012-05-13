@@ -122,7 +122,11 @@ Socket.o:	Socket.cpp Logger.hpp Socket.hpp SocketException.hpp nullptr.hpp
 
 demo.o:	demo.cpp AttackProbabilities.hpp DlibProbabilities.hpp Logger.hpp \
 	MySqlGuard.hpp ParserInterface.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp nullptr.hpp
+	SensitiveNameChecker.hpp initializeSingletons.hpp nullptr.hpp
+
+initializeSingletons.o:	initializeSingletons.cpp Logger.hpp \
+	MySqlGuardObjectContainer.hpp SensitiveNameChecker.hpp \
+	initializeSingletons.hpp
 
 logger.o:	logger.cpp Logger.hpp MySqlLoggerListenSocket.hpp
 
@@ -142,8 +146,8 @@ scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ScannerContext.hpp \
 	nullptr.hpp parser.tab.hpp scanner.yy.hpp
 
 sqlassie.o:	sqlassie.cpp Logger.hpp MySqlGuardListenSocket.hpp \
-	MySqlGuardObjectContainer.hpp MySqlLoginCheck.hpp QueryWhitelist.hpp \
-	SensitiveNameChecker.hpp accumulator.hpp nullptr.hpp version.h
+	MySqlLoginCheck.hpp QueryWhitelist.hpp SensitiveNameChecker.hpp \
+	accumulator.hpp initializeSingletons.hpp nullptr.hpp version.h
 
 tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 	accumulator.hpp nullptr.hpp

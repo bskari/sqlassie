@@ -19,9 +19,9 @@
  */
 
 #include "accumulator.hpp"
+#include "initializeSingletons.hpp"
 #include "Logger.hpp"
 #include "MySqlGuardListenSocket.hpp"
-#include "MySqlGuardObjectContainer.hpp"
 #include "MySqlLoginCheck.hpp"
 #include "nullptr.hpp"
 #include "QueryWhitelist.hpp"
@@ -94,10 +94,7 @@ static void setupOptions(
 
 int main(int argc, char* argv[])
 {
-    // Instantiate singleton classes
-    Logger::initialize();
-    MySqlGuardObjectContainer::initialize();
-    SensitiveNameChecker::initialize();
+    initializeSingletons();
 
     options::variables_map commandLineVm;
     options::variables_map fileVm;

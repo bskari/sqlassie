@@ -56,7 +56,8 @@ $(BINARY_DIR)/demo:	demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 	InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o AttackProbabilities.o parser.tab.hpp \
 	DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
-	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o SensitiveNameChecker.o
+	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
+	SensitiveNameChecker.o initializeSingletons.o MySqlGuardObjectContainer.o
 	$(CXX) $(CXXFLAGS) demo.o parser.tab.o scanner.yy.o \
 		QueryRisk.o AstNode.o ComparisonNode.o ConditionalListNode.o \
 		ExpressionNode.o ConditionalNode.o InValuesListNode.o \
@@ -64,6 +65,7 @@ $(BINARY_DIR)/demo:	demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 		AttackProbabilities.o DlibProbabilities.o huginScanner.yy.o \
 		huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
 		NegationNode.o ScannerContext.o SensitiveNameChecker.o \
+		initializeSingletons.o MySqlGuardObjectContainer.o \
 		-lboost_regex -lboost_thread -o $(BINARY_DIR)/demo
 
 $(BINARY_DIR)/logger:	logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
@@ -134,7 +136,7 @@ $(BINARY_DIR)/sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHa
 	AttackProbabilities.o MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o \
 	huginScanner.yy.o huginParser.tab.o MessageHandler.o Logger.o \
 	InSubselectNode.o NegationNode.o QueryWhitelist.o ScannerContext.o \
-	SensitiveNameChecker.o
+	SensitiveNameChecker.o initializeSingletons.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlassie.o Socket.o Proxy.o ProxyHalf.o \
 		ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
 		parser.tab.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
@@ -145,6 +147,7 @@ $(BINARY_DIR)/sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHa
 		MySqlSocket.o MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o \
 		huginParser.tab.o MessageHandler.o Logger.o InSubselectNode.o \
 		NegationNode.o QueryWhitelist.o ScannerContext.o SensitiveNameChecker.o \
+		initializeSingletons.o \
 		-lboost_program_options -lboost_regex -lboost_thread -lmysqlclient \
 		-lpthread \
 		-o $(BINARY_DIR)/sqlassie

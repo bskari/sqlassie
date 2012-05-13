@@ -18,29 +18,15 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "initializeSingletons.hpp"
 #include "Logger.hpp"
-#include "MySqlLoggerListenSocket.hpp"
+#include "MySqlGuardObjectContainer.hpp"
+#include "SensitiveNameChecker.hpp"
 
-#include <boost/lexical_cast.hpp>
-#include <iostream>
-
-using boost::lexical_cast;
-using std::cerr;
-using std::endl;
-
-int main(int argc, char* argv[])
+void initializeSingletons()
 {
-    if (argc < 4)
-    {
-        cerr << "Usage: "
-            << argv[0]
-            << " listenPort MySQL-port MySQL-host"
-            << endl;
-        return -1;
-    }
-    const uint16_t listenPort = lexical_cast<uint16_t>(argv[1]);
-    const uint16_t mySqlPort = lexical_cast<uint16_t>(argv[2]);
-    MySqlLoggerListenSocket logger(listenPort, mySqlPort, argv[3]);
-    logger.acceptClients();
-    Logger::log(Logger::INFO) << "Exiting main";
+    // Instantiate singleton classes
+    Logger::initialize();
+    MySqlGuardObjectContainer::initialize();
+    SensitiveNameChecker::initialize();
 }

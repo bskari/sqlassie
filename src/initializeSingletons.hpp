@@ -18,29 +18,15 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Logger.hpp"
-#include "MySqlLoggerListenSocket.hpp"
+#ifndef SRC_INITIALIZESINGLETONS_HPP_
+#define SRC_INITIALIZESINGLETONS_HPP_
 
-#include <boost/lexical_cast.hpp>
-#include <iostream>
+/**
+ * Initializes all of the useful singleton classes. This code is factored out
+ * of all the main files I have scattered around.
+ * @author Brandon Skari
+ * @date May 10 2012
+ */
+void initializeSingletons();
 
-using boost::lexical_cast;
-using std::cerr;
-using std::endl;
-
-int main(int argc, char* argv[])
-{
-    if (argc < 4)
-    {
-        cerr << "Usage: "
-            << argv[0]
-            << " listenPort MySQL-port MySQL-host"
-            << endl;
-        return -1;
-    }
-    const uint16_t listenPort = lexical_cast<uint16_t>(argv[1]);
-    const uint16_t mySqlPort = lexical_cast<uint16_t>(argv[2]);
-    MySqlLoggerListenSocket logger(listenPort, mySqlPort, argv[3]);
-    logger.acceptClients();
-    Logger::log(Logger::INFO) << "Exiting main";
-}
+#endif

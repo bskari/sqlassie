@@ -30,11 +30,11 @@
 #include "Socket.hpp"
 #include "SocketException.hpp"
 
-#include <memory>
-#include <string>
 #include <boost/thread.hpp>
-#include <sys/socket.h>
+#include <memory>
 #include <netinet/in.h>
+#include <string>
+#include <sys/socket.h>
 
 using std::auto_ptr;
 using std::string;
@@ -148,6 +148,8 @@ void MySqlGuardListenSocket::handleConnection(
         clientPtr = static_cast<MySqlSocket*>(clientConnection.get());
     #endif
 
+    string clientAddress(clientPtr->getPeerName());
+
     MySqlErrorMessageBlocker* blocker =
         new MySqlErrorMessageBlocker(s, clientPtr);
     AutoPtrWithOperatorParens<ProxyHalf> server(blocker);
@@ -162,6 +164,8 @@ void MySqlGuardListenSocket::handleConnection(
     Proxy proxy(client, server, clientConnection, serverConnection);
     thread newThread(proxy);
     Logger::log(Logger::DEBUG)
-        << "New client connected, spawned thread #"
+        << "New client connected from "
+        << clientAddress
+        << ", spawned thread #"
         << newThread.get_id();
 }

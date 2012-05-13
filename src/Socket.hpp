@@ -112,7 +112,7 @@ protected:
     const int socketFD_;
     bool open_;
     mutable std::vector<uint8_t> buffer_;
-    const std::string peerName_;
+    std::string peerName_;
 
 private:
     void setPeerName();

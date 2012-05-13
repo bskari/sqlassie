@@ -22,7 +22,6 @@
 #include "Logger.hpp"
 #include "Proxy.hpp"
 #include "ProxyHalf.hpp"
-#include "Socket.hpp"
 
 #include <boost/thread.hpp>
 #include <memory>
@@ -33,22 +32,17 @@ using std::auto_ptr;
 
 Proxy::Proxy(
     AutoPtrWithOperatorParens<ProxyHalf> in,
-    AutoPtrWithOperatorParens<ProxyHalf> out,
-    auto_ptr<Socket> inSocket, auto_ptr<Socket> outSocket
+    AutoPtrWithOperatorParens<ProxyHalf> out
 ) :
     in_(in),
-    out_(out),
-    inSocket_(inSocket),
-    outSocket_(outSocket)
+    out_(out)
 {
 }
 
 
 Proxy::Proxy(Proxy& rhs) :
     in_(rhs.in_),
-    out_(rhs.out_),
-    inSocket_(rhs.inSocket_),
-    outSocket_(rhs.outSocket_)
+    out_(rhs.out_)
 {
 }
 
@@ -70,6 +64,7 @@ void Proxy::runUntilFinished()
     thread outThread(out_);
     inThread.join();
     outThread.join();
-    Logger::log(Logger::DEBUG) << "Client disconnected, quitting thread #"
+    Logger::log(Logger::DEBUG)
+        << "Client disconnected, quitting thread #"
         << boost::this_thread::get_id();
 }

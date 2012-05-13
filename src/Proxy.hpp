@@ -22,7 +22,6 @@
 #define SRC_PROXY_HPP_
 
 #include "ProxyHalf.hpp"
-#include "Socket.hpp"
 #include "AutoPtrWithOperatorParens.hpp"
 
 #include <memory>
@@ -45,16 +44,17 @@ public:
      * @param inSocket The socket from the client to this proxy.
      * @param outSocket The socket from this proxy to the server.
      */
-    Proxy(AutoPtrWithOperatorParens<ProxyHalf> in,
-        AutoPtrWithOperatorParens<ProxyHalf> out,
-        std::auto_ptr<Socket> inSocket, std::auto_ptr<Socket> outSocket);
+    Proxy(
+        AutoPtrWithOperatorParens<ProxyHalf> in,
+        AutoPtrWithOperatorParens<ProxyHalf> out
+    );
 
     Proxy(Proxy& rhs);
 
     /**
      * Default destructor.
      */
-    virtual ~Proxy();
+    ~Proxy();
 
     /**
      * Called by Boost thread; calls start.
@@ -70,8 +70,6 @@ public:
 private:
     AutoPtrWithOperatorParens<ProxyHalf> in_;
     AutoPtrWithOperatorParens<ProxyHalf> out_;
-    std::auto_ptr<Socket> inSocket_;
-    std::auto_ptr<Socket> outSocket_;
 
     // ***** Hidden methods *****
     Proxy& operator=(const Proxy&);

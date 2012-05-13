@@ -1,18 +1,18 @@
 # SQLassie - database firewall
 # Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
-# 
+#
 # This file is part of SQLassie.
 #
 # SQLassie is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # SQLassie is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
 
@@ -84,8 +84,8 @@ MySqlLoggerListenSocket.o:	MySqlLoggerListenSocket.cpp ListenSocket.hpp \
 	Logger.hpp MySqlLogger.hpp MySqlLoggerListenSocket.hpp Proxy.hpp \
 	Socket.hpp SocketException.hpp
 
-MySqlLoginCheck.o:	MySqlLoginCheck.cpp MySqlConstants.hpp MySqlLoginCheck.hpp \
-	nullptr.hpp
+MySqlLoginCheck.o:	MySqlLoginCheck.cpp Logger.hpp MySqlConstants.hpp \
+	MySqlLoginCheck.hpp nullptr.hpp
 
 MySqlPrinter.o:	MySqlPrinter.cpp Logger.hpp MySqlConstants.hpp \
 	MySqlPrinter.hpp ProxyHalf.hpp
@@ -99,12 +99,12 @@ ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp clearStack.hpp \
 	nullptr.hpp parser.tab.hpp scanner.yy.hpp
 
 Proxy.o:	Proxy.cpp AutoPtrWithOperatorParens.hpp Logger.hpp Proxy.hpp \
-	ProxyHalf.hpp Socket.hpp
+	ProxyHalf.hpp
 
 ProxyHalf.o:	ProxyHalf.cpp Logger.hpp ProxyHalf.hpp Socket.hpp \
 	SocketException.hpp
 
-ProxyListenSocket.o:	ProxyListenSocket.cpp MySqlPrinter.hpp \
+ProxyListenSocket.o:	ProxyListenSocket.cpp MySqlPrinter.hpp Proxy.hpp \
 	ProxyListenSocket.hpp nullptr.hpp
 
 QueryRisk.o:	QueryRisk.cpp Logger.hpp QueryRisk.hpp
@@ -141,10 +141,9 @@ riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
 scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ScannerContext.hpp \
 	nullptr.hpp parser.tab.hpp scanner.yy.hpp
 
-sqlassie.o:	sqlassie.cpp DescribedException.hpp Logger.hpp \
-	MySqlGuardListenSocket.hpp MySqlGuardObjectContainer.hpp \
-	QueryWhitelist.hpp SensitiveNameChecker.hpp accumulator.hpp \
-	getpass.h nullptr.hpp version.h
+sqlassie.o:	sqlassie.cpp Logger.hpp MySqlGuardListenSocket.hpp \
+	MySqlGuardObjectContainer.hpp MySqlLoginCheck.hpp QueryWhitelist.hpp \
+	SensitiveNameChecker.hpp accumulator.hpp nullptr.hpp version.h
 
 tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 	accumulator.hpp nullptr.hpp

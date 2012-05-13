@@ -20,6 +20,7 @@
 
 #include "MySqlPrinter.hpp"
 #include "nullptr.hpp"
+#include "Proxy.hpp"
 #include "ProxyListenSocket.hpp"
 
 #include <boost/cstdint.hpp>
@@ -123,7 +124,7 @@ void ProxyListenSocket::handleConnection(
             clientConnection.get()
         )
     );
-    Proxy proxy(client, server, serverConnection, clientConnection);
+    Proxy proxy(client, server);
 
     thread newThread(proxy);
 }

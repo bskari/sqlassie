@@ -92,7 +92,7 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
     // or if it's a continuation of a previous message
     if (0 == rawMessage.at(3) || waitingForMore_)
     {
-        if (!waitingForMore_) // Beginning of new message
+        if (!waitingForMore_)  // Beginning of new message
         {
             packetLengthSoFar_ = 0;
             messageParts_.clear();
@@ -109,7 +109,7 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
             commandCode_ = rawMessage.at(4);
             lastCommandCode_ = commandCode_;
         }
-        else // Continuation of previous command
+        else  // Continuation of previous command
         {
             command_.append(rawMessage.begin(), rawMessage.end());
         }
@@ -124,7 +124,7 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
             waitingForMore_ = true;
             return;
         }
-        else // Got the whole packet
+        else  // Got the whole packet
         {
             packetLengthSoFar_ = 0;
             waitingForMore_ = false;
@@ -566,7 +566,7 @@ void MySqlGuard::handleFirstPacket(vector<uint8_t>& rawMessage) const
     const string username = reinterpret_cast<char*>(
         &rawMessage.at(3 + 1 + 4 + 4 + 1 + 23));
     if (
-        !MySqlLoginCheck::getInstance().validUserHost(
+        !MySqlLoginCheck::validUserHost(
             username,
             incomingConnection_->getPeerName()
         )
@@ -618,7 +618,7 @@ void MySqlGuard::handleFirstPacket(vector<uint8_t>& rawMessage) const
     {
         ++i;
     }
-    ++i; // One past the version string
+    ++i;  // One past the version string
     // 4: thread id, 8: password scramble buffer, 1: filler
     const size_t BEGIN_SERVER_CAPABILITIES = i + 4 + 8 + 1;
 

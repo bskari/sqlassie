@@ -44,7 +44,7 @@ using std::min;
 using std::string;
 using boost::lexical_cast;
 
-const size_t Socket::MAX_RECEIVE;
+const ssize_t Socket::MAX_RECEIVE;
 const size_t Socket::TIMEOUT_SECONDS;
 const size_t Socket::TIMEOUT_MILLISECONDS;
 
@@ -76,9 +76,9 @@ Socket::Socket(const uint16_t port, const string& address, bool blocking) :
     addrinfo* serverInfo;
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET; // IPv4
+    hints.ai_family = AF_INET;  // IPv4
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_NUMERICSERV; // Use decmimal port
+    hints.ai_flags = AI_NUMERICSERV;  // Use decimal port
 
     string portStr(lexical_cast<string>(port));
 
@@ -318,7 +318,7 @@ vector<uint8_t> Socket::receive() const
     // The entity we connected to closed the socket
     // The socket is still open, we just have to keep waiting for data
     // Some other error occurred
-    size_t returnedBytes = 0;
+    ssize_t returnedBytes = 0;
     while (returnedBytes <= 0)
     {
         returnedBytes = ::recv(socketFD_, &buffer_[0], buffer_.size(), 0);
@@ -377,56 +377,82 @@ void Socket::close()
     }
 }
 
-#include <iostream>
+
 void Socket::setPeerName()
 {
     sockaddr_storage address;
     socklen_t length = sizeof(address);
     if (
-        0 == getpeername(
+        0 != getpeername(
             socketFD_,
             reinterpret_cast<sockaddr*>(&address),
             &length
         )
     )
     {
-        assert(length <= sizeof(address) &&
-            "getpeername used up too much buffer space");
-        if (length > sizeof(address))
-        {
-            Logger::log(Logger::WARN) << "Unable to set peer name";
-            return;
-        }
-
-        char addressStr[INET6_ADDRSTRLEN];
-        if (AF_INET == address.ss_family || AF_INET6 == address.ss_family)
-        {
-            const char* success = inet_ntop(
-                address.ss_family,
-                &address,
-                addressStr,
-                sizeof(addressStr) / sizeof(addressStr[0])
-            );
-            const bool truncated = (nullptr == success);
-            if (truncated)
-            {
-                Logger::log(Logger::WARN) << "Peer name truncated to "
-                    << addressStr;
-            }
-        }
-        else if (AF_UNIX == address.ss_family)
-        {
-            // Addresses don't make sense with Unix domain sockets
-            return;
-        }
-        else
-        {
-            assert(false && "Unknown socket address family");
-            Logger::log(Logger::WARN) << "Unknown socket address family: "
-                << address.ss_family << ", expected IPv4 or IPv6";
-            return;
-        }
-
-        const_cast<string*>(&peerName_)->operator=(addressStr);
+        Logger::log(Logger::WARN) << "Unable to set peer name";
+        return;
     }
+
+    assert(
+        length <= sizeof(address) &&
+        "getpeername used up too much buffer space"
+    );
+    if (length > sizeof(address))
+    {
+        Logger::log(Logger::WARN) << "Unable to set peer name";
+        return;
+    }
+
+    char addressStr[INET6_ADDRSTRLEN];
+    const char* success;
+    if (AF_INET == address.ss_family)
+    {
+        success = inet_ntop(
+            address.ss_family,
+            const_cast<const void*>(
+                reinterpret_cast<void*>(
+                    &(reinterpret_cast<sockaddr_in*>(&address)->sin_addr)
+                )
+            ),
+            addressStr,
+            sizeof(addressStr) / sizeof(addressStr[0])
+        );
+    }
+    else if (AF_INET6 == address.ss_family)
+    {
+        success = inet_ntop(
+            address.ss_family,
+            const_cast<const void*>(
+                reinterpret_cast<void*>(
+                    &(reinterpret_cast<sockaddr_in6*>(&address)->sin6_addr)
+                )
+            ),
+            addressStr,
+            sizeof(addressStr) / sizeof(addressStr[0])
+        );
+    }
+    else if (AF_UNIX == address.ss_family)
+    {
+        // Addresses don't make sense with Unix domain sockets
+        return;
+    }
+    else
+    {
+        assert(false && "Unknown socket address family");
+        Logger::log(Logger::WARN)
+            << "Unknown socket address family: "
+            << address.ss_family
+            << ", expected IPv4 or IPv6";
+        return;
+    }
+
+    const bool truncated = (nullptr == success);
+    if (truncated)
+    {
+        Logger::log(Logger::WARN)
+            << "Peer name truncated to "
+            << addressStr;
+    }
+    peerName_ = addressStr;
 }

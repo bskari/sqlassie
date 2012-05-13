@@ -20,6 +20,7 @@
 
 #include "AttackProbabilities.hpp"
 #include "DlibProbabilities.hpp"
+#include "initializeSingletons.hpp"
 #include "Logger.hpp"
 #include "MySqlGuard.hpp"
 #include "nullptr.hpp"
@@ -157,8 +158,7 @@ void setProbabilities(
 
 int main(int argc, char* argv[])
 {
-    Logger::initialize();
-    SensitiveNameChecker::initialize();
+    initializeSingletons();
     SensitiveNameChecker::get().setPasswordSubstring("password");
     SensitiveNameChecker::get().setUserSubstring("user");
     if (argc < 2)

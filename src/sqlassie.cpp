@@ -19,11 +19,10 @@
  */
 
 #include "accumulator.hpp"
-#include "DescribedException.hpp"
-#include "getpass.h"
+#include "initializeSingletons.hpp"
 #include "Logger.hpp"
 #include "MySqlGuardListenSocket.hpp"
-#include "MySqlGuardObjectContainer.hpp"
+#include "MySqlLoginCheck.hpp"
 #include "nullptr.hpp"
 #include "QueryWhitelist.hpp"
 #include "SensitiveNameChecker.hpp"
@@ -95,10 +94,7 @@ static void setupOptions(
 
 int main(int argc, char* argv[])
 {
-    // Instantiate singleton classes
-    Logger::initialize();
-    MySqlGuardObjectContainer::initialize();
-    SensitiveNameChecker::initialize();
+    initializeSingletons();
 
     options::variables_map commandLineVm;
     options::variables_map fileVm;
@@ -171,14 +167,15 @@ int main(int argc, char* argv[])
     }
 
     // Use the parameters
+    cout << "Setting options" << endl;
     setupOptions(commandLineVm, fileVm);
 
     // Override logging level in debug builds
     #ifndef NDEBUG
         Logger::setLevel(Logger::ALL);
         Logger::log(Logger::INFO)
-            << "This is a testing/debug build of SQLassie.";
-        Logger::log(Logger::INFO) << "Log level is being set to ALL.";
+            << "This is a testing/debug build of SQLassie";
+        Logger::log(Logger::INFO) << "Log level is being set to ALL";
     #endif
 
     // Register signal handler
@@ -210,111 +207,83 @@ int main(int argc, char* argv[])
             : getOption("host", commandLineVm, fileVm).as<string>()
         );
 
-        const string username = getOption(
-            "user",
+        const uint16_t listenPort = getOption(
+            "listen-port",
             commandLineVm,
             fileVm
-        ).as<string>();
-        const string password = getOption(
-            "password",
+        ).as<int>();
+        const uint16_t connectPort = getOption(
+            "connect-port",
             commandLineVm,
             fileVm
-        ).as<string>();
-
-        if (useListenPort)
-        {
-            Logger::log(Logger::WARN)
-                << "Listening on a port causes a large performance penalty.";
-            Logger::log(Logger::WARN)
-                << "Listening on a domain socket (using -d) is recommended.";
-
-            const uint16_t listenPort = getOption(
-                "listen-port",
+        ).as<int>();
+        const string domainSocket(
+            getOption(
+                "connect-socket",
                 commandLineVm,
                 fileVm
-            ).as<int>();
-            Logger::log(Logger::DEBUG) << "Listening on port " << listenPort;
-            if (useConnectPort)
+            ).as<string>()
+        );
+        const string listenDomain(
+            getOption(
+                "listen-socket",
+                commandLineVm,
+                fileVm
+            ).as<string>()
+        );
+
+        if (useConnectPort)
+        {
+            Logger::log(Logger::DEBUG)
+                << "Connecting to port "
+                << connectPort
+                << " at "
+                << connectHost;
+            if (useListenPort)
             {
-                const uint16_t connectPort = getOption(
-                    "connect-port",
-                    commandLineVm,
-                    fileVm
-                ).as<int>();
                 Logger::log(Logger::DEBUG)
-                    << "Connecting to port "
-                    << connectPort;
+                    << "Listening on port "
+                    << listenPort;
                 mysqlGuard = new MySqlGuardListenSocket(
                     listenPort,
                     connectPort,
-                    connectHost,
-                    username,
-                    password
+                    connectHost
                 );
             }
             else
             {
-                const string domainSocket(
-                    getOption(
-                        "connect-socket",
-                        commandLineVm,
-                        fileVm
-                    ).as<string>()
-                );
                 Logger::log(Logger::DEBUG)
-                    << "Connecting to socket "
-                    << domainSocket;
-                mysqlGuard = new MySqlGuardListenSocket(listenPort,
-                    domainSocket, username, password);
+                    << "Listening on socket "
+                    << listenDomain;
+                mysqlGuard = new MySqlGuardListenSocket(
+                    listenPort,
+                    domainSocket
+                );
             }
         }
         else
         {
-            const string listenDomain(
-                getOption(
-                    "listen-socket",
-                    commandLineVm,
-                    fileVm
-                ).as<string>()
-            );
             Logger::log(Logger::DEBUG)
-                << "Listening on socket "
-                << listenDomain;
-            if (useConnectPort)
+                << "Connecting to socket "
+                << domainSocket;
+            if (useListenPort)
             {
-                const uint16_t connectPort = getOption(
-                    "connect-port",
-                    commandLineVm,
-                    fileVm
-                ).as<int>();
                 Logger::log(Logger::DEBUG)
-                    << "Connecting to port"
-                    << connectPort;
+                    << "Listening on port "
+                    << listenPort;
                 mysqlGuard = new MySqlGuardListenSocket(
-                    listenDomain,
-                    connectPort,
-                    connectHost,
-                    username,
-                    password
+                    listenPort,
+                    domainSocket
                 );
             }
             else
             {
-                const string connectDomain(
-                    getOption(
-                        "connect-socket",
-                        commandLineVm,
-                        fileVm
-                    ).as<string>()
-                );
                 Logger::log(Logger::DEBUG)
-                    << "Connecting to socket "
-                    << connectDomain;
+                    << "Listening on socket "
+                    << listenDomain;
                 mysqlGuard = new MySqlGuardListenSocket(
                     listenDomain,
-                    connectDomain,
-                    username,
-                    password
+                    domainSocket
                 );
             }
         }
@@ -468,27 +437,27 @@ options::options_description getFileOptions()
         (
             PARSER_WHITELIST_OPTION,
             options::value<string>()->default_value(""),
-            "A file containing queries that SQLassie has failed to parse but should be forwarded anyway." // NOLINT(whitespace/line_length)
+            "A file containing queries that SQLassie has failed to parse but should be forwarded anyway."  // NOLINT(whitespace/line_length)
         )
         (
             PASSWORD_REGEX,
             options::value<string>()->default_value(""),
-"SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name matching this Perl style regular expression will be considered a password field." // NOLINT(whitespace/line_length)
+"SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name matching this Perl style regular expression will be considered a password field."  // NOLINT(whitespace/line_length)
         )
         (
             PASSWORD_SUBSTRING,
             options::value<string>()->default_value(""),
-            "SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name containing this word will be considered a password field." // NOLINT(whitespace/line_length)
+            "SQLassie uses this to determine which SQL table field names should be considered passwords. Any field name containing this word will be considered a password field."  // NOLINT(whitespace/line_length)
         )
         (
             USER_REGEX,
             options::value<string>()->default_value(""),
-            "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name matching this Perl style regular expression will be considered a user table." // NOLINT(whitespace/line_length)
+            "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name matching this Perl style regular expression will be considered a user table."  // NOLINT(whitespace/line_length)
         )
         (
             USER_SUBSTRING,
             options::value<string>()->default_value(""),
-            "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name containing this word will be considered a user table." // NOLINT(whitespace/line_length)
+            "SQLassie uses this to determine which SQL table names should be considered user tables. Any table name containing this word will be considered a user table."  // NOLINT(whitespace/line_length)
         );
     return configuration;
 }
@@ -657,6 +626,7 @@ void setupOptions(
         break;
     }
 
+    cout << "whitelists" << endl;
     // Set up whitelists
     const string* whitelistFilenames[] = {nullptr, nullptr};
     const char* const optionNames[] = {
@@ -697,6 +667,7 @@ void setupOptions(
     }
 
     // Set the sensitive tables and fields
+    cout << "sensitive" << endl;
     typedef pair<
         const char*,
         boost::function<void (const string&)>
@@ -763,6 +734,28 @@ void setupOptions(
         {
             setter(option);
         }
+    }
+
+    // Set up the login check
+    cout << "Login" << endl;
+    const string password(
+        getOption("password", commandLineVm, fileVm).as<string>()
+    );
+    const string user(getOption("user", commandLineVm, fileVm).as<string>());
+    const string host(getOption("host", commandLineVm, fileVm).as<string>());
+    const string socket(
+        getOption("connect-socket", commandLineVm, fileVm).as<string>()
+    );
+    if (!host.empty())
+    {
+        const uint16_t port(
+            getOption("connect-port", commandLineVm, fileVm).as<uint16_t>()
+        );
+        MySqlLoginCheck::initialize(user, password, host, port);
+    }
+    else
+    {
+        MySqlLoginCheck::initialize(user, password, socket);
     }
 }
 

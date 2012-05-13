@@ -44,18 +44,12 @@ public:
      * @param listenPort The port to listen to for network connections.
      * @param mySqlPort The port to connect to where MySQL is running.
      * @param mySqlHost The host to connect to where MySQL is running.
-     * @param username The username to use when connecting to MySQL to grab the
-     *  list of valid username/host combinations.
-     * @param password The password to use when connecting to MySQL to grab the
-     *  list of valid username/host combinations.
      * @throw SocketException Unable to bind to listen port.
      */
     MySqlGuardListenSocket(
         uint16_t listenPort,
         uint16_t mySqlPort = 3306,
-        std::string mySqlHost = std::string("127.0.0.1"),
-        std::string username = std::string(),
-        std::string password = std::string()
+        std::string mySqlHost = std::string("127.0.0.1")
     );
 
     /**
@@ -63,18 +57,12 @@ public:
      * @param domainSocket The socket to listen to for network connections.
      * @param mySqlPort The port number to connect to where MySQL is running.
      * @param mySqlHost The host to connect to where MySQL is running.
-     * @param username The username to use when connecting to MySQL to grab the
-     *  list of valid username/host combinations.
-     * @param password The password to use when connecting to MySQL to grab the
-     *  list of valid username/host combinations.
      * @throw SocketException Unable to bind to listen port.
      */
     MySqlGuardListenSocket(
         const std::string& domainSocket,
         uint16_t mySqlPort = 3306,
-        std::string mySqlHost = std::string("127.0.0.1"),
-        std::string username = std::string(),
-        std::string password = std::string()
+        std::string mySqlHost = std::string("127.0.0.1")
     );
 
     /**
@@ -89,9 +77,7 @@ public:
      */
     MySqlGuardListenSocket(
         uint16_t listenPort,
-        const std::string& domainSocket,
-        std::string username = std::string(),
-        std::string password = std::string()
+        const std::string& domainSocket
     );
 
     /**
@@ -106,9 +92,7 @@ public:
      */
     MySqlGuardListenSocket(
         const std::string& listenDomainSocket,
-        const std::string& serverDomainSocket,
-        std::string username = std::string(),
-        std::string password = std::string()
+        const std::string& serverDomainSocket
     );
 
     ~MySqlGuardListenSocket();

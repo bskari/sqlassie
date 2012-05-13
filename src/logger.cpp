@@ -30,7 +30,6 @@ using std::endl;
 
 int main(int argc, char* argv[])
 {
-    Logger::initialize();
     if (argc < 4)
     {
         cerr << "Usage: "

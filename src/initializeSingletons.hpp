@@ -18,53 +18,15 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AutoPtrWithOperatorParens.hpp"
-#include "Logger.hpp"
-#include "Proxy.hpp"
-#include "ProxyHalf.hpp"
+#ifndef SRC_INITIALIZESINGLETONS_HPP_
+#define SRC_INITIALIZESINGLETONS_HPP_
 
-#include <boost/thread.hpp>
-#include <memory>
+/**
+ * Initializes all of the useful singleton classes. This code is factored out
+ * of all the main files I have scattered around.
+ * @author Brandon Skari
+ * @date May 10 2012
+ */
+void initializeSingletons();
 
-using boost::thread;
-using std::auto_ptr;
-
-
-Proxy::Proxy(
-    AutoPtrWithOperatorParens<ProxyHalf> in,
-    AutoPtrWithOperatorParens<ProxyHalf> out
-) :
-    in_(in),
-    out_(out)
-{
-}
-
-
-Proxy::Proxy(Proxy& rhs) :
-    in_(rhs.in_),
-    out_(rhs.out_)
-{
-}
-
-
-Proxy::~Proxy()
-{
-}
-
-
-void Proxy::operator()()
-{
-    runUntilFinished();
-}
-
-
-void Proxy::runUntilFinished()
-{
-    thread inThread(in_);
-    thread outThread(out_);
-    inThread.join();
-    outThread.join();
-    Logger::log(Logger::DEBUG)
-        << "Client disconnected, quitting thread #"
-        << boost::this_thread::get_id();
-}
+#endif

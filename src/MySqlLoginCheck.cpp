@@ -18,113 +18,161 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Logger.hpp"
 #include "MySqlLoginCheck.hpp"
 #include "MySqlConstants.hpp"
 #include "nullptr.hpp"
 
-#include <map>
-#include <set>
-#include <string>
-#include <mysql/mysql.h>
+#include <boost/regex.hpp>
+#include <boost/thread/mutex.hpp>
 #include <cassert>
 #include <cstring>
-#include <boost/regex.hpp>
+#include <map>
+#include <mysql/mysql.h>
+#include <set>
+#include <string>
 
 using std::map;
 using std::string;
 using std::set;
+using boost::lock_guard;
+using boost::mutex;
 using boost::regex;
 using boost::regex_search;
-
-
-class StaticStringsContainer
-{
-public:
-    std::string hostOrUnixDomain_;
-    std::string username_;
-    std::string password_;
-};
 
 
 // Static variables
 map<string, set<regex> > MySqlLoginCheck::userHostLogins_;
 const MySqlLoginCheck* MySqlLoginCheck::instance_ = nullptr;
-uint16_t MySqlLoginCheck::port_;
-bool MySqlLoginCheck::initialized_ = false;
-StaticStringsContainer* MySqlLoginCheck::stringsContainer_;
+mutex MySqlLoginCheck::initializationMutex_;
 
 
-const MySqlLoginCheck& MySqlLoginCheck::getInstance()
+void MySqlLoginCheck::initialize(
+    const std::string& username,
+    const std::string& password,
+    const std::string& host,
+    uint16_t port
+)
 {
-    if (nullptr == instance_ || !initialized_)
+    lock_guard<mutex> lg(initializationMutex_);
+
+    if (instance_ == nullptr)
     {
-        delete instance_;
-        instance_ = new MySqlLoginCheck();
+        instance_ = new MySqlLoginCheck(username, password, host, port);
     }
-    return *instance_;
 }
 
 
-bool MySqlLoginCheck::getUserHostsFromMySql()
+void MySqlLoginCheck::initialize(
+    const string& username,
+    const string& password,
+    const string& domainSocket
+)
+{
+    lock_guard<mutex> lg(initializationMutex_);
+
+    if (instance_ == nullptr)
+    {
+        instance_ = new MySqlLoginCheck(username, password, domainSocket);
+    }
+}
+
+
+MySqlLoginCheck::MySqlLoginCheck(
+    const string& username,
+    const string& password,
+    const string& domainSocket
+)
 {
     MYSQL* conn = mysql_init(nullptr);
     if (nullptr == conn)
     {
-        return false;
+        Logger::log(Logger::ERROR)
+            << "Unable to connect to MySQL server to access logins";
+        return;
     }
-
-    if (
-        stringsContainer_->username_.empty() ||
-        stringsContainer_->hostOrUnixDomain_.empty()
-    )
-    {
-        return false;
-    }
-
-    MYSQL* success;
-    // Domain socket connection
-    if (0 == port_)
-    {
-        success = mysql_real_connect(
-            conn,
-            nullptr,
-            stringsContainer_->username_.c_str(),
-            stringsContainer_->password_.c_str(),
-            "mysql",
-            0,
-            stringsContainer_->hostOrUnixDomain_.c_str(),
-            0
-        );
-    }
-    // TCP socket connection
-    else
-    {
-        success = mysql_real_connect(
-            conn,
-            stringsContainer_->hostOrUnixDomain_.c_str(),
-            stringsContainer_->username_.c_str(),
-            stringsContainer_->password_.c_str(),
-            "mysql",
-            port_,
-            nullptr,
-            0
-        );
-    }
-
+    MYSQL* success = mysql_real_connect(
+        conn,
+        nullptr,
+        username.c_str(),
+        password.c_str(),
+        "mysql",
+        0,
+        domainSocket.c_str(),
+        0
+    );
     if (nullptr == success)
     {
-        return false;
+        Logger::log(Logger::ERROR)
+            << "Unable to login to MySQL server to access logins";
+        mysql_close(conn);
+        return;
     }
 
+    loadUserHostsFromMySql(conn);
+
+    mysql_close(conn);
+}
+
+
+
+MySqlLoginCheck::MySqlLoginCheck(
+    const std::string& username,
+    const std::string& password,
+    const std::string& host,
+    uint16_t port
+)
+{
+    MYSQL* conn = mysql_init(nullptr);
+    if (nullptr == conn)
+    {
+        Logger::log(Logger::ERROR)
+            << "Unable to connect to MySQL server to access logins";
+        return;
+    }
+    MYSQL* success = mysql_real_connect(
+        conn,
+        host.c_str(),
+        username.c_str(),
+        password.c_str(),
+        "mysql",
+        port,
+        nullptr,
+        0
+    );
+    if (nullptr == success)
+    {
+        Logger::log(Logger::ERROR)
+            << "Unable to login to MySQL server to access logins";
+        mysql_close(conn);
+        return;
+    }
+
+    loadUserHostsFromMySql(conn);
+
+    mysql_close(conn);
+}
+
+
+bool MySqlLoginCheck::loadUserHostsFromMySql(MYSQL* conn)
+{
     // Grab the usernames and hosts
     if (0 != mysql_query(conn, "SELECT User, Host FROM user"))
     {
+        Logger::log(Logger::ERROR) << "Unable to access logins from MySQL";
+        Logger::log(Logger::DEBUG)
+            << "SELECT query failed to run: "
+            << mysql_error(conn);
         return false;
     }
 
     MYSQL_RES* result = mysql_store_result(conn);
     if (nullptr == result)
     {
+        Logger::log(Logger::ERROR) << "Unable to access logins from MySQL";
+        Logger::log(Logger::DEBUG)
+            << "Fetching results failed: "
+            << mysql_error(conn);
         return false;
     }
 
@@ -136,6 +184,10 @@ bool MySqlLoginCheck::getUserHostsFromMySql()
     }
     else
     {
+        Logger::log(Logger::ERROR) << "Unable to access logins from MySQL";
+        Logger::log(Logger::DEBUG)
+            << "Fetching row failed: "
+            << mysql_error(conn);
         return false;
     }
 
@@ -145,49 +197,70 @@ bool MySqlLoginCheck::getUserHostsFromMySql()
     );
     if (2 != numFields)
     {
+        mysql_free_result(result);
+        Logger::log(Logger::ERROR) << "Unable to access logins from MySQL";
+        Logger::log(Logger::DEBUG)
+            << "Expected two fields but received "
+            << numFields;
         return false;
     }
 
+    Logger::log(Logger::DEBUG)
+        << "Processing "
+        << mysql_num_rows(result)
+        << " logins";
+
     while (nullptr != row)
     {
-        regex r(MySqlConstants::mySqlRegexToPerlRegex(row[1]), regex::perl);
-        userHostLogins_[row[0]].insert(r);
+        const string user(row[0]);
+        const string host(row[1]);
+
+        regex r(MySqlConstants::mySqlRegexToPerlRegex(host), regex::perl);
+        Logger::log(Logger::DEBUG) << "Adding login " << user << '@' << host;
+        userHostLogins_[host].insert(r);
 
         // MySQL treats localhost and 127.0.0.1 differently for whatever
         // reason - if we see 'localhost' then just add '127.0.0.1' and let
         // the MySQL server deal with possibly bad connections
-        if (0 == strcmp("localhost", row[1]))
+        if (0 == strcmp("localhost", host.c_str()))
         {
             regex localhostRegex(
                 MySqlConstants::mySqlRegexToPerlRegex("127.0.0.1"),
                 regex::perl
             );
-            userHostLogins_[row[0]].insert(localhostRegex);
+            userHostLogins_[user].insert(localhostRegex);
         }
 
         // Fetch the next row
         row = mysql_fetch_row(result);
     }
 
-    // Clean up the memory from the result
+    // Clean up memory
     mysql_free_result(result);
-
-    mysql_close(conn);
 
     return true;
 }
 
 
-bool MySqlLoginCheck::validUserHost(
-    const string& user, const string& host) const
+bool MySqlLoginCheck::validUserHost(const string& user, const string& host)
 {
+    Logger::log(Logger::DEBUG) << "Checking for " << user << '@' << host;
+    // If this wasn't initialized, the user probably didn't enter the settings
+    // for it, so just assume it's okay
+    if (nullptr == instance_)
+    {
+        return true;
+    }
+    // If there are no records, it's probably because we couldn't access the
+    // database, so just assumw it's okay
     if (userHostLogins_.empty())
     {
         return true;
     }
 
     const map<string, set<regex> >::const_iterator u(
-        userHostLogins_.find(user));
+        userHostLogins_.find(user)
+    );
     if (userHostLogins_.end() == u)
     {
         return false;
@@ -202,66 +275,4 @@ bool MySqlLoginCheck::validUserHost(
         }
     }
     return false;
-}
-
-
-MySqlLoginCheck::MySqlLoginCheck()
-{
-    if (!initialized_)
-    {
-        /// @TODO(bskari): Prevent race conditions
-        // Prevent other threads from trying to initialize
-        initialized_ = true;
-
-        initialized_ = getUserHostsFromMySql();
-    }
-    stringsContainer_ = new StaticStringsContainer;
-}
-
-
-MySqlLoginCheck::~MySqlLoginCheck()
-{
-    delete stringsContainer_;
-}
-
-
-void MySqlLoginCheck::setHostAndPort(const string& host, const uint16_t port)
-{
-    if (initialized_)
-    {
-        return;
-    }
-    stringsContainer_->hostOrUnixDomain_ = host;
-    port_ = port;
-}
-
-
-void MySqlLoginCheck::setUsername(const string& username)
-{
-    if (initialized_)
-    {
-        return;
-    }
-    stringsContainer_->username_ = username;
-}
-
-
-void MySqlLoginCheck::setPassword(const std::string& password)
-{
-    if (initialized_)
-    {
-        return;
-    }
-    stringsContainer_->password_ = password;
-}
-
-
-void MySqlLoginCheck::setUnixDomain(const string& unixDomain)
-{
-    if (initialized_)
-    {
-        return;
-    }
-    stringsContainer_->hostOrUnixDomain_ = unixDomain;
-    port_ = 0;
 }

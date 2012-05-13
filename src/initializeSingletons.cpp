@@ -18,53 +18,15 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AutoPtrWithOperatorParens.hpp"
+#include "initializeSingletons.hpp"
 #include "Logger.hpp"
-#include "Proxy.hpp"
-#include "ProxyHalf.hpp"
+#include "MySqlGuardObjectContainer.hpp"
+#include "SensitiveNameChecker.hpp"
 
-#include <boost/thread.hpp>
-#include <memory>
-
-using boost::thread;
-using std::auto_ptr;
-
-
-Proxy::Proxy(
-    AutoPtrWithOperatorParens<ProxyHalf> in,
-    AutoPtrWithOperatorParens<ProxyHalf> out
-) :
-    in_(in),
-    out_(out)
+void initializeSingletons()
 {
-}
-
-
-Proxy::Proxy(Proxy& rhs) :
-    in_(rhs.in_),
-    out_(rhs.out_)
-{
-}
-
-
-Proxy::~Proxy()
-{
-}
-
-
-void Proxy::operator()()
-{
-    runUntilFinished();
-}
-
-
-void Proxy::runUntilFinished()
-{
-    thread inThread(in_);
-    thread outThread(out_);
-    inThread.join();
-    outThread.join();
-    Logger::log(Logger::DEBUG)
-        << "Client disconnected, quitting thread #"
-        << boost::this_thread::get_id();
+    // Instantiate singleton classes
+    Logger::initialize();
+    MySqlGuardObjectContainer::initialize();
+    SensitiveNameChecker::initialize();
 }

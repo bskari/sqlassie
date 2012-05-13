@@ -30,11 +30,11 @@
 #include "Socket.hpp"
 #include "SocketException.hpp"
 
-#include <memory>
-#include <string>
 #include <boost/thread.hpp>
-#include <sys/socket.h>
+#include <memory>
 #include <netinet/in.h>
+#include <string>
+#include <sys/socket.h>
 
 using std::auto_ptr;
 using std::string;
@@ -44,9 +44,7 @@ using boost::thread;
 MySqlGuardListenSocket::MySqlGuardListenSocket(
     const uint16_t listenPort,
     const uint16_t mySqlPort,
-    const string mySqlHost,
-    const string username,
-    const string password
+    const string mySqlHost
 ) :
     ListenSocket(listenPort),
     mySqlNetworkSocket_(true),
@@ -54,21 +52,13 @@ MySqlGuardListenSocket::MySqlGuardListenSocket(
     mySqlHost_(mySqlHost),
     domainSocketFile_()
 {
-    if (!username.empty() && !password.empty() && !mySqlHost.empty())
-    {
-        MySqlLoginCheck::setUsername(username);
-        MySqlLoginCheck::setPassword(password);
-        MySqlLoginCheck::setHostAndPort(mySqlHost, mySqlPort);
-    }
 }
 
 
 MySqlGuardListenSocket::MySqlGuardListenSocket(
     const string& domainSocket,
     const uint16_t mySqlPort,
-    const string mySqlHost,
-    const string username,
-    const string password
+    const string mySqlHost
 ) :
     ListenSocket(domainSocket),
     mySqlNetworkSocket_(true),
@@ -76,20 +66,12 @@ MySqlGuardListenSocket::MySqlGuardListenSocket(
     mySqlHost_(mySqlHost),
     domainSocketFile_()
 {
-    if (!username.empty() && !password.empty() && !mySqlHost.empty())
-    {
-        MySqlLoginCheck::setUsername(username);
-        MySqlLoginCheck::setPassword(password);
-        MySqlLoginCheck::setHostAndPort(mySqlHost, mySqlPort);
-    }
 }
 
 
 MySqlGuardListenSocket::MySqlGuardListenSocket(
     const uint16_t listenPort,
-    const string& domainSocket,
-    const string username,
-    const string password
+    const string& domainSocket
 ) :
         ListenSocket(listenPort),
         mySqlNetworkSocket_(false),
@@ -97,20 +79,12 @@ MySqlGuardListenSocket::MySqlGuardListenSocket(
         mySqlHost_(),
         domainSocketFile_(domainSocket)
 {
-    if (!username.empty() && !password.empty() && !domainSocket.empty())
-    {
-        MySqlLoginCheck::setUsername(username);
-        MySqlLoginCheck::setPassword(password);
-        MySqlLoginCheck::setUnixDomain(domainSocket);
-    }
 }
 
 
 MySqlGuardListenSocket::MySqlGuardListenSocket(
     const string& listenDomainSocket,
-    const string& serverDomainSocket,
-    const string username,
-    const string password
+    const string& serverDomainSocket
 ) :
     ListenSocket(listenDomainSocket),
     mySqlNetworkSocket_(false),
@@ -118,12 +92,6 @@ MySqlGuardListenSocket::MySqlGuardListenSocket(
     mySqlHost_(),
     domainSocketFile_(serverDomainSocket)
 {
-    if (!username.empty() && !password.empty() && !serverDomainSocket.empty())
-    {
-        MySqlLoginCheck::setUsername(username);
-        MySqlLoginCheck::setPassword(password);
-        MySqlLoginCheck::setUnixDomain(serverDomainSocket);
-    }
 }
 
 
@@ -180,6 +148,8 @@ void MySqlGuardListenSocket::handleConnection(
         clientPtr = static_cast<MySqlSocket*>(clientConnection.get());
     #endif
 
+    string clientAddress(clientPtr->getPeerName());
+
     MySqlErrorMessageBlocker* blocker =
         new MySqlErrorMessageBlocker(s, clientPtr);
     AutoPtrWithOperatorParens<ProxyHalf> server(blocker);
@@ -191,9 +161,11 @@ void MySqlGuardListenSocket::handleConnection(
         )
     );
     // Create a new Proxy thread
-    Proxy proxy(client, server, clientConnection, serverConnection);
+    Proxy proxy(client, server);
     thread newThread(proxy);
     Logger::log(Logger::DEBUG)
-        << "New client connected, spawned thread #"
+        << "New client connected from "
+        << clientAddress
+        << ", spawned thread #"
         << newThread.get_id();
 }

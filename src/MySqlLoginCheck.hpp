@@ -21,13 +21,14 @@
 #ifndef SRC_MYSQLLOGINCHECK_HPP_
 #define SRC_MYSQLLOGINCHECK_HPP_
 
-#include <string>
+class st_mysql;
+
+#include <boost/cstdint.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/regex.hpp>
 #include <map>
 #include <set>
-#include <boost/cstdint.hpp>
-#include <boost/regex.hpp>
-
-class StaticStringsContainer;
+#include <string>
 
 /**
  * Helper class to reduce a MySQL remote connection security bypass.
@@ -51,21 +52,21 @@ class StaticStringsContainer;
 class MySqlLoginCheck
 {
 public:
-    ~MySqlLoginCheck();
-
     /**
-     * Returns an instance of MySqlLoginCheck.
-     */
-    static const MySqlLoginCheck& getInstance();
-
-    /**
-     * Provide options needed to connect to MySQL and load the username/hosts.
+     * Initialize the singleton class.
      */
     ///@{
-    static void setHostAndPort(const std::string& host, uint16_t port);
-    static void setUsername(const std::string& username);
-    static void setPassword(const std::string& password);
-    static void setUnixDomain(const std::string& unixDomain);
+    static void initialize(
+        const std::string& username,
+        const std::string& password,
+        const std::string& host,
+        uint16_t port
+    );
+    static void initialize(
+        const std::string& username,
+        const std::string& password,
+        const std::string& domainSocket
+    );
     ///@}
 
     /**
@@ -75,38 +76,37 @@ public:
      * @param user The username that the client supplied.
      * @param host The host that the client is connecting from.
      */
-    bool validUserHost(const std::string& user, const std::string& host) const;
-
-    /**
-     * Connects to MySQL and constructs a list of the user/host logins. If
-     * username is empty or the credentials are invalid, an empty list is
-     * returned.
-     * @param hostOrDomain The host or domain to connect to where MySQL is
-     *  running. If the given port is 0, this is assumed to be a domain socket.
-     * @param port The port to connect to MySQL on. If this is 0, then a domain
-     *  socket connection is assumed instead.
-     * @param username The username to use when connecting to MySQL to grab the
-     *  list of valid username/host combinations.
-     * @param password The password to use when connecting to MySQL to grab the
-     *  list of valid username/host combinations.
-     * @return Successfully connected and built the list.
-     */
-    static bool getUserHostsFromMySql();
+    static bool validUserHost(const std::string& user, const std::string& host);
 
 private:
     /**
      * Constructor is private because this is a singleton class.
      */
-    MySqlLoginCheck();
+    ///@{
+    MySqlLoginCheck(
+        const std::string& username,
+        const std::string& password,
+        const std::string& host,
+        uint16_t port
+    );
+    MySqlLoginCheck(
+        const std::string& username,
+        const std::string& password,
+        const std::string& domainSocket
+    );
+    ///@}
+
+    /**
+     * Connects to MySQL and constructs a list of the user/host logins. If
+     * username is empty or the credentials are invalid, an empty list is
+     * returned.
+     * @return Successfully connected and built the list.
+     */
+    bool loadUserHostsFromMySql(st_mysql* conn);
 
     static std::map<std::string, std::set<boost::regex> > userHostLogins_;
     static const MySqlLoginCheck* instance_;
-    static uint16_t port_;
-    static bool initialized_;
-
-    // cpplint.py complains about static C++ strings, so define them in a class
-    // and just access them through a pointer.
-    static StaticStringsContainer* stringsContainer_;
+    static boost::mutex initializationMutex_;
 
     // Hidden methods
     MySqlLoginCheck& operator=(const MySqlLoginCheck& rhs);

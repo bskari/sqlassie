@@ -240,7 +240,7 @@ dependencies:	dependencies.py
 .PHONY: clean
 clean:
 	rm -f *.o *.gch *~
-	rm -f src/tests/*.o src/tests/*~
+	rm -f tests/*.o tests/*~
 	rm -f scanner.yy.cpp scanner.yy.hpp \
 	parser.output parser.tab.cpp parser.tab.hpp \
 	huginScanner.yy.cpp huginScanner.yy.hpp \

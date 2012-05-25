@@ -167,7 +167,6 @@ int main(int argc, char* argv[])
     }
 
     // Use the parameters
-    cout << "Setting options" << endl;
     setupOptions(commandLineVm, fileVm);
 
     // Override logging level in debug builds
@@ -626,7 +625,6 @@ void setupOptions(
         break;
     }
 
-    cout << "whitelists" << endl;
     // Set up whitelists
     const string* whitelistFilenames[] = {nullptr, nullptr};
     const char* const optionNames[] = {
@@ -667,7 +665,6 @@ void setupOptions(
     }
 
     // Set the sensitive tables and fields
-    cout << "sensitive" << endl;
     typedef pair<
         const char*,
         boost::function<void (const string&)>
@@ -737,7 +734,6 @@ void setupOptions(
     }
 
     // Set up the login check
-    cout << "Login" << endl;
     const string password(
         getOption("password", commandLineVm, fileVm).as<string>()
     );

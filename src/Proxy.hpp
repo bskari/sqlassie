@@ -21,8 +21,9 @@
 #ifndef SRC_PROXY_HPP_
 #define SRC_PROXY_HPP_
 
-#include "ProxyHalf.hpp"
 #include "AutoPtrWithOperatorParens.hpp"
+#include "ProxyHalf.hpp"
+#include "Socket.hpp"
 
 #include <memory>
 
@@ -46,7 +47,9 @@ public:
      */
     Proxy(
         AutoPtrWithOperatorParens<ProxyHalf> in,
-        AutoPtrWithOperatorParens<ProxyHalf> out
+        AutoPtrWithOperatorParens<ProxyHalf> out,
+        std::auto_ptr<Socket> inSocket,
+        std::auto_ptr<Socket> outSocket
     );
 
     Proxy(Proxy& rhs);
@@ -70,6 +73,8 @@ public:
 private:
     AutoPtrWithOperatorParens<ProxyHalf> in_;
     AutoPtrWithOperatorParens<ProxyHalf> out_;
+    std::auto_ptr<Socket> inSocket_;
+    std::auto_ptr<Socket> outSocket_;
 
     // ***** Hidden methods *****
     Proxy& operator=(const Proxy&);

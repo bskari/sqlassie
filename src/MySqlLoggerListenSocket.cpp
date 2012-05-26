@@ -63,6 +63,6 @@ void MySqlLoggerListenSocket::handleConnection(
             clientConnection.get()
         )
     );
-    Proxy proxy(client, server);
+    Proxy proxy(client, server, clientConnection, serverConnection);
     proxy.runUntilFinished();
 }

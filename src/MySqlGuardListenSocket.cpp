@@ -161,7 +161,7 @@ void MySqlGuardListenSocket::handleConnection(
         )
     );
     // Create a new Proxy thread
-    Proxy proxy(client, server);
+    Proxy proxy(client, server, clientConnection, serverConnection);
     thread newThread(proxy);
     Logger::log(Logger::DEBUG)
         << "New client connected from "

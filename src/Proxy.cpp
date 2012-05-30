@@ -22,6 +22,7 @@
 #include "Logger.hpp"
 #include "Proxy.hpp"
 #include "ProxyHalf.hpp"
+#include "Socket.hpp"
 
 #include <boost/thread.hpp>
 #include <memory>
@@ -32,17 +33,23 @@ using std::auto_ptr;
 
 Proxy::Proxy(
     AutoPtrWithOperatorParens<ProxyHalf> in,
-    AutoPtrWithOperatorParens<ProxyHalf> out
+    AutoPtrWithOperatorParens<ProxyHalf> out,
+    auto_ptr<Socket> inSocket,
+    auto_ptr<Socket> outSocket
 ) :
     in_(in),
-    out_(out)
+    out_(out),
+    inSocket_(inSocket),
+    outSocket_(outSocket)
 {
 }
 
 
 Proxy::Proxy(Proxy& rhs) :
     in_(rhs.in_),
-    out_(rhs.out_)
+    out_(rhs.out_),
+    inSocket_(rhs.inSocket_),
+    outSocket_(rhs.outSocket_)
 {
 }
 

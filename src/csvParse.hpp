@@ -21,13 +21,12 @@
 #ifndef SRC_CSVPARSE_HPP_
 #define SRC_CSVPARSE_HPP_
 
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include <cassert>
-#include <cstdlib>
+#include <boost/cstdint.hpp>
 #include <exception>
+#include <iostream>
 #include <limits>
+#include <sstream>
+#include <vector>
 
 /**
  * Methods to parse comma separated value files.
@@ -86,18 +85,15 @@ void parseCsvFile(std::vector<std::vector<int32_t> >& values, std::istream& in)
 {
     std::vector<int32_t> line;
     int32_t value;
-    char digits[12]; // -2147483647 '\0'
-    int32_t charCount = 0;
+    char digits[12];  // -2147483647 '\0'
+    uint32_t charCount = 0;
     char* lastParsed;
     bool newLine = true;
 
     in.get(digits[charCount]);
     while (!in.eof())
     {
-        if (
-            static_cast<unsigned int32_t>(charCount) >
-                sizeof(digits) / sizeof(digits[0])
-        )
+        if (charCount > sizeof(digits) / sizeof(digits[0]))
         {
             throw std::exception();
         }

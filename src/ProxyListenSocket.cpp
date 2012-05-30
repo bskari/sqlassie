@@ -124,7 +124,7 @@ void ProxyListenSocket::handleConnection(
             clientConnection.get()
         )
     );
-    Proxy proxy(client, server);
+    Proxy proxy(client, server, clientConnection, serverConnection);
 
     thread newThread(proxy);
 }

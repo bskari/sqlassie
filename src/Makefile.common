@@ -66,7 +66,7 @@ $(BINARY_DIR)/demo:	demo.o parser.tab.o scanner.yy.o QueryRisk.o AstNode.o \
 		huginParser.tab.o MySqlConstants.o Logger.o InSubselectNode.o \
 		NegationNode.o ScannerContext.o SensitiveNameChecker.o \
 		initializeSingletons.o MySqlGuardObjectContainer.o \
-		-lboost_regex -lboost_thread -o $(BINARY_DIR)/demo
+		-lboost_regex -lboost_thread -lpthread -o $(BINARY_DIR)/demo
 
 $(BINARY_DIR)/logger:	logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
 	ProxyHalf.o ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \

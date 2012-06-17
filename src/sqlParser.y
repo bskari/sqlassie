@@ -85,6 +85,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH NO PLAN
   QUERY KEY OF OFFSET PRAGMA RAISE RELEASE REPLACE RESTRICT ROW ROLLBACK
   SAVEPOINT TEMP TRIGGER VACUUM VIEW VIRTUAL
+  LOW_PRIORITY DELAYED HIGH_PRIORITY
 %ifdef SQLITE_OMIT_COMPOUND_SELECT
   EXCEPT INTERSECT UNION
 %endif SQLITE_OMIT_COMPOUND_SELECT
@@ -309,9 +310,18 @@ setlist(A) ::= nm(X) EQ expr(Y). {A;X;Y;}
 
 ////////////////////////// The INSERT command /////////////////////////////////
 //
-cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) valuelist(Y). {R;X;Y;F;}
-cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) select(S). {R;X;F;S;}
-cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) DEFAULT VALUES. {R;X;F;}
+/** @TODO Handle 'ON DUPLICATE KEY UPDATE col_name=expr [, col_name=expr] ... */
+cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) valuelist(Y). {R;X;Y;F;}
+cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) select(S). {R;X;F;S;}
+cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) DEFAULT VALUES. {R;X;F;}
+
+into_opt ::= .
+into_opt ::= INTO.
+
+insert_opt ::= .
+insert_opt ::= INSERT_KW.
+insert_opt ::= IGNORE.
+insert_opt ::= INSERT_KW IGNORE.
 
 insert_cmd(A) ::= INSERT.   {A;}
 insert_cmd(A) ::= REPLACE.  {A;}

@@ -150,6 +150,10 @@ cmd ::= SHOW DATABASES LIKE_KW STRING.
 cmd ::= SHOW GLOBAL VARIABLES.
 cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.
 
+//////////////////////// The USE statement /////////////////////////////////
+//
+cmd ::= USE nm.
+
 //////////////////////// The LOCK statement ///////////////////////////////////
 //
 cmd ::= LOCK TABLES lock_tables_list.
@@ -473,5 +477,5 @@ case_operand(A) ::= .                   {A;}
 
 exprlist(A) ::= nexprlist(X).                {A;X;}
 exprlist(A) ::= .                            {A;}
-nexprlist(A) ::= nexprlist(X) COMMA expr(Y). {A;X;Y;Y;}
-nexprlist(A) ::= expr(Y). {A;Y;Y;}
+nexprlist(A) ::= nexprlist(X) COMMA expr(Y). {A;X;Y;}
+nexprlist(A) ::= expr(Y). {A;Y;}

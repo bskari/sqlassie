@@ -37,7 +37,7 @@
     #include "Logger.hpp"
     // Include file produced by Lemon
     #include "sqlParser.hpp"
-    #define ERROR -1
+    #define ERROR_TOKEN -1
     #include "QueryRisk.hpp"
     #include "ScannerContext.hpp"
 
@@ -45,17 +45,23 @@
     #include <stack>
     #include <string>
 
-    static inline int hexToNum(const char c)
+    static int hexToNum(const char c)
     {
         if (c >= '0' && c <= '9')
+        {
             return c - '0';
+        }
         else if (c >= 'a' && c <= 'z')
+        {
             return c - 'a';
+        }
         else if (c >= 'A' && c <= 'Z')
+        {
             return c - 'A';
+        }
         else
         {
-            Logger::log(Logger::ERROR) << "Bad hex digit";
+            Logger::log(Logger::ERROR) << "Bad hex digit (" << c << ") provided by scanner";
             assert(false);
             return 0;
         }
@@ -63,10 +69,17 @@
 
     static std::string hexStringToString(const char* const str)
     {
-        assert(NULL != str && '\0' != str[0] && '\0' != str[1] && '\0' != str[2]
-            && '\0' != str[3] && "MySQL hex string is too short");
-        assert('0' == str[0] && 'x' == str[1]
-            && "MySQL hex string must start with '0x'");
+        assert(
+            NULL != str
+            && '\0' != str[0]
+            && '\0' != str[1] && '\0' != str[2]
+            && '\0' != str[3] && "MySQL hex string is too short"
+        );
+        assert(
+            '0' == str[0]
+            && 'x' == str[1]
+            && "MySQL hex string must start with '0x'"
+        );
 
         std::string value;
 
@@ -74,7 +87,9 @@
         // 0x444 is interpreted as 0x4 ('EOT') + 0x44 ('D')
         const char* iter = str + 2;
         while (*iter)
+        {
             ++iter;
+        }
         iter -= 2;
         for (; iter >= str + 2; iter -= 2)
         {
@@ -86,7 +101,9 @@
         // If the user gave an odd number of hex digits, then parse the last
         // digit singly
         if (iter == str + 1)
+        {
             value = static_cast<char>(hexToNum(*(iter + 1))) + value;
+        }
 
         return value;
     }
@@ -366,7 +383,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 {FLOAT}             {context->numbers.push(std::string(yytext)); return FLOAT;}
 {GLOBAL_VARIABLE}   {context->identifiers.push(std::string(yytext)); return STRING;}
 
-.    {return ERROR;}
+.    {return ERROR_TOKEN;}
 
 %%
 

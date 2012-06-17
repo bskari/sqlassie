@@ -266,7 +266,6 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "outer"     {return OUTER;}
 "inner"     {return INNER;}
 "straight"  {return STRAIGHT;}
-"full"      {return FULL;}
 "cross"     {return CROSS;}
 "natural"   {return NATURAL;}
 "join"      {return JOIN;}
@@ -290,6 +289,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 ("="|"<=>")     {return EQ;}
 ("!="|"<>")     {return NE;}
 "like"          {return LIKE_KW;}
+"escape"        {return ESCAPE;}
 
 "div"   {return INTEGER_DIVIDE;}
 "/"     {return SLASH;}

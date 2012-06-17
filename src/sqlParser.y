@@ -85,6 +85,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   LOW_PRIORITY DELAYED HIGH_PRIORITY
   CONSISTENT SNAPSHOT WORK CHAIN
   QUICK
+  SOUNDS
 %ifdef SQLITE_OMIT_COMPOUND_SELECT
   EXCEPT INTERSECT UNION
 %endif SQLITE_OMIT_COMPOUND_SELECT
@@ -107,7 +108,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 %left XOR.
 %left AND.
 %right NOT.
-%left IS MATCH LIKE_KW BETWEEN IN ISNULL NOTNULL NE EQ.
+%left IS MATCH LIKE_KW SOUNDS BETWEEN IN ISNULL NOTNULL NE EQ.
 %left GT LE LT GE.
 %right ESCAPE.
 %left BITAND BITOR BITXOR LSHIFT RSHIFT.
@@ -145,11 +146,11 @@ signed ::= minus_num.
 //////////////////////// The SHOW statement /////////////////////////////////
 //
 cmd ::= SHOW TABLES.
-cmd ::= SHOW TABLES LIKE STRING.
+cmd ::= SHOW TABLES LIKE_KW STRING.
 cmd ::= SHOW DATABASES.
-cmd ::= SHOW DATABASES LIKE STRING.
+cmd ::= SHOW DATABASES LIKE_KW STRING.
 cmd ::= SHOW GLOBAL VARIABLES.
-cmd ::= SHOW GLOBAL VARIABLES LIKE STRING.
+cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //
@@ -396,6 +397,7 @@ likeop(A) ::= LIKE_KW(X).     {A;X;}
 likeop(A) ::= NOT LIKE_KW(X). {A;X;}
 likeop(A) ::= MATCH(X).       {A;X;}
 likeop(A) ::= NOT MATCH(X).   {A;X;}
+likeop(A) ::= SOUNDS LIKE_KW(X).     {A;X;}
 expr(A) ::= expr(X) likeop(OP) expr(Y).  [LIKE_KW]  {A;X;Y;OP;}
 expr(A) ::= expr(X) likeop(OP) expr(Y) ESCAPE expr(E).  [LIKE_KW]  {A;X;Y;OP;E;}
 

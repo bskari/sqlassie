@@ -150,6 +150,17 @@ cmd ::= SHOW DATABASES LIKE_KW STRING.
 cmd ::= SHOW GLOBAL VARIABLES.
 cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.
 
+//////////////////////// The LOCK statement ///////////////////////////////////
+//
+cmd ::= LOCK TABLES lock_tables_list.
+lock_tables_list ::= as lock_type.
+lock_tables_list ::= as lock_type COMMA lock_tables_list.
+lock_type ::= READ local_opt.
+lock_type ::= low_priority_opt WRITE.
+local_opt ::= .
+local_opt ::= LOCAL.
+cmd ::= UNLOCK TABLES lock_tables_list.
+
 //////////////////////// The SELECT statement /////////////////////////////////
 //
 cmd ::= select(X) select_op.              {X;}
@@ -207,9 +218,9 @@ selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y). {A;X;Y;P;}
 // An option "AS <id>" phrase that can follow one of the expressions that
 // define the result set, or one of the tables in the FROM clause.
 //
-as(X) ::= AS nm(Y).    {X;X;Y;}
-as(X) ::= ids(Y).      {X;X;Y;}
-as(X) ::= .            {X;X;}
+as(X) ::= AS nm(Y).    {X;Y;}
+as(X) ::= ids(Y).      {X;Y;}
+as(X) ::= .            {X;}
 
 
 // A complete FROM clause.
@@ -319,14 +330,13 @@ limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {A;X;Y;}
 cmd ::= DELETE delete_opt FROM fullname(X) indexed_opt(I) where_opt(W)
         orderby_opt(O) limit_opt(L). {X;I;W;O;L;}
 
-delete_opt ::= .
-delete_opt ::= LOW_PRIORITY.
-delete_opt ::= QUICK.
-delete_opt ::= IGNORE.
-delete_opt ::= LOW_PRIORITY QUICK.
-delete_opt ::= LOW_PRIORITY IGNORE.
-delete_opt ::= QUICK IGNORE.
-delete_opt ::= LOW_PRIORITY QUICK IGNORE.
+delete_opt ::= low_priority_opt quick_opt ignore_opt.
+low_priority_opt ::= .
+low_priority_opt ::= LOW_PRIORITY.
+quick_opt ::= .
+quick_opt ::= QUICK.
+ignore_opt ::= .
+ignore_opt ::= IGNORE.
 where_opt(A) ::= .                    {A;}
 where_opt(A) ::= WHERE expr(X).       {A;X;}
 
@@ -353,8 +363,6 @@ insert_priority_opt ::= .
 insert_priority_opt ::= LOW_PRIORITY.
 insert_priority_opt ::= DELAYED.
 insert_priority_opt ::= HIGH_PRIORITY.
-ignore_opt ::= .
-ignore_opt ::= IGNORE.
 
 insert_cmd(A) ::= INSERT.   {A;}
 insert_cmd(A) ::= REPLACE.  {A;}

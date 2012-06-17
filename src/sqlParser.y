@@ -42,10 +42,8 @@ cmdlist ::= ecmd.
 ecmd ::= SEMI.
 ecmd ::= explain cmdx SEMI.
 explain ::= .           {}
-%ifndef SQLITE_OMIT_EXPLAIN
 explain ::= EXPLAIN.              {}
 explain ::= EXPLAIN QUERY PLAN.   {}
-%endif  SQLITE_OMIT_EXPLAIN
 cmdx ::= cmd.           {}
 
 ///////////////////// Begin and end transactions. ////////////////////////////
@@ -334,13 +332,8 @@ where_opt(A) ::= WHERE expr(X).       {A;X;}
 
 ////////////////////////// The UPDATE command ////////////////////////////////
 //
-%ifdef SQLITE_ENABLE_UPDATE_DELETE_LIMIT
-cmd ::= UPDATE orconf(R) fullname(X) indexed_opt(I) SET setlist(Y)
-    where_opt(W) orderby_opt(O) limit_opt(L).  {W;}
-%endif
-%ifndef SQLITE_ENABLE_UPDATE_DELETE_LIMIT
-cmd ::= UPDATE fullname(X) indexed_opt(I) SET setlist(Y) where_opt(W).  {X;Y;I;W;}
-%endif
+cmd ::= UPDATE fullname(X) indexed_opt(I) SET setlist(Y)
+    where_opt(W) orderby_opt(O) limit_opt(L).  {X;I;Y;W;O;L;}
 
 setlist(A) ::= setlist(Z) COMMA nm(X) EQ expr(Y). {A;X;Y;Z;}
 setlist(A) ::= nm(X) EQ expr(Y). {A;X;Y;}

@@ -110,7 +110,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 %right ESCAPE.
 %left BITAND BITOR BITXOR LSHIFT RSHIFT.
 %left PLUS MINUS.
-%left STAR SLASH REM.
+%left STAR SLASH REM INTEGER_DIVIDE.
 %left CONCAT.
 %left COLLATE.
 %right BITNOT.
@@ -384,7 +384,7 @@ expr(A) ::= expr(X) LT|GT|GE|LE(OP) expr(Y). {A;X;Y;OP;}
 expr(A) ::= expr(X) EQ|NE(OP) expr(Y).  {A;X;Y;OP;}
 expr(A) ::= expr(X) BITAND|BITOR|LSHIFT|RSHIFT(OP) expr(Y). {A;X;Y;OP;}
 expr(A) ::= expr(X) PLUS|MINUS(OP) expr(Y). {A;X;Y;OP;}
-expr(A) ::= expr(X) STAR|SLASH|REM(OP) expr(Y). {A;X;Y;OP;}
+expr(A) ::= expr(X) STAR|SLASH|REM|INTEGER_DIVIDE(OP) expr(Y). {A;X;Y;OP;}
 expr(A) ::= expr(X) CONCAT(OP) expr(Y). {A;X;Y;OP;}
 likeop(A) ::= LIKE_KW(X).     {A;X;}
 likeop(A) ::= NOT LIKE_KW(X). {A;X;}

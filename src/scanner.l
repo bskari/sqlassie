@@ -187,7 +187,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
             {
                 BEGIN(INITIAL);
                 context->quotedStrings.push(context->quotedString);
-                return QUOTED_STRING;
+                return STRING;
             }
             else
             {
@@ -200,7 +200,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 {HEX_STRING}    {
     ++qr->hexStrings;
     context->quotedStrings.push(hexStringToString(yytext));
-    return QUOTED_STRING;
+    return STRING;
 }
 
  /* Double quoted strings don't count as string literals in strict ANSI SQL;
@@ -212,7 +212,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 <DOUBLE_QUOTED>["]    {
                 BEGIN(INITIAL);
                 context->quotedStrings.push(context->quotedString);
-                return QUOTED_STRING;
+                return STRING;
 }
 <DOUBLE_QUOTED><<EOF>>    {qr->valid = false; BEGIN(INITIAL);}
 
@@ -224,7 +224,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "delete"    {return DELETE;}
 "explain"   {return EXPLAIN;}
 
-"begin"         {return BEGIN_TOKEN;}
+"begin"         {return BEGIN_KW;}
 "work"          {return WORK;}
 "commit"        {return COMMIT;}
 "start"         {return START;}
@@ -240,13 +240,14 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
  /** @TODO SQL small result, SQL big result, SQL buffer result */
  /** @TODO SQL calc found rows, SQL no cache, SQL cache all */
 
-"left"      {return LEFT;}
-"right"     {return RIGHT;}
-"outer"     {return OUTER;}
-"inner"     {return INNER;}
-"straight"  {return STRAIGHT;}
-"full"      {return FULL;}
-"cross"     {return CROSS;}
+"left"      {return JOIN_KW;}
+"right"     {return JOIN_KW;}
+"outer"     {return JOIN_KW;}
+"inner"     {return JOIN_KW;}
+"straight"  {return JOIN_KW;}
+"full"      {return JOIN_KW;}
+"cross"     {return JOIN_KW;}
+"natural"   {return JOIN_KW;}
 "join"      {return JOIN;}
 "on"        {return ON;}
 "using"     {return USING;}
@@ -267,7 +268,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 ">="            {return GE;}
 ("="|"<=>")     {return EQ;}
 ("!="|"<>")     {return NE;}
-"like"          {return LIKE;}
+"like"          {return LIKE_KW;}
 
 "div"   {return INTEGER_DIVIDE;}
 "/"     {return SLASH;}
@@ -326,21 +327,22 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "index"     {return INDEX;}
 "key"       {return KEY;}
 
-"null"      {return NULL_TOKEN;}
+"null"      {return NULL_KW;}
 
 "is"        {return IS;}
 
-"with"       {return WITH;}
-"query"      {return QUERY;}
-"match"      {return MATCH;}
-"expansion"  {return EXPANSION;}
-"natural"    {return NATURAL;}
-"against"    {return AGAINST;}
-"language"   {return LANGUAGE;}
-"boolean"    {return BOOLEAN;}
+"with"      {return WITH;}
+"query"     {return QUERY;}
+"match"     {return MATCH;}
+"expansion" {return EXPANSION;}
+"against"   {return AGAINST;}
+"language"  {return LANGUAGE;}
+"boolean"   {return BOOLEAN;}
 
-"show"       {return SHOW;}
-"describe"   {return DESCRIBE;}
+"show"      {return SHOW;}
+"describe"  {return DESCRIBE;}
+"global"    {return GLOBAL;}
+"variables" {return VARIABLES;}
 
 "interval"              {return INTERVAL;}
 "sql_calc_found_rows"   {return SQL_CALC_FOUND_ROWS;}
@@ -362,7 +364,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 }
 {INTEGER}           {context->numbers.push(std::string(yytext)); return INTEGER;}
 {FLOAT}             {context->numbers.push(std::string(yytext)); return FLOAT;}
-{GLOBAL_VARIABLE}   {context->identifiers.push(std::string(yytext)); return GLOBAL_VARIABLE;}
+{GLOBAL_VARIABLE}   {context->identifiers.push(std::string(yytext)); return STRING;}
 
 .    {return ERROR;}
 

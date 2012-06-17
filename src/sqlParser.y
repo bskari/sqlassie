@@ -42,7 +42,7 @@ cmdx ::= cmd.           {}
 ///////////////////// Begin and end transactions. ////////////////////////////
 //
 
-cmd ::= BEGIN_TOKEN transtype(Y) trans_opt.  {Y;}
+cmd ::= BEGIN_KW transtype(Y) trans_opt.  {Y;}
 trans_opt ::= .
 trans_opt ::= TRANSACTION.
 trans_opt ::= TRANSACTION nm.
@@ -71,7 +71,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 // This obviates the need for the "id" nonterminal.
 //
 %fallback ID
-  ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN_TOKEN BY CASCADE CAST COLUMNKW
+  ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN_KW BY CASCADE CAST COLUMNKW
   CONFLICT DATABASE DEFERRED DESC DETACH EACH END EXCLUSIVE EXPLAIN FAIL FOR
   IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH NO PLAN
   QUERY KEY OF OFFSET PRAGMA RAISE RELEASE REPLACE RESTRICT ROW ROLLBACK
@@ -131,6 +131,15 @@ minus_num(A) ::= MINUS number(X).   {A;X;}
 number(A) ::= INTEGER|FLOAT(X).     {A;X;}
 signed ::= plus_num.
 signed ::= minus_num.
+
+//////////////////////// The SHOW statement /////////////////////////////////
+//
+cmd ::= SHOW TABLES.
+cmd ::= SHOW TABLES LIKE STRING.
+cmd ::= SHOW DATABASES.
+cmd ::= SHOW DATABASES LIKE STRING.
+cmd ::= SHOW GLOBAL VARIABLES.
+cmd ::= SHOW GLOBAL VARIABLES LIKE STRING.
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //
@@ -323,7 +332,7 @@ inscollist(A) ::= nm(Y). {A;Y;}
 
 expr(A) ::= term(X).             {A;X;}
 expr(A) ::= LP(B) expr(X) RP(E). {A;X;B;E;}
-term(A) ::= NULL_TOKEN(X).             {A;X;}
+term(A) ::= NULL_KW(X).          {A;X;}
 expr(A) ::= id(X).               {A;X;}
 expr(A) ::= JOIN_KW(X).          {A;X;}
 expr(A) ::= nm(X) DOT nm(Y). {A;X;Y;}
@@ -355,8 +364,8 @@ likeop(A) ::= NOT MATCH(X).   {A;X;}
 expr(A) ::= expr(X) likeop(OP) expr(Y).  [LIKE_KW]  {A;X;Y;OP;}
 expr(A) ::= expr(X) likeop(OP) expr(Y) ESCAPE expr(E).  [LIKE_KW]  {A;X;Y;OP;E;}
 
-expr(A) ::= expr(X) ISNULL|NOTNULL(E).   {A;X;E;}
-expr(A) ::= expr(X) NOT NULL_TOKEN(E). {A;X;E;}
+expr(A) ::= expr(X) ISNULL|NOTNULL(E).  {A;X;E;}
+expr(A) ::= expr(X) NOT NULL_KW(E).     {A;X;E;}
 
 //    expr1 IS expr2
 //    expr1 IS NOT expr2

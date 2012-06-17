@@ -242,10 +242,15 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "explain"   {return EXPLAIN;}
 
 "begin"         {return BEGIN_KW;}
+"work"          {return WORK;}
 "commit"        {return COMMIT;}
 "start"         {return START;}
 "transaction"   {return TRANSACTION;}
 "rollback"      {return ROLLBACK;}
+"consistent"    {return CONSISTENT;}
+"snapshot"      {return SNAPSHOT;}
+"chain"         {return CHAIN;}
+"release"       {return RELEASE;}
 
 "low_priority"  {return INSERT_KW;}
 "high_priority" {return INSERT_KW;}

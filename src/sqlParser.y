@@ -51,23 +51,20 @@ cmdx ::= cmd.           {}
 ///////////////////// Begin and end transactions. ////////////////////////////
 //
 
-cmd ::= BEGIN_KW transtype(Y) trans_opt.  {Y;}
-trans_opt ::= .
-trans_opt ::= TRANSACTION.
-trans_opt ::= TRANSACTION nm.
-transtype(A) ::= .             {A;}
-transtype(A) ::= DEFERRED(X).  {A;X;}
-transtype(A) ::= IMMEDIATE(X). {A;X;}
-transtype(A) ::= EXCLUSIVE(X). {A;X;}
-cmd ::= COMMIT trans_opt.      {}
-cmd ::= END trans_opt.         {}
-cmd ::= ROLLBACK trans_opt.    {}
-
-savepoint_opt ::= SAVEPOINT.
-savepoint_opt ::= .
-cmd ::= SAVEPOINT nm(X). {X;}
-cmd ::= RELEASE savepoint_opt nm(X). {X;}
-cmd ::= ROLLBACK trans_opt TO savepoint_opt nm(X). {X;}
+cmd ::= START TRANSACTION start_opt.
+cmd ::= BEGIN_KW work_opt.
+cmd ::= COMMIT work_opt chain_opt release_opt.     {}
+cmd ::= ROLLBACK work_opt chain_opt release_opt.   {}
+work_opt ::= .
+work_opt ::= WORK.
+start_opt ::= .
+start_opt ::= WITH CONSISTENT SNAPSHOT.
+chain_opt ::= .
+chain_opt ::= AND no_opt CHAIN.
+release_opt ::= .
+release_opt ::= no_opt RELEASE.
+no_opt ::= .
+no_opt ::= NO.
 
 // An IDENTIFIER can be a generic identifier, or one of several
 // keywords.  Any non-standard keyword can also be an identifier.
@@ -86,6 +83,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   QUERY KEY OF OFFSET PRAGMA RAISE RELEASE REPLACE RESTRICT ROW ROLLBACK
   SAVEPOINT TEMP TRIGGER VACUUM VIEW VIRTUAL
   LOW_PRIORITY DELAYED HIGH_PRIORITY
+  CONSISTENT SNAPSHOT WORK CHAIN
 %ifdef SQLITE_OMIT_COMPOUND_SELECT
   EXCEPT INTERSECT UNION
 %endif SQLITE_OMIT_COMPOUND_SELECT

@@ -248,7 +248,7 @@ clean:
 	rm -f *.o *.gch *~
 	rm -f src/tests/*.o src/tests/*~
 	rm -f scanner.yy.cpp scanner.yy.hpp \
-	sqlParser.output sqlParser.cpp sqlParser.hpp \
+	sqlParser.out sqlParser.cpp sqlParser.hpp \
 	huginScanner.yy.cpp huginScanner.yy.hpp \
 	huginParser.output huginParser.tab.cpp huginParser.tab.hpp
 	rm -rf queries/formatQueries queries/formatMySqlLog

@@ -103,6 +103,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 // constraint.
 //
 %left OR.
+%left XOR.
 %left AND.
 %right NOT.
 %left IS MATCH LIKE_KW BETWEEN IN ISNULL NOTNULL NE EQ.
@@ -380,6 +381,7 @@ term(A) ::= CTIME_KW(OP). {A;OP;}
 
 expr(A) ::= expr(X) AND(OP) expr(Y).    {A;X;Y;OP;}
 expr(A) ::= expr(X) OR(OP) expr(Y).     {A;X;Y;OP;}
+expr(A) ::= expr(X) XOR(OP) expr(Y).    {A;X;Y;OP;}
 expr(A) ::= expr(X) LT|GT|GE|LE(OP) expr(Y). {A;X;Y;OP;}
 expr(A) ::= expr(X) EQ|NE(OP) expr(Y).  {A;X;Y;OP;}
 expr(A) ::= expr(X) BITAND|BITOR|LSHIFT|RSHIFT(OP) expr(Y). {A;X;Y;OP;}

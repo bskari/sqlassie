@@ -191,7 +191,7 @@ $(BINARY_DIR)/tunnel:	tunnel.o ProxyListenSocket.hpp \
 		Logger.o \
 		-lboost_thread -lboost_program_options -o $(BINARY_DIR)/tunnel
 
-sqlParser.cpp:	sqlParser.y
+sqlParser.cpp sqlParser.hpp:	sqlParser.y
 	$(LEMON) -s sqlParser.y
 	mv sqlParser.c sqlParser.cpp
 	mv sqlParser.h sqlParser.hpp

@@ -20,8 +20,7 @@
 
 #include "Logger.hpp"
 #include "nullptr.hpp"
-#include "parser.tab.hpp"
-#include "QueryRisk.hpp"
+#include "sqlParser.hpp"
 #include "scanner.yy.hpp"
 #include "ScannerContext.hpp"
 
@@ -48,20 +47,13 @@ using std::string;
  * @date November 15 2010
  */
 
-extern int sql_lex(
-    YYSTYPE* llvalp,
-    ScannerContext* context,
-    QueryRisk* qr,
-    yyscan_t scanner
-);
-
 map<int, string> tokenCodes;
 void loadTokensFromFile(const char* fileName);
 
 int main()
 {
     Logger::initialize();
-    loadTokensFromFile("parser.tab.hpp");
+    loadTokensFromFile("sqlParser.hpp");
 
     string x;
     cout << "Enter MySQL query: ";
@@ -72,8 +64,7 @@ int main()
         yyscan_t scanner;
         sql_lex_init(&scanner);
         YY_BUFFER_STATE bufferState = sql__scan_string(x.c_str(), scanner);
-        QueryRisk qr;
-        int lexCode = sql_lex(nullptr, &context, &qr, scanner);
+        int lexCode = sql_lex(scanner);
         do
         {
             assert(tokenCodes.end() != tokenCodes.find(lexCode) &&
@@ -85,7 +76,7 @@ int main()
                 << ", "
                 << tokenCodes[lexCode]
                 << endl;
-            lexCode = sql_lex(nullptr, &context, &qr, scanner);
+            lexCode = sql_lex(scanner);
         }
         while (lexCode > 255);
 

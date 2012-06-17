@@ -252,10 +252,10 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "chain"         {return CHAIN;}
 "release"       {return RELEASE;}
 
-"low_priority"  {return INSERT_KW;}
-"high_priority" {return INSERT_KW;}
+"low_priority"  {return LOW_PRIORITY;}
+"high_priority" {return HIGH_PRIORITY;}
 "straight_join" {return STRAIGHT_JOIN;}
-"delayed"       {return INSERT_KW;}
+"delayed"       {return DELAYED;}
 "quick"         {return QUICK;}
 "distinct"      {return DISTINCT;}
 "all"           {return ALL;}
@@ -333,8 +333,6 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "union"     {return UNION;}
 
 "limit"     {return LIMIT;}
-
-"procedure" {return PROCEDURE;}
 
 "default"   {return DEFAULT;}
 

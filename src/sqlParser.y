@@ -84,7 +84,8 @@ id(A) ::= INDEXED(X).    {A;X;}
   SAVEPOINT TEMP TRIGGER VACUUM VIEW VIRTUAL
   // MySQL specific stuff
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
-  SOUNDS OUTFILE
+  SOUNDS OUTFILE SQL_BIG_RESULT SQL_SMALL_RESULT SQL_BUFFER_RESULT SQL_CACHE
+  SQL_NO_CACHE
 %ifdef SQLITE_OMIT_COMPOUND_SELECT
   EXCEPT INTERSECT UNION
 %endif SQLITE_OMIT_COMPOUND_SELECT
@@ -354,10 +355,13 @@ cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) DEFAULT 
 into_opt ::= .
 into_opt ::= INTO.
 
-insert_opt ::= .
-insert_opt ::= INSERT_KW.
-insert_opt ::= IGNORE.
-insert_opt ::= INSERT_KW IGNORE.
+insert_opt ::= insert_priority_opt ignore_opt.
+insert_priority_opt ::= .
+insert_priority_opt ::= LOW_PRIORITY.
+insert_priority_opt ::= DELAYED.
+insert_priority_opt ::= HIGH_PRIORITY.
+ignore_opt ::= .
+ignore_opt ::= IGNORE.
 
 insert_cmd(A) ::= INSERT.   {A;}
 insert_cmd(A) ::= REPLACE.  {A;}

@@ -84,6 +84,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   SAVEPOINT TEMP TRIGGER VACUUM VIEW VIRTUAL
   LOW_PRIORITY DELAYED HIGH_PRIORITY
   CONSISTENT SNAPSHOT WORK CHAIN
+  QUICK
 %ifdef SQLITE_OMIT_COMPOUND_SELECT
   EXCEPT INTERSECT UNION
 %endif SQLITE_OMIT_COMPOUND_SELECT
@@ -295,14 +296,17 @@ limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {A;X;Y;}
 
 /////////////////////////// The DELETE statement /////////////////////////////
 //
-%ifdef SQLITE_ENABLE_UPDATE_DELETE_LIMIT
-cmd ::= DELETE FROM fullname(X) indexed_opt(I) where_opt(W) 
-        orderby_opt(O) limit_opt(L). {O;}
-%endif
-%ifndef SQLITE_ENABLE_UPDATE_DELETE_LIMIT
-cmd ::= DELETE FROM fullname(X) indexed_opt(I) where_opt(W). {X;X;I;W;}
-%endif
+cmd ::= DELETE delete_opt FROM fullname(X) indexed_opt(I) where_opt(W)
+        orderby_opt(O) limit_opt(L). {X;I;W;O;L;}
 
+delete_opt ::= .
+delete_opt ::= LOW_PRIORITY.
+delete_opt ::= QUICK.
+delete_opt ::= IGNORE.
+delete_opt ::= LOW_PRIORITY QUICK.
+delete_opt ::= LOW_PRIORITY IGNORE.
+delete_opt ::= QUICK IGNORE.
+delete_opt ::= LOW_PRIORITY QUICK IGNORE.
 where_opt(A) ::= .                    {A;}
 where_opt(A) ::= WHERE expr(X).       {A;X;}
 

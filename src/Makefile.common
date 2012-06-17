@@ -55,7 +55,7 @@ all:	$(BINARIES) $(OPTIONAL_STRIP)
 $(BINARY_DIR)/demo:	demo.o sqlParser.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o ConditionalListNode.o ConditionalNode.o ExpressionNode.o \
 	InValuesListNode.o AlwaysSomethingNode.o \
-	ParserInterface.o AttackProbabilities.o sqlParser.hpp \
+	ParserInterface.o AttackProbabilities.o sqlParser.h \
 	DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
 	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
 	SensitiveNameChecker.o initializeSingletons.o MySqlGuardObjectContainer.o
@@ -109,7 +109,7 @@ $(BINARY_DIR)/queryStatistics:	queryStatistics.o sqlParser.o scanner.yy.o QueryR
 $(BINARY_DIR)/riskAnalyzer:	riskAnalyzer.o sqlParser.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o ConditionalListNode.o ConditionalNode.o ExpressionNode.o \
 	InValuesListNode.o AlwaysSomethingNode.o NegationNode.o \
-	ParserInterface.o AttackProbabilities.o sqlParser.hpp \
+	ParserInterface.o AttackProbabilities.o sqlParser.h \
 	DlibProbabilities.o huginScanner.yy.o huginParser.tab.o MySqlConstants.o \
 	Logger.o InSubselectNode.o NegationNode.o ScannerContext.o \
 	SensitiveNameChecker.o
@@ -122,7 +122,7 @@ $(BINARY_DIR)/riskAnalyzer:	riskAnalyzer.o sqlParser.o scanner.yy.o QueryRisk.o 
 		NegationNode.o ScannerContext.o SensitiveNameChecker.o \
 		-lboost_regex -lboost_thread -o $(BINARY_DIR)/riskAnalyzer
 
-$(BINARY_DIR)/scanner:	scanner.o scanner.yy.o QueryRisk.o sqlParser.hpp Logger.o \
+$(BINARY_DIR)/scanner:	scanner.o scanner.yy.o QueryRisk.o sqlParser.h Logger.o \
 	ScannerContext.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) scanner.o scanner.yy.o QueryRisk.o \
 		Logger.o ScannerContext.o \
@@ -191,17 +191,20 @@ $(BINARY_DIR)/tunnel:	tunnel.o ProxyListenSocket.hpp \
 		Logger.o \
 		-lboost_thread -lboost_program_options -o $(BINARY_DIR)/tunnel
 
-sqlParser.cpp sqlParser.hpp:	sqlParser.y
+sqlParser.h: sqlParser.cpp
+
+sqlParser.cpp:	sqlParser.y
 	$(LEMON) -s sqlParser.y
 	mv sqlParser.c sqlParser.cpp
-	mv sqlParser.h sqlParser.hpp
 
 sqlParser.o:	sqlParser.cpp AlwaysSomethingNode.hpp \
 	AstNode.hpp ComparisonNode.hpp ConditionalListNode.hpp ConditionalNode.hpp \
 	ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp InSubselectNode.hpp
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlParser.cpp -c -o sqlParser.o
 
-huginParser.tab.cpp huginParser.tab.hpp:	huginParser.y clearStack.hpp
+huginParser.tab.hpp:	huginParser.tab.cpp
+
+huginParser.tab.cpp:	huginParser.y clearStack.hpp
 	$(YACC) -o huginParser.tab.cpp --defines=huginParser.tab.hpp \
 		-v huginParser.y
 
@@ -209,7 +212,9 @@ huginParser.tab.o:	huginParser.tab.cpp
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) huginParser.tab.cpp -c -o \
 		huginParser.tab.o
 
-scanner.yy.cpp scanner.yy.hpp:	scanner.l sqlParser.hpp
+scanner.yy.hpp:	scanner.yy.cpp
+
+scanner.yy.cpp:	scanner.l sqlParser.h
 	$(LEX) --case-insensitive --outfile=scanner.yy.cpp \
 		--header-file=scanner.yy.hpp scanner.l
 
@@ -224,7 +229,7 @@ huginScanner.yy.o:	huginScanner.yy.cpp huginScanner.yy.hpp
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) huginScanner.yy.cpp -c \
 		-o huginScanner.yy.o
 
-ParserInterface.hpp:	sqlParser.hpp scanner.yy.hpp
+ParserInterface.hpp:	sqlParser.h scanner.yy.hpp
 
 strip:	$(BINARIES)
 	strip $(BINARIES)
@@ -237,7 +242,7 @@ doxygen: Doxyfile
 .PHONY:	dependencies
 dependencies:	dependencies.py
 	# These files mess up the dependencies
-	rm -f sqlParser.hpp sqlParser.cpp sqlParser.o
+	rm -f sqlParser.h sqlParser.cpp sqlParser.o
 	rm -f scanner.yy.hpp scanner.yy.cpp scanner.yy.o
 	rm -f huginParser.tab.hpp huginParser.tab.cpp huginParser.tab.o
 	rm -f huginScanner.yy.hpp huginScanner.yy.cpp huginScanner.yy.o
@@ -248,7 +253,7 @@ clean:
 	rm -f *.o *.gch *~
 	rm -f src/tests/*.o src/tests/*~
 	rm -f scanner.yy.cpp scanner.yy.hpp \
-	sqlParser.out sqlParser.cpp sqlParser.hpp \
+	sqlParser.out sqlParser.cpp sqlParser.h \
 	huginScanner.yy.cpp huginScanner.yy.hpp \
 	huginParser.output huginParser.tab.cpp huginParser.tab.hpp
 	rm -rf queries/formatQueries queries/formatMySqlLog

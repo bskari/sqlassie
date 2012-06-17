@@ -36,7 +36,7 @@
     #include "AstNode.hpp"
     #include "Logger.hpp"
     // Include file produced by Lemon
-    #include "sqlParser.hpp"
+    #include "sqlParser.h"
     #define ERROR_TOKEN -1
     #include "QueryRisk.hpp"
     #include "ScannerContext.hpp"

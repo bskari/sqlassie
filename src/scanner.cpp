@@ -20,7 +20,7 @@
 
 #include "Logger.hpp"
 #include "nullptr.hpp"
-#include "sqlParser.hpp"
+#include "sqlParser.h"
 #include "scanner.yy.hpp"
 #include "ScannerContext.hpp"
 
@@ -53,7 +53,7 @@ void loadTokensFromFile(const char* fileName);
 int main()
 {
     Logger::initialize();
-    loadTokensFromFile("sqlParser.hpp");
+    loadTokensFromFile("sqlParser.h");
 
     string x;
     cout << "Enter MySQL query: ";

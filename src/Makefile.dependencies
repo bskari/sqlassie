@@ -96,7 +96,7 @@ NegationNode.o:	NegationNode.cpp ExpressionNode.hpp Logger.hpp \
 	MySqlConstants.hpp NegationNode.hpp QueryRisk.hpp nullptr.hpp
 
 ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp clearStack.hpp \
-	nullptr.hpp scanner.yy.hpp sqlParser.hpp
+	nullptr.hpp scanner.yy.hpp sqlParser.h
 
 Proxy.o:	Proxy.cpp AutoPtrWithOperatorParens.hpp Logger.hpp Proxy.hpp \
 	ProxyHalf.hpp Socket.hpp
@@ -143,7 +143,7 @@ riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp
 
 scanner.o:	scanner.cpp Logger.hpp ScannerContext.hpp nullptr.hpp \
-	scanner.yy.hpp sqlParser.hpp
+	scanner.yy.hpp sqlParser.h
 
 sqlassie.o:	sqlassie.cpp Logger.hpp MySqlGuardListenSocket.hpp \
 	MySqlLoginCheck.hpp QueryWhitelist.hpp SensitiveNameChecker.hpp \

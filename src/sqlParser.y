@@ -245,17 +245,17 @@ from(A) ::= FROM seltablist(X). {A;X;}
 //
 stl_prefix(A) ::= seltablist(X) joinop(Y).    {A;X;Y;}
 stl_prefix(A) ::= .                           {A;}
-seltablist(A) ::= stl_prefix(X) nm(Y) dbnm(D) as(Z) indexed_opt(I) on_opt(N) using_opt(U). {A;X;Y;D;Z;I;N;U;}
-%ifndef SQLITE_OMIT_SUBQUERY
-  seltablist(A) ::= stl_prefix(X) LP select(S) RP
-                    as(Z) on_opt(N) using_opt(U). {A;X;S;Z;N;U;}
-  seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
-                    as(Z) on_opt(N) using_opt(U). {A;X;F;Z;N;U;}
-  
-  // A seltablist_paren nonterminal represents anything in a FROM that
-  // is contained inside parentheses.  This can be either a subquery or
-  // a grouping of table and subqueries.
-  //
+seltablist(A) ::= stl_prefix(X) nm(Y) dbnm(D)
+                as(Z) index_hint_list_opt indexed_opt(I) on_opt(N) using_opt(U). {A;X;Y;D;Z;I;N;U;}
+seltablist(A) ::= stl_prefix(X) LP select(S) RP
+                as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;S;Z;N;U;}
+seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
+                as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;F;Z;N;U;}
+
+// A seltablist_paren nonterminal represents anything in a FROM that
+// is contained inside parentheses.  This can be either a subquery or
+// a grouping of table and subqueries.
+//
 //  %type seltablist_paren {Select*}
 //  %destructor seltablist_paren {sqlite3SelectDelete(pParse->db, $$);}
 //  seltablist_paren(A) ::= select(S).      {A = S;}
@@ -263,7 +263,6 @@ seltablist(A) ::= stl_prefix(X) nm(Y) dbnm(D) as(Z) indexed_opt(I) on_opt(N) usi
 //     sqlite3SrcListShiftJoinType(F);
 //     A = sqlite3SelectNew(pParse,0,F,0,0,0,0,0,0,0);
 //  }
-%endif  SQLITE_OMIT_SUBQUERY
 
 dbnm(A) ::= .          {A;}
 dbnm(A) ::= DOT nm(X). {A;X;}
@@ -288,6 +287,23 @@ join_opt ::= NATURAL RIGHT OUTER.
 
 on_opt(N) ::= ON expr(E).   {N;E;}
 on_opt(N) ::= .             {N;}
+
+// MySQL specific indexing hints
+index_hint_list_opt ::= .
+index_hint_list_opt ::= index_hint_list.
+/// @TODO Make index_hint_list a list
+index_hint_list ::= index_hint.
+index_hint ::= USE index_or_key index_hint_for_opt LP RP.
+index_hint ::= USE index_or_key index_hint_for_opt LP index_list RP.
+index_hint ::= IGNORE index_or_key index_hint_for_opt LP index_list RP.
+index_hint ::= FORCE index_or_key index_hint_for_opt LP index_list RP.
+index_or_key ::= INDEX.
+index_or_key ::= KEY.
+index_hint_for_opt ::= FOR JOIN.
+index_hint_for_opt ::= FOR ORDER BY.
+index_hint_for_opt ::= FOR GROUP BY.
+index_list ::= nm .
+index_list ::= nm COMMA index_list .
 
 // Note that this block abuses the Token type just a little. If there is
 // no "INDEXED BY" clause, the returned token is empty (z==0 && n==0). If
@@ -458,13 +474,11 @@ expr(A) ::= PLUS(B) expr(X). [BITNOT] {A;X;B;}
 between_op(A) ::= BETWEEN.     {A;}
 between_op(A) ::= NOT BETWEEN. {A;}
 expr(A) ::= expr(W) between_op(N) expr(X) AND expr(Y). [BETWEEN] {A;X;Y;W;N;}
-%ifndef SQLITE_OMIT_SUBQUERY
-  in_op(A) ::= IN.      {A;}
-  in_op(A) ::= NOT IN.  {A;}
-  expr(A) ::= expr(X) in_op(N) LP exprlist(Y) RP(E). [IN] {A;X;Y;N;E;}
-  expr(A) ::= expr(X) in_op(N) LP select(Y) RP(E).  [IN] {A;X;Y;N;E;}
-  expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN] {A;X;Y;N;Z;}
-%endif SQLITE_OMIT_SUBQUERY
+in_op(A) ::= IN.      {A;}
+in_op(A) ::= NOT IN.  {A;}
+expr(A) ::= expr(X) in_op(N) LP exprlist(Y) RP(E). [IN] {A;X;Y;N;E;}
+expr(A) ::= expr(X) in_op(N) LP select(Y) RP(E).  [IN] {A;X;Y;N;E;}
+expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN] {A;X;Y;N;Z;}
 
 /* CASE expressions */
 expr(A) ::= CASE(C) case_operand(X) case_exprlist(Y) case_else(Z) END(E). {A;X;Y;C;Z;E;}

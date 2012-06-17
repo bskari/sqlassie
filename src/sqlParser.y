@@ -42,7 +42,7 @@ cmdx ::= cmd.           {}
 ///////////////////// Begin and end transactions. ////////////////////////////
 //
 
-cmd ::= BEGIN transtype(Y) trans_opt.  {Y;}
+cmd ::= BEGIN_TOKEN transtype(Y) trans_opt.  {Y;}
 trans_opt ::= .
 trans_opt ::= TRANSACTION.
 trans_opt ::= TRANSACTION nm.
@@ -71,7 +71,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 // This obviates the need for the "id" nonterminal.
 //
 %fallback ID
-  ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN BY CASCADE CAST COLUMNKW
+  ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN_TOKEN BY CASCADE CAST COLUMNKW
   CONFLICT DATABASE DEFERRED DESC DETACH EACH END EXCLUSIVE EXPLAIN FAIL FOR
   IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH NO PLAN
   QUERY KEY OF OFFSET PRAGMA RAISE RELEASE REPLACE RESTRICT ROW ROLLBACK
@@ -100,7 +100,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 %left IS MATCH LIKE_KW BETWEEN IN ISNULL NOTNULL NE EQ.
 %left GT LE LT GE.
 %right ESCAPE.
-%left BITAND BITOR LSHIFT RSHIFT.
+%left BITAND BITOR BITXOR LSHIFT RSHIFT.
 %left PLUS MINUS.
 %left STAR SLASH REM.
 %left CONCAT.
@@ -323,7 +323,7 @@ inscollist(A) ::= nm(Y). {A;Y;}
 
 expr(A) ::= term(X).             {A;X;}
 expr(A) ::= LP(B) expr(X) RP(E). {A;X;B;E;}
-term(A) ::= NULL(X).             {A;X;}
+term(A) ::= NULL_TOKEN(X).             {A;X;}
 expr(A) ::= id(X).               {A;X;}
 expr(A) ::= JOIN_KW(X).          {A;X;}
 expr(A) ::= nm(X) DOT nm(Y). {A;X;Y;}
@@ -356,7 +356,7 @@ expr(A) ::= expr(X) likeop(OP) expr(Y).  [LIKE_KW]  {A;X;Y;OP;}
 expr(A) ::= expr(X) likeop(OP) expr(Y) ESCAPE expr(E).  [LIKE_KW]  {A;X;Y;OP;E;}
 
 expr(A) ::= expr(X) ISNULL|NOTNULL(E).   {A;X;E;}
-expr(A) ::= expr(X) NOT NULL(E). {A;X;E;}
+expr(A) ::= expr(X) NOT NULL_TOKEN(E). {A;X;E;}
 
 //    expr1 IS expr2
 //    expr1 IS NOT expr2

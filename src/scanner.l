@@ -27,7 +27,7 @@
 %{
     #define YY_EXTRA_TYPE QueryRisk*
     #define YY_DECL int sql_lex( \
-        YYSTYPE* const lvalp, \
+        void* const lvalp, \
         ScannerContext* const context, \
         QueryRisk* const qr, \
         yyscan_t yyscanner \
@@ -35,8 +35,9 @@
 
     #include "AstNode.hpp"
     #include "Logger.hpp"
-    // Include file produced by Bison
-    #include "parser.tab.hpp"
+    // Include file produced by Lemon
+    #include "sqlParser.hpp"
+    #define ERROR -1
     #include "QueryRisk.hpp"
     #include "ScannerContext.hpp"
 
@@ -104,10 +105,11 @@
 
 WHITE_SPACE [ \t\n\r\v\f]
 
-IDENTIFIER        ([a-zA-Z_][a-zA-Z0-9_]*)|("{"[a-zA-Z_][a-zA-Z0-9_]*"}")
+ID  ([a-zA-Z_][a-zA-Z0-9_]*)|("{"[a-zA-Z_][a-zA-Z0-9_]*"}")
 QUOTED_IDENTIFIER    "`"[a-zA-Z_][a-zA-Z0-9_]*"`"
-NUMBER            ([0-9][0-9]*)|([0-9]*"."[0-9]+)|([0-9]+"."[0-9]*)
-GLOBAL_VARIABLE    "@@"{IDENTIFIER}
+INTEGER     ([0-9][0-9]*)
+FLOAT       ([0-9]*"."[0-9]+)|([0-9]+"."[0-9]*)
+GLOBAL_VARIABLE    "@@"{ID}
 
 HEX_STRING    0x[0-9A-Fa-f]{2,}
 
@@ -259,40 +261,40 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "and"           {return AND;}
 "sounds"        {return SOUNDS;}
 
-"<"             {return LESS;}
-">"             {return GREATER;}
-"<="            {return LESS_EQUAL;}
-">="            {return GREATER_EQUAL;}
-("="|"<=>")     {return EQUAL;}
-("!="|"<>")     {return NOT_EQUAL;}
+"<"             {return LT;}
+">"             {return GT;}
+"<="            {return LE;}
+">="            {return GE;}
+("="|"<=>")     {return EQ;}
+("!="|"<>")     {return NE;}
 "like"          {return LIKE;}
 
 "div"   {return INTEGER_DIVIDE;}
-"/"     {return DIVIDE;}
-"%"     {return MODULO;}
+"/"     {return SLASH;}
+"%"     {return REM;}
 "+"     {return PLUS;}
 "-"     {return MINUS;}
 
-"&"     {return BITWISE_AND;}
-"|"     {return BITWISE_OR;}
-"^"     {return BITWISE_XOR;}
-"~"     {return BITWISE_NEGATION;}
-"<<"    {return LEFT_BIT_SHIFT;}
-">>"    {return RIGHT_BIT_SHIFT;}
+"&"     {return BITAND;}
+"|"     {return BITOR;}
+"^"     {return BITXOR;}
+"~"     {return BITNOT;}
+"<<"    {return LSHIFT;}
+">>"    {return RSHIFT;}
 
 ","     {return COMMA;}
-"*"     {return ASTERISK;}
+"*"     {return STAR;}
 "."     {return DOT;}
-";"     {return SEMICOLON;}
+";"     {return SEMI;}
 
-"("     {return LEFT_PARENTHESE;}
-")"     {return RIGHT_PARENTHESE;}
+"("     {return LP;}
+")"     {return RP;}
 
 "order"                 {return ORDER;}
 "group"                 {return GROUP;}
 "by"                    {return BY;}
-("ascending"|"asc")     {return ASCENDING;}
-("descending"|"desc")   {return DESCENDING;}
+("ascending"|"asc")     {return ASC;}
+("descending"|"desc")   {return DESC;}
 
 "set"   {return SET;}
 
@@ -352,13 +354,14 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "sql_cache"         {return SQL_CACHE;}
 "sql_no_cache"      {return SQL_NO_CACHE;}
 
-{IDENTIFIER}    {context->identifiers.push(std::string(yytext)); return IDENTIFIER;}
+{ID}    {context->identifiers.push(std::string(yytext)); return ID;}
 {QUOTED_IDENTIFIER}    {
     std::string str(yytext);
     context->identifiers.push(str.substr(1, str.length() - 2));
-    return IDENTIFIER;
+    return ID;
 }
-{NUMBER}            {context->numbers.push(std::string(yytext)); return NUMBER;}
+{INTEGER}           {context->numbers.push(std::string(yytext)); return INTEGER;}
+{FLOAT}             {context->numbers.push(std::string(yytext)); return FLOAT;}
 {GLOBAL_VARIABLE}   {context->identifiers.push(std::string(yytext)); return GLOBAL_VARIABLE;}
 
 .    {return ERROR;}

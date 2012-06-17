@@ -32,7 +32,7 @@
 // code file that implements the parser.
 //
 %include {
-
+#include <cassert>
 } // end %include
 
 // Input is a single SQL command

@@ -20,7 +20,7 @@
 
 #include "clearStack.hpp"
 #include "nullptr.hpp"
-#include "parser.tab.hpp"
+#include "sqlParser.hpp"
 #include "ParserInterface.hpp"
 #include "scanner.yy.hpp"
 

@@ -323,6 +323,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "ignore"    {return IGNORE;}
 "into"      {return INTO;}
 "outfile"   {return OUTFILE;}
+"dumpfile"  {return OUTFILE;}
 
 "from"      {return FROM;}
 "where"     {return WHERE;}

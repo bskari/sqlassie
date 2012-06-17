@@ -42,29 +42,29 @@ cmdx ::= cmd.           {}
 ///////////////////// Begin and end transactions. ////////////////////////////
 //
 
-cmd ::= BEGIN transtype(Y) trans_opt.  {}
+cmd ::= BEGIN transtype(Y) trans_opt.  {Y;}
 trans_opt ::= .
 trans_opt ::= TRANSACTION.
 trans_opt ::= TRANSACTION nm.
-transtype(A) ::= .             {}
-transtype(A) ::= DEFERRED(X).  {}
-transtype(A) ::= IMMEDIATE(X). {}
-transtype(A) ::= EXCLUSIVE(X). {}
+transtype(A) ::= .             {A;}
+transtype(A) ::= DEFERRED(X).  {A;X;}
+transtype(A) ::= IMMEDIATE(X). {A;X;}
+transtype(A) ::= EXCLUSIVE(X). {A;X;}
 cmd ::= COMMIT trans_opt.      {}
 cmd ::= END trans_opt.         {}
 cmd ::= ROLLBACK trans_opt.    {}
 
 savepoint_opt ::= SAVEPOINT.
 savepoint_opt ::= .
-cmd ::= SAVEPOINT nm(X). {}
-cmd ::= RELEASE savepoint_opt nm(X). {}
-cmd ::= ROLLBACK trans_opt TO savepoint_opt nm(X). {}
+cmd ::= SAVEPOINT nm(X). {X;}
+cmd ::= RELEASE savepoint_opt nm(X). {X;}
+cmd ::= ROLLBACK trans_opt TO savepoint_opt nm(X). {X;}
 
 // An IDENTIFIER can be a generic identifier, or one of several
 // keywords.  Any non-standard keyword can also be an identifier.
 //
-id(A) ::= ID(X).         {}
-id(A) ::= INDEXED(X).    {}
+id(A) ::= ID(X).         {A;X;}
+id(A) ::= INDEXED(X).    {A;X;}
 
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to
 // fallback to ID if they will not parse as their original value.
@@ -109,160 +109,85 @@ id(A) ::= INDEXED(X).    {}
 
 // And "ids" is an identifer-or-string.
 //
-ids(A) ::= ID|STRING(X).   {}
+ids(A) ::= ID|STRING(X).   {A;X;}
 
 // The name of a column or table can be any of the following:
 //
-nm(A) ::= id(X).         {}
-nm(A) ::= STRING(X).     {}
-nm(A) ::= JOIN_KW(X).    {}
+nm(A) ::= id(X).         {A;X;}
+nm(A) ::= STRING(X).     {A;X;}
+nm(A) ::= JOIN_KW(X).    {A;X;}
 
 // A typetoken is really one or more tokens that form a type name such
 // as can be found after the column name in a CREATE TABLE statement.
 // Multiple tokens are concatenated to form the value of the typetoken.
 //
-type ::= .
-type ::= typetoken(X).          {}
-typetoken(A) ::= typename(X).   {}
-typetoken(A) ::= typename(X) LP signed RP(Y). {}
-typetoken(A) ::= typename(X) LP signed COMMA signed RP(Y). {}
-typename(A) ::= ids(X).             {}
-typename(A) ::= typename(X) ids(Y). {}
+typetoken(A) ::= typename(X).   {A;X;}
+typetoken(A) ::= typename(X) LP signed RP(Y). {A;X;Y;}
+typetoken(A) ::= typename(X) LP signed COMMA signed RP(Y). {A;X;Y;}
+typename(A) ::= ids(X).             {A;X;}
+typename(A) ::= typename(X) ids(Y). {A;X;Y;}
+plus_num(A) ::= number(X).          {A;X;}
+minus_num(A) ::= MINUS number(X).   {A;X;}
+number(A) ::= INTEGER|FLOAT(X).     {A;X;}
 signed ::= plus_num.
 signed ::= minus_num.
 
-// "carglist" is a list of additional constraints that come after the
-// column name and column type in a CREATE TABLE statement.
-//
-carglist ::= carglist ccons.
-carglist ::= .
-ccons ::= CONSTRAINT nm(X).           {}
-ccons ::= DEFAULT term(X).            {}
-ccons ::= DEFAULT LP expr(X) RP.      {}
-ccons ::= DEFAULT PLUS term(X).       {}
-ccons ::= DEFAULT MINUS(A) term(X).   {}
-ccons ::= DEFAULT id(X).              {}
-
-// In addition to the type name, we also care about the primary key and
-// UNIQUE constraints.
-//
-ccons ::= NULL onconf.
-ccons ::= NOT NULL onconf(R).    {}
-ccons ::= PRIMARY KEY sortorder(Z) onconf(R) autoinc(I). {}
-ccons ::= UNIQUE onconf(R).      {}
-ccons ::= CHECK LP expr(X) RP.   {}
-ccons ::= REFERENCES nm(T) idxlist_opt(TA) refargs(R). {}
-ccons ::= defer_subclause(D).    {}
-ccons ::= COLLATE ids(C).        {}
-
-// The optional AUTOINCREMENT keyword
-autoinc(X) ::= .          {}
-autoinc(X) ::= AUTOINCR.  {}
-
-// The next group of rules parses the arguments to a REFERENCES clause
-// that determine if the referential integrity checking is deferred or
-// or immediate and which determine what action to take if a ref-integ
-// check fails.
-//
-refargs(A) ::= .                  {}
-refargs(A) ::= refargs(X) refarg(Y). {}
-refarg(A) ::= MATCH nm.              {}
-refarg(A) ::= ON INSERT refact.      {}
-refarg(A) ::= ON DELETE refact(X).   {}
-refarg(A) ::= ON UPDATE refact(X).   {}
-refact(A) ::= SET NULL.              {}
-refact(A) ::= SET DEFAULT.           {}
-refact(A) ::= CASCADE.               {}
-refact(A) ::= RESTRICT.              {}
-refact(A) ::= NO ACTION.             {}
-defer_subclause(A) ::= NOT DEFERRABLE init_deferred_pred_opt.     {}
-defer_subclause(A) ::= DEFERRABLE init_deferred_pred_opt(X).      {}
-init_deferred_pred_opt(A) ::= .                       {}
-init_deferred_pred_opt(A) ::= INITIALLY DEFERRED.     {}
-init_deferred_pred_opt(A) ::= INITIALLY IMMEDIATE.    {}
-
-conslist_opt(A) ::= .                         {}
-conslist_opt(A) ::= COMMA(X) conslist.        {}
-conslist ::= conslist tconscomma tcons.
-conslist ::= tcons.
-tconscomma ::= COMMA.            {}
-tconscomma ::= .
-tcons ::= CONSTRAINT nm(X).      {}
-tcons ::= PRIMARY KEY LP idxlist(X) autoinc(I) RP onconf(R). {}
-tcons ::= UNIQUE LP idxlist(X) RP onconf(R). {}
-tcons ::= CHECK LP expr(E) RP onconf. {}
-tcons ::= FOREIGN KEY LP idxlist(FA) RP
-          REFERENCES nm(T) idxlist_opt(TA) refargs(R) defer_subclause_opt(D). {}
-defer_subclause_opt(A) ::= .                    {}
-defer_subclause_opt(A) ::= defer_subclause(X).  {}
-
-// The following is a non-standard extension that allows us to declare the
-// default behavior when there is a constraint conflict.
-//
-onconf(A) ::= .                              {}
-onconf(A) ::= ON CONFLICT resolvetype(X).    {}
-orconf(A) ::= .                              {}
-orconf(A) ::= OR resolvetype(X).             {}
-resolvetype(A) ::= raisetype(X).             {}
-resolvetype(A) ::= IGNORE.                   {}
-resolvetype(A) ::= REPLACE.                  {}
-
 //////////////////////// The SELECT statement /////////////////////////////////
 //
-cmd ::= select(X).  {}
+cmd ::= select(X).  {X;}
 
-select(A) ::= oneselect(X).                      {}
+select(A) ::= oneselect(X).                      {A;X;}
 %ifndef SQLITE_OMIT_COMPOUND_SELECT
-select(A) ::= select(X) multiselect_op(Y) oneselect(Z).  {}
-multiselect_op(A) ::= UNION(OP).             {}
-multiselect_op(A) ::= UNION ALL.             {}
-multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {}
+select(A) ::= select(X) multiselect_op(Y) oneselect(Z).  {A;X;Y;Z;}
+multiselect_op(A) ::= UNION(OP).             {A;OP;}
+multiselect_op(A) ::= UNION ALL.             {A;}
+multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
 %endif SQLITE_OMIT_COMPOUND_SELECT
 oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) where_opt(Y)
-                 groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {}
+                 groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {A;D;W;X;Y;P;Q;Z;L;}
 
 // The "distinct" nonterminal is true (1) if the DISTINCT keyword is
 // present and false (0) if it is not.
 //
-distinct(A) ::= DISTINCT.   {}
-distinct(A) ::= ALL.        {}
-distinct(A) ::= .           {}
+distinct(A) ::= DISTINCT.   {A;}
+distinct(A) ::= ALL.        {A;}
+distinct(A) ::= .           {A;}
 
 // selcollist is a list of expressions that are to become the return
 // values of the SELECT statement.  The "*" in statements like
 // "SELECT * FROM ..." is encoded as a special expression with an
 // opcode of TK_ALL.
 //
-sclp(A) ::= selcollist(X) COMMA.             {}
-sclp(A) ::= .                                {}
-selcollist(A) ::= sclp(P) expr(X) as(Y).     {}
-selcollist(A) ::= sclp(P) STAR. {}
-selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y). {}
+sclp(A) ::= selcollist(X) COMMA.             {A;X;}
+sclp(A) ::= .                                {A;}
+selcollist(A) ::= sclp(P) expr(X) as(Y).     {A;X;Y;P;}
+selcollist(A) ::= sclp(P) STAR. {A;P;}
+selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y). {A;X;Y;P;}
 
 // An option "AS <id>" phrase that can follow one of the expressions that
 // define the result set, or one of the tables in the FROM clause.
 //
-as(X) ::= AS nm(Y).    {}
-as(X) ::= ids(Y).      {}
-as(X) ::= .            {}
+as(X) ::= AS nm(Y).    {X;X;Y;}
+as(X) ::= ids(Y).      {X;X;Y;}
+as(X) ::= .            {X;X;}
 
 
 // A complete FROM clause.
 //
-from(A) ::= .                {}
-from(A) ::= FROM seltablist(X). {}
+from(A) ::= .                {A;}
+from(A) ::= FROM seltablist(X). {A;X;}
 
 // "seltablist" is a "Select Table List" - the content of the FROM clause
 // in a SELECT statement.  "stl_prefix" is a prefix of this list.
 //
-stl_prefix(A) ::= seltablist(X) joinop(Y).    {}
-stl_prefix(A) ::= .                           {}
-seltablist(A) ::= stl_prefix(X) nm(Y) dbnm(D) as(Z) indexed_opt(I) on_opt(N) using_opt(U). {}
+stl_prefix(A) ::= seltablist(X) joinop(Y).    {A;X;Y;}
+stl_prefix(A) ::= .                           {A;}
+seltablist(A) ::= stl_prefix(X) nm(Y) dbnm(D) as(Z) indexed_opt(I) on_opt(N) using_opt(U). {A;X;Y;D;Z;I;N;U;}
 %ifndef SQLITE_OMIT_SUBQUERY
   seltablist(A) ::= stl_prefix(X) LP select(S) RP
-                    as(Z) on_opt(N) using_opt(U). {}
+                    as(Z) on_opt(N) using_opt(U). {A;X;S;Z;N;U;}
   seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
-                    as(Z) on_opt(N) using_opt(U). {}
+                    as(Z) on_opt(N) using_opt(U). {A;X;F;Z;N;U;}
   
   // A seltablist_paren nonterminal represents anything in a FROM that
   // is contained inside parentheses.  This can be either a subquery or
@@ -277,18 +202,18 @@ seltablist(A) ::= stl_prefix(X) nm(Y) dbnm(D) as(Z) indexed_opt(I) on_opt(N) usi
 //  }
 %endif  SQLITE_OMIT_SUBQUERY
 
-dbnm(A) ::= .          {}
-dbnm(A) ::= DOT nm(X). {}
+dbnm(A) ::= .          {A;}
+dbnm(A) ::= DOT nm(X). {A;X;}
 
-fullname(A) ::= nm(X) dbnm(Y).  {A = sqlite3SrcListAppend(pParse->db,0,&X,&Y);}
+fullname(A) ::= nm(X) dbnm(Y).  {A;X;Y;}
 
-joinop(X) ::= COMMA|JOIN.              {}
-joinop(X) ::= JOIN_KW(A) JOIN.         {}
-joinop(X) ::= JOIN_KW(A) nm(B) JOIN.   {}
-joinop(X) ::= JOIN_KW(A) nm(B) nm(C) JOIN. {}
+joinop(X) ::= COMMA|JOIN.              {X;}
+joinop(X) ::= JOIN_KW(A) JOIN.         {X;A;}
+joinop(X) ::= JOIN_KW(A) nm(B) JOIN.   {X;A;B;}
+joinop(X) ::= JOIN_KW(A) nm(B) nm(C) JOIN. {X;A;B;C;}
 
-on_opt(N) ::= ON expr(E).   {}
-on_opt(N) ::= .             {}
+on_opt(N) ::= ON expr(E).   {N;E;}
+on_opt(N) ::= .             {N;}
 
 // Note that this block abuses the Token type just a little. If there is
 // no "INDEXED BY" clause, the returned token is empty (z==0 && n==0). If
@@ -300,27 +225,27 @@ on_opt(N) ::= .             {}
 // normally illegal. The sqlite3SrcListIndexedBy() function 
 // recognizes and interprets this as a special case.
 //
-indexed_opt(A) ::= .                 {}
-indexed_opt(A) ::= INDEXED BY nm(X). {}
-indexed_opt(A) ::= NOT INDEXED.      {}
+indexed_opt(A) ::= .                 {A;}
+indexed_opt(A) ::= INDEXED BY nm(X). {A;X;}
+indexed_opt(A) ::= NOT INDEXED.      {A;}
 
-using_opt(U) ::= USING LP inscollist(L) RP.  {}
-using_opt(U) ::= .                        {}
+using_opt(U) ::= USING LP inscollist(L) RP.  {U;L;}
+using_opt(U) ::= .                        {U;}
 
-orderby_opt(A) ::= .                          {}
-orderby_opt(A) ::= ORDER BY sortlist(X).      {}
-sortlist(A) ::= sortlist(X) COMMA expr(Y) sortorder(Z). {}
-sortlist(A) ::= expr(Y) sortorder(Z). {}
+orderby_opt(A) ::= .                          {A;}
+orderby_opt(A) ::= ORDER BY sortlist(X).      {A;X;}
+sortlist(A) ::= sortlist(X) COMMA expr(Y) sortorder(Z). {A;X;Y;Z;}
+sortlist(A) ::= expr(Y) sortorder(Z). {A;Y;Z;}
 
-sortorder(A) ::= ASC.           {}
-sortorder(A) ::= DESC.          {}
-sortorder(A) ::= .              {}
+sortorder(A) ::= ASC.           {A;}
+sortorder(A) ::= DESC.          {A;}
+sortorder(A) ::= .              {A;}
 
-groupby_opt(A) ::= .                      {}
-groupby_opt(A) ::= GROUP BY nexprlist(X). {}
+groupby_opt(A) ::= .                      {A;}
+groupby_opt(A) ::= GROUP BY nexprlist(X). {A;X;}
 
-having_opt(A) ::= .                {}
-having_opt(A) ::= HAVING expr(X).  {}
+having_opt(A) ::= .                {A;}
+having_opt(A) ::= HAVING expr(X).  {A;X;}
 
 // The destructor for limit_opt will never fire in the current grammar.
 // The limit_opt non-terminal only occurs at the end of a single production
@@ -333,45 +258,45 @@ having_opt(A) ::= HAVING expr(X).  {}
 //  sqlite3ExprDelete(pParse->db, $$.pLimit);
 //  sqlite3ExprDelete(pParse->db, $$.pOffset);
 //}
-limit_opt(A) ::= .                    {}
-limit_opt(A) ::= LIMIT expr(X).       {}
-limit_opt(A) ::= LIMIT expr(X) OFFSET expr(Y). {}
-limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {}
+limit_opt(A) ::= .                    {A;}
+limit_opt(A) ::= LIMIT expr(X).       {A;X;}
+limit_opt(A) ::= LIMIT expr(X) OFFSET expr(Y). {A;X;Y;}
+limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {A;X;Y;}
 
 /////////////////////////// The DELETE statement /////////////////////////////
 //
 %ifdef SQLITE_ENABLE_UPDATE_DELETE_LIMIT
 cmd ::= DELETE FROM fullname(X) indexed_opt(I) where_opt(W) 
-        orderby_opt(O) limit_opt(L). {}
+        orderby_opt(O) limit_opt(L). {O;}
 %endif
 %ifndef SQLITE_ENABLE_UPDATE_DELETE_LIMIT
-cmd ::= DELETE FROM fullname(X) indexed_opt(I) where_opt(W). {}
+cmd ::= DELETE FROM fullname(X) indexed_opt(I) where_opt(W). {X;X;I;W;}
 %endif
 
-where_opt(A) ::= .                    {}
-where_opt(A) ::= WHERE expr(X).       {}
+where_opt(A) ::= .                    {A;}
+where_opt(A) ::= WHERE expr(X).       {A;X;}
 
 ////////////////////////// The UPDATE command ////////////////////////////////
 //
 %ifdef SQLITE_ENABLE_UPDATE_DELETE_LIMIT
 cmd ::= UPDATE orconf(R) fullname(X) indexed_opt(I) SET setlist(Y)
-    where_opt(W) orderby_opt(O) limit_opt(L).  {}
+    where_opt(W) orderby_opt(O) limit_opt(L).  {W;}
 %endif
 %ifndef SQLITE_ENABLE_UPDATE_DELETE_LIMIT
-cmd ::= UPDATE orconf(R) fullname(X) indexed_opt(I) SET setlist(Y) where_opt(W).  {}
+cmd ::= UPDATE fullname(X) indexed_opt(I) SET setlist(Y) where_opt(W).  {X;Y;I;W;}
 %endif
 
-setlist(A) ::= setlist(Z) COMMA nm(X) EQ expr(Y). {}
-setlist(A) ::= nm(X) EQ expr(Y). {}
+setlist(A) ::= setlist(Z) COMMA nm(X) EQ expr(Y). {A;X;Y;Z;}
+setlist(A) ::= nm(X) EQ expr(Y). {A;X;Y;}
 
 ////////////////////////// The INSERT command /////////////////////////////////
 //
-cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) valuelist(Y). {}
-cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) select(S). {}
-cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) DEFAULT VALUES. {}
+cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) valuelist(Y). {R;X;Y;F;}
+cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) select(S). {R;X;F;S;}
+cmd ::= insert_cmd(R) INTO fullname(X) inscollist_opt(F) DEFAULT VALUES. {R;X;F;}
 
-insert_cmd(A) ::= INSERT orconf(R).   {}
-insert_cmd(A) ::= REPLACE.            {}
+insert_cmd(A) ::= INSERT.   {A;}
+insert_cmd(A) ::= REPLACE.  {A;}
 
 // A ValueList is either a single VALUES clause or a comma-separated list
 // of VALUES clauses.  If it is a single VALUES clause then the
@@ -380,58 +305,58 @@ insert_cmd(A) ::= REPLACE.            {}
 // into a set of SELECT statements without FROM clauses and connected by
 // UNION ALL and the ValueList.pSelect points to the right-most SELECT in
 // that compound.
-valuelist(A) ::= VALUES LP nexprlist(X) RP. {}
+valuelist(A) ::= VALUES LP nexprlist(X) RP. {A;X;}
 
 // Since a list of VALUEs is inplemented as a compound SELECT, we have
 // to disable the value list option if compound SELECTs are disabled.
 %ifndef SQLITE_OMIT_COMPOUND_SELECT
-valuelist(A) ::= valuelist(X) COMMA LP exprlist(Y) RP. {}
+valuelist(A) ::= valuelist(X) COMMA LP exprlist(Y) RP. {A;X;Y;}
 %endif SQLITE_OMIT_COMPOUND_SELECT
 
-inscollist_opt(A) ::= .                      {}
-inscollist_opt(A) ::= LP inscollist(X) RP.   {}
-inscollist(A) ::= inscollist(X) COMMA nm(Y). {}
-inscollist(A) ::= nm(Y). {}
+inscollist_opt(A) ::= .                      {A;}
+inscollist_opt(A) ::= LP inscollist(X) RP.   {A;X;}
+inscollist(A) ::= inscollist(X) COMMA nm(Y). {A;X;Y;}
+inscollist(A) ::= nm(Y). {A;Y;}
 
 /////////////////////////// Expression Processing /////////////////////////////
 //
 
-expr(A) ::= term(X).             {}
-expr(A) ::= LP(B) expr(X) RP(E). {}
-term(A) ::= NULL(X).             {}
-expr(A) ::= id(X).               {}
-expr(A) ::= JOIN_KW(X).          {}
-expr(A) ::= nm(X) DOT nm(Y). {}
-expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z). {}
-term(A) ::= INTEGER|FLOAT|BLOB(X).  {}
-term(A) ::= STRING(X).              {}
-expr(A) ::= REGISTER(X).     {}
-expr(A) ::= VARIABLE(X).     {}
-expr(A) ::= expr(E) COLLATE ids(C). {}
+expr(A) ::= term(X).             {A;X;}
+expr(A) ::= LP(B) expr(X) RP(E). {A;X;B;E;}
+term(A) ::= NULL(X).             {A;X;}
+expr(A) ::= id(X).               {A;X;}
+expr(A) ::= JOIN_KW(X).          {A;X;}
+expr(A) ::= nm(X) DOT nm(Y). {A;X;Y;}
+expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z). {A;X;Y;Z;}
+term(A) ::= INTEGER|FLOAT|BLOB(X).  {A;X;}
+term(A) ::= STRING(X).              {A;X;}
+expr(A) ::= REGISTER(X).     {A;X;}
+expr(A) ::= VARIABLE(X).     {A;X;}
+expr(A) ::= expr(E) COLLATE ids(C). {A;E;C;}
 %ifndef SQLITE_OMIT_CAST
-expr(A) ::= CAST(X) LP expr(E) AS typetoken(T) RP(Y). {}
+expr(A) ::= CAST(X) LP expr(E) AS typetoken(T) RP(Y). {A;X;Y;E;T;}
 %endif  SQLITE_OMIT_CAST
-expr(A) ::= ID(X) LP distinct(D) exprlist(Y) RP(E). {}
-expr(A) ::= ID(X) LP STAR RP(E). {}
-term(A) ::= CTIME_KW(OP). {}
+expr(A) ::= ID(X) LP distinct(D) exprlist(Y) RP(E). {A;X;Y;D;E;}
+expr(A) ::= ID(X) LP STAR RP(E). {A;X;E;}
+term(A) ::= CTIME_KW(OP). {A;OP;}
 
-expr(A) ::= expr(X) AND(OP) expr(Y).    {}
-expr(A) ::= expr(X) OR(OP) expr(Y).     {}
-expr(A) ::= expr(X) LT|GT|GE|LE(OP) expr(Y). {}
-expr(A) ::= expr(X) EQ|NE(OP) expr(Y).  {}
-expr(A) ::= expr(X) BITAND|BITOR|LSHIFT|RSHIFT(OP) expr(Y). {}
-expr(A) ::= expr(X) PLUS|MINUS(OP) expr(Y). {}
-expr(A) ::= expr(X) STAR|SLASH|REM(OP) expr(Y). {}
-expr(A) ::= expr(X) CONCAT(OP) expr(Y). {}
-likeop(A) ::= LIKE_KW(X).     {}
-likeop(A) ::= NOT LIKE_KW(X). {}
-likeop(A) ::= MATCH(X).       {}
-likeop(A) ::= NOT MATCH(X).   {}
-expr(A) ::= expr(X) likeop(OP) expr(Y).  [LIKE_KW]  {}
-expr(A) ::= expr(X) likeop(OP) expr(Y) ESCAPE expr(E).  [LIKE_KW]  {}
+expr(A) ::= expr(X) AND(OP) expr(Y).    {A;X;Y;OP;}
+expr(A) ::= expr(X) OR(OP) expr(Y).     {A;X;Y;OP;}
+expr(A) ::= expr(X) LT|GT|GE|LE(OP) expr(Y). {A;X;Y;OP;}
+expr(A) ::= expr(X) EQ|NE(OP) expr(Y).  {A;X;Y;OP;}
+expr(A) ::= expr(X) BITAND|BITOR|LSHIFT|RSHIFT(OP) expr(Y). {A;X;Y;OP;}
+expr(A) ::= expr(X) PLUS|MINUS(OP) expr(Y). {A;X;Y;OP;}
+expr(A) ::= expr(X) STAR|SLASH|REM(OP) expr(Y). {A;X;Y;OP;}
+expr(A) ::= expr(X) CONCAT(OP) expr(Y). {A;X;Y;OP;}
+likeop(A) ::= LIKE_KW(X).     {A;X;}
+likeop(A) ::= NOT LIKE_KW(X). {A;X;}
+likeop(A) ::= MATCH(X).       {A;X;}
+likeop(A) ::= NOT MATCH(X).   {A;X;}
+expr(A) ::= expr(X) likeop(OP) expr(Y).  [LIKE_KW]  {A;X;Y;OP;}
+expr(A) ::= expr(X) likeop(OP) expr(Y) ESCAPE expr(E).  [LIKE_KW]  {A;X;Y;OP;E;}
 
-expr(A) ::= expr(X) ISNULL|NOTNULL(E).   {}
-expr(A) ::= expr(X) NOT NULL(E). {}
+expr(A) ::= expr(X) ISNULL|NOTNULL(E).   {A;X;E;}
+expr(A) ::= expr(X) NOT NULL(E). {A;X;E;}
 
 //    expr1 IS expr2
 //    expr1 IS NOT expr2
@@ -439,39 +364,35 @@ expr(A) ::= expr(X) NOT NULL(E). {}
 // If expr2 is NULL then code as TK_ISNULL or TK_NOTNULL.  If expr2
 // is any other expression, code as TK_IS or TK_ISNOT.
 // 
-expr(A) ::= expr(X) IS expr(Y).     {}
-expr(A) ::= expr(X) IS NOT expr(Y). {}
+expr(A) ::= expr(X) IS expr(Y).     {A;X;Y;}
+expr(A) ::= expr(X) IS NOT expr(Y). {A;X;Y;}
 
-expr(A) ::= NOT(B) expr(X).    {}
-expr(A) ::= BITNOT(B) expr(X). {}
-expr(A) ::= MINUS(B) expr(X). [BITNOT] {}
-expr(A) ::= PLUS(B) expr(X). [BITNOT] {}
+expr(A) ::= NOT(B) expr(X).    {A;X;B;}
+expr(A) ::= BITNOT(B) expr(X). {A;X;B;}
+expr(A) ::= MINUS(B) expr(X). [BITNOT] {A;X;B;}
+expr(A) ::= PLUS(B) expr(X). [BITNOT] {A;X;B;}
 
-between_op(A) ::= BETWEEN.     {}
-between_op(A) ::= NOT BETWEEN. {}
-expr(A) ::= expr(W) between_op(N) expr(X) AND expr(Y). [BETWEEN] {}
+between_op(A) ::= BETWEEN.     {A;}
+between_op(A) ::= NOT BETWEEN. {A;}
+expr(A) ::= expr(W) between_op(N) expr(X) AND expr(Y). [BETWEEN] {A;X;Y;W;N;}
 %ifndef SQLITE_OMIT_SUBQUERY
-  in_op(A) ::= IN.      {}
-  in_op(A) ::= NOT IN.  {}
-  expr(A) ::= expr(X) in_op(N) LP exprlist(Y) RP(E). [IN] {}
-  expr(A) ::= expr(X) in_op(N) LP select(Y) RP(E).  [IN] {}
-  expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN] {}
+  in_op(A) ::= IN.      {A;}
+  in_op(A) ::= NOT IN.  {A;}
+  expr(A) ::= expr(X) in_op(N) LP exprlist(Y) RP(E). [IN] {A;X;Y;N;E;}
+  expr(A) ::= expr(X) in_op(N) LP select(Y) RP(E).  [IN] {A;X;Y;N;E;}
+  expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN] {A;X;Y;N;Z;}
 %endif SQLITE_OMIT_SUBQUERY
 
 /* CASE expressions */
-expr(A) ::= CASE(C) case_operand(X) case_exprlist(Y) case_else(Z) END(E). {}
-case_exprlist(A) ::= case_exprlist(X) WHEN expr(Y) THEN expr(Z). {}
-case_exprlist(A) ::= WHEN expr(Y) THEN expr(Z). {}
-case_else(A) ::=  ELSE expr(X).         {}
-case_else(A) ::=  .                     {}
-case_operand(A) ::= expr(X).            {}
-case_operand(A) ::= .                   {}
+expr(A) ::= CASE(C) case_operand(X) case_exprlist(Y) case_else(Z) END(E). {A;X;Y;C;Z;E;}
+case_exprlist(A) ::= case_exprlist(X) WHEN expr(Y) THEN expr(Z). {A;X;Y;Z;}
+case_exprlist(A) ::= WHEN expr(Y) THEN expr(Z). {A;Y;Z;}
+case_else(A) ::=  ELSE expr(X).         {A;X;}
+case_else(A) ::=  .                     {A;}
+case_operand(A) ::= expr(X).            {A;X;}
+case_operand(A) ::= .                   {A;}
 
-exprlist(A) ::= nexprlist(X).                {}
-exprlist(A) ::= .                            {}
-nexprlist(A) ::= nexprlist(X) COMMA expr(Y). {}
-nexprlist(A) ::= expr(Y). {}
-
-raisetype(A) ::= ROLLBACK.  {}
-raisetype(A) ::= ABORT.     {}
-raisetype(A) ::= FAIL.      {}
+exprlist(A) ::= nexprlist(X).                {A;X;}
+exprlist(A) ::= .                            {A;}
+nexprlist(A) ::= nexprlist(X) COMMA expr(Y). {A;X;Y;Y;}
+nexprlist(A) ::= expr(Y). {A;Y;Y;}

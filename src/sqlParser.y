@@ -1,19 +1,28 @@
 /*
-** 2001 September 15
-**
-** The author disclaims copyright to this source code.  In place of
-** a legal notice, here is a blessing:
-**
-**    May you do good and not evil.
-**    May you find forgiveness for yourself and forgive others.
-**    May you share freely, never taking more than you give.
-**
-*************************************************************************
-** This file contains SQLite's grammar for SQL.  Process this file
-** using the lemon parser generator to generate C code that runs
-** the parser.  Lemon will also generate a header file containing
-** numeric codes for all of the tokens.
-*/
+ * SQLassie - database firewall
+ * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ *
+ * This file is part of SQLassie.
+ *
+ * SQLassie is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SQLassie is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * Parser for MySQL queries. Derived from the parser for SQLite.
+ * @author Brandon Skari
+ * @date June 16 2012
+ */
 
 // The name of the generated procedure that implements the parser
 // is as follows:

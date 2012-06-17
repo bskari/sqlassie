@@ -224,10 +224,22 @@ dbnm(A) ::= DOT nm(X). {A;X;}
 
 fullname(A) ::= nm(X) dbnm(Y).  {A;X;Y;}
 
-joinop(X) ::= COMMA|JOIN.              {X;}
-joinop(X) ::= JOIN_KW(A) JOIN.         {X;A;}
-joinop(X) ::= JOIN_KW(A) nm(B) JOIN.   {X;A;B;}
-joinop(X) ::= JOIN_KW(A) nm(B) nm(C) JOIN. {X;A;B;C;}
+joinop(X) ::= COMMA.                 {X;}
+joinop(X) ::= join_opt JOIN.         {X;}
+joinop(X) ::= join_opt nm(B) JOIN.   {X;B;}
+joinop(X) ::= join_opt nm(B) nm(C) JOIN. {X;B;C;}
+
+join_opt ::= INNER.
+join_opt ::= CROSS.
+join_opt ::= LEFT.
+join_opt ::= RIGHT.
+join_opt ::= LEFT OUTER.
+join_opt ::= RIGHT OUTER.
+join_opt ::= STRAIGHT.
+join_opt ::= NATURAL LEFT.
+join_opt ::= NATURAL RIGHT.
+join_opt ::= NATURAL LEFT OUTER.
+join_opt ::= NATURAL RIGHT OUTER.
 
 on_opt(N) ::= ON expr(E).   {N;E;}
 on_opt(N) ::= .             {N;}

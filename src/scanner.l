@@ -261,14 +261,14 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
  /** @TODO SQL small result, SQL big result, SQL buffer result */
  /** @TODO SQL calc found rows, SQL no cache, SQL cache all */
 
-"left"      {return JOIN_KW;}
-"right"     {return JOIN_KW;}
-"outer"     {return JOIN_KW;}
-"inner"     {return JOIN_KW;}
-"straight"  {return JOIN_KW;}
-"full"      {return JOIN_KW;}
-"cross"     {return JOIN_KW;}
-"natural"   {return JOIN_KW;}
+"left"      {return LEFT;}
+"right"     {return RIGHT;}
+"outer"     {return OUTER;}
+"inner"     {return INNER;}
+"straight"  {return STRAIGHT;}
+"full"      {return FULL;}
+"cross"     {return CROSS;}
+"natural"   {return NATURAL;}
 "join"      {return JOIN;}
 "on"        {return ON;}
 "using"     {return USING;}

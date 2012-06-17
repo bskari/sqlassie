@@ -83,7 +83,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   // MySQL specific stuff
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
   SOUNDS OUTFILE SQL_BIG_RESULT SQL_SMALL_RESULT SQL_BUFFER_RESULT SQL_CACHE
-  SQL_NO_CACHE
+  SQL_NO_CACHE LOCK SHARE MODE
 %ifdef SQLITE_OMIT_COMPOUND_SELECT
   EXCEPT INTERSECT UNION
 %endif SQLITE_OMIT_COMPOUND_SELECT
@@ -163,10 +163,9 @@ cmd ::= UNLOCK TABLES lock_tables_list.
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //
-cmd ::= select(X) select_op.              {X;}
-cmd ::= select(X) select_op INTO OUTFILE. {X;}
+cmd ::= select_op select(X) outfile_op lock_read_op .   {X;}
 
-select(A) ::= oneselect(X).                      {A;X;}
+select(A) ::= oneselect(X).                  {A;X;}
 %ifndef SQLITE_OMIT_COMPOUND_SELECT
 select(A) ::= select(X) multiselect_op(Y) oneselect(Z).  {A;X;Y;Z;}
 multiselect_op(A) ::= UNION(OP).             {A;OP;}
@@ -203,6 +202,15 @@ sql_cache_op ::= SQL_CACHE.
 sql_cache_op ::= SQL_NO_CACHE.
 sql_calc_found_rows_op ::= .
 sql_calc_found_rows_op ::= SQL_CALC_FOUND_ROWS.
+
+// MySQL specific outfile
+outfile_op ::= .
+outfile_op ::= INTO OUTFILE.
+
+// MySQL specific read locking
+lock_read_op ::= .
+lock_read_op ::= FOR UPDATE.
+lock_read_op ::= LOCK IN SHARE MODE.
 
 // selcollist is a list of expressions that are to become the return
 // values of the SELECT statement.  The "*" in statements like

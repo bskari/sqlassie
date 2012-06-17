@@ -167,7 +167,7 @@ cmd ::= UNLOCK TABLES lock_tables_list.
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //
-cmd ::= select_op select(X) outfile_op lock_read_op .   {X;}
+cmd ::= select_opt select(X) outfile_opt lock_read_opt .   {X;}
 
 select(A) ::= oneselect(X).                  {A;X;}
 %ifndef SQLITE_OMIT_COMPOUND_SELECT
@@ -188,33 +188,33 @@ distinct(A) ::= DISTINCTROW.    {A;}
 distinct(A) ::= .               {A;}
 
 // MySQL specific select options
-select_op ::= high_priority_op straight_join_op
-          sql_small_result_op sql_big_result_op sql_buffer_result_op
-          sql_cache_op sql_calc_found_rows_op .
-high_priority_op ::= .
-high_priority_op ::= HIGH_PRIORITY.
-straight_join_op ::= .
-straight_join_op ::= STRAIGHT_JOIN.
-sql_small_result_op ::= .
-sql_small_result_op ::= SQL_SMALL_RESULT.
-sql_big_result_op ::= .
-sql_big_result_op ::= SQL_BIG_RESULT.
-sql_buffer_result_op ::= .
-sql_buffer_result_op ::= SQL_BUFFER_RESULT.
-sql_cache_op ::= .
-sql_cache_op ::= SQL_CACHE.
-sql_cache_op ::= SQL_NO_CACHE.
-sql_calc_found_rows_op ::= .
-sql_calc_found_rows_op ::= SQL_CALC_FOUND_ROWS.
+select_opt ::= high_priority_opt straight_join_opt
+          sql_small_result_opt sql_big_result_opt sql_buffer_result_opt
+          sql_cache_opt sql_calc_found_rows_opt .
+high_priority_opt ::= .
+high_priority_opt ::= HIGH_PRIORITY.
+straight_join_opt ::= .
+straight_join_opt ::= STRAIGHT_JOIN.
+sql_small_result_opt ::= .
+sql_small_result_opt ::= SQL_SMALL_RESULT.
+sql_big_result_opt ::= .
+sql_big_result_opt ::= SQL_BIG_RESULT.
+sql_buffer_result_opt ::= .
+sql_buffer_result_opt ::= SQL_BUFFER_RESULT.
+sql_cache_opt ::= .
+sql_cache_opt ::= SQL_CACHE.
+sql_cache_opt ::= SQL_NO_CACHE.
+sql_calc_found_rows_opt ::= .
+sql_calc_found_rows_opt ::= SQL_CALC_FOUND_ROWS.
 
 // MySQL specific outfile
-outfile_op ::= .
-outfile_op ::= INTO OUTFILE.
+outfile_opt ::= .
+outfile_opt ::= INTO OUTFILE.
 
 // MySQL specific read locking
-lock_read_op ::= .
-lock_read_op ::= FOR UPDATE.
-lock_read_op ::= LOCK IN SHARE MODE.
+lock_read_opt ::= .
+lock_read_opt ::= FOR UPDATE.
+lock_read_opt ::= LOCK IN SHARE MODE.
 
 // selcollist is a list of expressions that are to become the return
 // values of the SELECT statement.  The "*" in statements like

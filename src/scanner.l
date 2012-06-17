@@ -254,10 +254,12 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 
 "low_priority"  {return INSERT_KW;}
 "high_priority" {return INSERT_KW;}
+"straight_join" {return STRAIGHT_JOIN;}
 "delayed"       {return INSERT_KW;}
 "quick"         {return QUICK;}
 "distinct"      {return DISTINCT;}
 "all"           {return ALL;}
+"distinctrow"   {return DISTINCTROW;}
  /** @TODO SQL small result, SQL big result, SQL buffer result */
  /** @TODO SQL calc found rows, SQL no cache, SQL cache all */
 
@@ -265,7 +267,6 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "right"     {return RIGHT;}
 "outer"     {return OUTER;}
 "inner"     {return INNER;}
-"straight"  {return STRAIGHT;}
 "cross"     {return CROSS;}
 "natural"   {return NATURAL;}
 "join"      {return JOIN;}

@@ -82,7 +82,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH NO PLAN
   QUERY KEY OF OFFSET PRAGMA RAISE RELEASE REPLACE RESTRICT ROW ROLLBACK
   SAVEPOINT TEMP TRIGGER VACUUM VIEW VIRTUAL
-  // MySQL specific stuff starts here
+  // MySQL specific stuff
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
   SOUNDS OUTFILE
 %ifdef SQLITE_OMIT_COMPOUND_SELECT
@@ -153,8 +153,8 @@ cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //
-cmd ::= select(X).              {X;}
-cmd ::= select(X) INTO OUTFILE. {X;}
+cmd ::= select(X) select_op.              {X;}
+cmd ::= select(X) select_op INTO OUTFILE. {X;}
 
 select(A) ::= oneselect(X).                      {A;X;}
 %ifndef SQLITE_OMIT_COMPOUND_SELECT
@@ -169,9 +169,30 @@ oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) where_opt(Y)
 // The "distinct" nonterminal is true (1) if the DISTINCT keyword is
 // present and false (0) if it is not.
 //
-distinct(A) ::= DISTINCT.   {A;}
-distinct(A) ::= ALL.        {A;}
-distinct(A) ::= .           {A;}
+distinct(A) ::= DISTINCT.       {A;}
+distinct(A) ::= ALL.            {A;}
+distinct(A) ::= DISTINCTROW.    {A;}
+distinct(A) ::= .               {A;}
+
+// MySQL specific select options
+select_op ::= high_priority_op straight_join_op
+          sql_small_result_op sql_big_result_op sql_buffer_result_op
+          sql_cache_op sql_calc_found_rows_op .
+high_priority_op ::= .
+high_priority_op ::= HIGH_PRIORITY.
+straight_join_op ::= .
+straight_join_op ::= STRAIGHT_JOIN.
+sql_small_result_op ::= .
+sql_small_result_op ::= SQL_SMALL_RESULT.
+sql_big_result_op ::= .
+sql_big_result_op ::= SQL_BIG_RESULT.
+sql_buffer_result_op ::= .
+sql_buffer_result_op ::= SQL_BUFFER_RESULT.
+sql_cache_op ::= .
+sql_cache_op ::= SQL_CACHE.
+sql_cache_op ::= SQL_NO_CACHE.
+sql_calc_found_rows_op ::= .
+sql_calc_found_rows_op ::= SQL_CALC_FOUND_ROWS.
 
 // selcollist is a list of expressions that are to become the return
 // values of the SELECT statement.  The "*" in statements like
@@ -238,7 +259,6 @@ join_opt ::= LEFT.
 join_opt ::= RIGHT.
 join_opt ::= LEFT OUTER.
 join_opt ::= RIGHT OUTER.
-join_opt ::= STRAIGHT.
 join_opt ::= NATURAL LEFT.
 join_opt ::= NATURAL RIGHT.
 join_opt ::= NATURAL LEFT OUTER.

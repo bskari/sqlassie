@@ -68,7 +68,10 @@ void testParseKnownGoodQueries()
         ++entry)
     {
         BOOST_MESSAGE(entry->string());
-        if (ba::ends_with(entry->string(), ".sql"))
+        if (
+            ba::ends_with(entry->string(), ".sql")
+            || ba::ends_with(entry->string(), ".mysql")
+        )
         {
             ifstream fin(entry->string().c_str());
             BOOST_REQUIRE(fin.is_open());
@@ -76,6 +79,10 @@ void testParseKnownGoodQueries()
             string line;
             while (getline(fin, line))
             {
+                if (line.empty())
+                {
+                    continue;
+                }
                 ParserInterface parser(line);
                 QueryRisk qr;
                 const int status = parser.parse(&qr);

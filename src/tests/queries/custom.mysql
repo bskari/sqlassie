@@ -1,0 +1,60 @@
+/* MySQL specific comments */ SELECT 1
+SELECT * FROM ident # MySQL comment
+SELECT * FROM ident /*! MySQL command */
+SELECT * FROM ident /*!50440 MySQL version command */
+
+/* MySQL describe statements */ SELECT 1
+DESCRIBE ident
+DESCRIBE ident ident /* Describe a specific column */
+DESCRIBE ident 'quote' /* Describe a specific column */
+DESCRIBE ident 's%' /* Describe columns that match a regex */
+DESCRIBE ident '___' /* Describe columns that match a regex */
+DESC ident
+DESC ident ident /* Describe a specific column */
+DESC ident 'quote' /* Describe a specific column */
+DESC ident 's%' /* Describe columns that match a regex */
+DESC ident '___' /* Describe columns that match a regex */
+
+/* MySQL SHOW TABLES statements */ SELECT 1
+SHOW TABLES LIKE 'quote'
+SHOW TABLES WHERE 2 = 1 + 1
+SHOW TABLES FROM 'quote'
+SHOW TABLES FROM 'quote' LIKE 'quote'
+SHOW TABLES FROM 'quote' WHERE MD5('quote') = 'quote'
+SHOW FULL TABLES LIKE 'quote'
+SHOW FULL TABLES WHERE 2 = 1 + 1
+SHOW FULL TABLES FROM 'quote'
+SHOW FULL TABLES FROM 'quote' LIKE 'quote'
+SHOW FULL TABLES FROM 'quote' WHERE MD5('quote') = 'quote'
+
+/* MySQL SHOW TABLES statements */ SELECT 1
+SHOW COLUMNS ident LIKE 'quote'
+SHOW COLUMNS ident WHERE 1 = 1
+SHOW FULL COLUMNS LIKE 'quote'
+SHOW COLUMNS FROM ident LIKE 'quote'
+SHOW COLUMNS FROM ident FROM ident LIKE 'quote'
+SHOW COLUMNS FROM ident IN ident LIKE 'quote'
+SHOW COLUMNS IN ident 'quote'
+SHOW COLUMNS IN ident FROM ident LIKE 'quote'
+SHOW COLUMNS IN ident IN ident 'quote'
+
+/* MySQL SHOW CREATE DATABASE statements */ SELECT 1
+SHOW CREATE DATABASE 'ident'
+SHOW CREATE SCHEMA 'ident'
+
+/* MySQL SHOW DATABASES statements */ SELECT 1
+SHOW DATABASES LIKE 'ident'
+SHOW SCHEMAS LIKE 'ident'
+SHOW DATABASES WHERE 1 > 0
+SHOW SCHEMAS LIKE 1 * 1 = 1
+
+/* MySQL SHOW CREATE table statements */ SELECT 1
+SHOW CREATE TABLE 'ident'
+
+/* MySQL MATCH statements */ SELECT 1
+SELECT * FROM ident WHERE MATCH (ident) AGAINST ('quote')
+SELECT * FROM ident WHERE MATCH (ident, ident) AGAINST ('quote')
+SELECT * FROM ident WHERE MATCH (ident, ident, ident) AGAINST ('quote')
+SELECT * FROM ident WHERE MATCH (ident) AGAINST (CONCAT('quote', CHAR(5)))
+SELECT * FROM ident WHERE MATCH (ident) AGAINST ('quote' IN BOOLEAN MODE)
+SELECT * FROM ident WHERE MATCH (ident) AGAINST ('quote' WITH QUERY EXPANSION)

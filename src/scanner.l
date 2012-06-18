@@ -377,6 +377,25 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "sql_cache"         {return SQL_CACHE;}
 "sql_no_cache"      {return SQL_NO_CACHE;}
 
+"microsecond"           {return TIME_UNIT;}
+"second"                {return TIME_UNIT;}
+"hour"                  {return TIME_UNIT;}
+"day"                   {return TIME_UNIT;}
+"week"                  {return TIME_UNIT;}
+"month"                 {return TIME_UNIT;}
+"quarter"               {return TIME_UNIT;}
+"year"                  {return TIME_UNIT;}
+"second_microsecond"    {return TIME_UNIT;}
+"minute_microsecond"    {return TIME_UNIT;}
+"minute_second"         {return TIME_UNIT;}
+"hour_microsecond"      {return TIME_UNIT;}
+"hour_second"           {return TIME_UNIT;}
+"day_microsecond"       {return TIME_UNIT;}
+"day_second"            {return TIME_UNIT;}
+"day_minute"            {return TIME_UNIT;}
+"day_hour"              {return TIME_UNIT;}
+"year_month"            {return TIME_UNIT;}
+
 {ID}    {context->identifiers.push(std::string(yytext)); return ID;}
 {QUOTED_IDENTIFIER}    {
     std::string str(yytext);

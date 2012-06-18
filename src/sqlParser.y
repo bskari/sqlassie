@@ -152,14 +152,14 @@ cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //
-cmd ::= DESCRIBE nm.
+cmd ::= DESCRIBE id.
 // You can specify an individual column, or give a regex and show all columns
 // that match it.
-cmd ::= DESCRIBE nm nm(column).     {column;}
+cmd ::= DESCRIBE id id(column).     {column;}
 
 //////////////////////// The USE statement ////////////////////////////////////
 //
-cmd ::= USE nm.
+cmd ::= USE id.
 
 //////////////////////// The LOCK statement ///////////////////////////////////
 //
@@ -444,6 +444,8 @@ expr(A) ::= nm(X) DOT nm(Y). {A;X;Y;}
 expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z). {A;X;Y;Z;}
 term(A) ::= INTEGER|FLOAT|BLOB(X).  {A;X;}
 term(A) ::= STRING(X).              {A;X;}
+/* MySQL allows date intervals */
+term(A) ::= INTERVAL expr TIME_UNIT RP.    {A;}
 expr(A) ::= REGISTER(X).     {A;X;}
 expr(A) ::= VARIABLE(X).     {A;X;}
 expr(A) ::= expr(E) COLLATE ids(C). {A;E;C;}

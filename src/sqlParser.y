@@ -77,7 +77,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 %fallback ID
   ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN_KW BY CASCADE CAST COLUMNKW
   CONFLICT DATABASE DEFERRED DESC DETACH EACH END EXCLUSIVE EXPLAIN FAIL FOR
-  IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH NO PLAN
+  IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH_KW NO PLAN
   QUERY KEY OF OFFSET PRAGMA RAISE RELEASE REPLACE RESTRICT ROW ROLLBACK
   SAVEPOINT TEMP TRIGGER VACUUM VIEW VIRTUAL
   // MySQL specific stuff
@@ -106,7 +106,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 %left XOR.
 %left AND.
 %right NOT.
-%left IS MATCH LIKE_KW SOUNDS BETWEEN IN ISNULL NOTNULL NE EQ.
+%left IS MATCH_KW LIKE_KW SOUNDS BETWEEN IN ISNULL NOTNULL NE EQ.
 %left GT LE LT GE.
 %right ESCAPE.
 %left BITAND BITOR BITXOR LSHIFT RSHIFT.
@@ -236,6 +236,7 @@ sclp(A) ::= .                                {A;}
 selcollist(A) ::= sclp(P) expr(X) as(Y).     {A;X;Y;P;}
 selcollist(A) ::= sclp(P) STAR. {A;P;}
 selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y). {A;X;Y;P;}
+selcollist(A) ::= sclp(P) mysql_match(X). {A;X;P;}
 
 // An option "AS <id>" phrase that can follow one of the expressions that
 // define the result set, or one of the tables in the FROM clause.
@@ -252,8 +253,9 @@ from(A) ::= FROM seltablist(X). {A;X;}
 
 // MySQL match statement
 //
-mysql_match ::= MATCH LP inscollist RP AGAINST LP expr againstmodifier_opt RP.
+mysql_match ::= MATCH_KW LP inscollist RP AGAINST LP expr againstmodifier_opt RP.
 againstmodifier_opt ::= .
+againstmodifier_opt ::= IN NATURAL LANGUAGE MODE.
 againstmodifier_opt ::= IN BOOLEAN MODE.
 againstmodifier_opt ::= WITH QUERY EXPANSION.
 
@@ -467,8 +469,8 @@ expr(A) ::= expr(X) STAR|SLASH|REM|INTEGER_DIVIDE(OP) expr(Y). {A;X;Y;OP;}
 expr(A) ::= expr(X) CONCAT(OP) expr(Y). {A;X;Y;OP;}
 likeop(A) ::= LIKE_KW(X).     {A;X;}
 likeop(A) ::= NOT LIKE_KW(X). {A;X;}
-likeop(A) ::= MATCH(X).       {A;X;}
-likeop(A) ::= NOT MATCH(X).   {A;X;}
+likeop(A) ::= MATCH_KW(X).       {A;X;}
+likeop(A) ::= NOT MATCH_KW(X).   {A;X;}
 likeop(A) ::= SOUNDS LIKE_KW(X).     {A;X;}
 expr(A) ::= expr(X) likeop(OP) expr(Y).  [LIKE_KW]  {A;X;Y;OP;}
 expr(A) ::= expr(X) likeop(OP) expr(Y) ESCAPE expr(E).  [LIKE_KW]  {A;X;Y;OP;E;}

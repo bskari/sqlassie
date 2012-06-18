@@ -354,7 +354,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 
 "with"      {return WITH;}
 "query"     {return QUERY;}
-"match"     {return MATCH;}
+"match"     {return MATCH_KW;}
 "expansion" {return EXPANSION;}
 "against"   {return AGAINST;}
 "language"  {return LANGUAGE;}

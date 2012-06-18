@@ -150,7 +150,14 @@ cmd ::= SHOW DATABASES LIKE_KW STRING.
 cmd ::= SHOW GLOBAL VARIABLES.
 cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.
 
-//////////////////////// The USE statement /////////////////////////////////
+//////////////////////// The DESCRIBE statement ///////////////////////////////
+//
+cmd ::= DESCRIBE nm.
+// You can specify an individual column, or give a regex and show all columns
+// that match it.
+cmd ::= DESCRIBE nm nm(column).     {column;}
+
+//////////////////////// The USE statement ////////////////////////////////////
 //
 cmd ::= USE nm.
 

@@ -360,10 +360,10 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 "language"  {return LANGUAGE;}
 "boolean"   {return BOOLEAN;}
 
-"show"      {return SHOW;}
-"describe"  {return DESCRIBE;}
-"global"    {return GLOBAL;}
-"variables" {return VARIABLES;}
+"show"              {return SHOW;}
+"describe"|"desc"   {return DESCRIBE;}
+"global"            {return GLOBAL;}
+"variables"         {return VARIABLES;}
 
 "interval"              {return INTERVAL;}
 "sql_calc_found_rows"   {return SQL_CALC_FOUND_ROWS;}

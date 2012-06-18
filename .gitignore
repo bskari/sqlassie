@@ -40,6 +40,6 @@ huginScanner.yy.cpp
 huginScanner.yy.hpp
 sqlParser.out
 sqlParser.cpp
-sqlParser.hpp
+sqlParser.h
 scanner.yy.cpp
 scanner.yy.hpp

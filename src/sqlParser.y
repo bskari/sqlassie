@@ -83,7 +83,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   // MySQL specific stuff
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
   SOUNDS OUTFILE SQL_BIG_RESULT SQL_SMALL_RESULT SQL_BUFFER_RESULT SQL_CACHE
-  SQL_NO_CACHE LOCK SHARE MODE
+  SQL_NO_CACHE LOCK SHARE MODE BOOLEAN EXPANSION
 %ifdef SQLITE_OMIT_COMPOUND_SELECT
   EXCEPT INTERSECT UNION
 %endif SQLITE_OMIT_COMPOUND_SELECT
@@ -178,6 +178,9 @@ multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
 %endif SQLITE_OMIT_COMPOUND_SELECT
 oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) where_opt(Y)
                  groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {A;D;W;X;Y;P;Q;Z;L;}
+// MySQL match statement
+oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) WHERE mysql_match(Y)
+                 groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {A;D;W;X;Y;P;Q;Z;L;}
 
 // The "distinct" nonterminal is true (1) if the DISTINCT keyword is
 // present and false (0) if it is not.
@@ -239,6 +242,13 @@ as(X) ::= .            {X;}
 //
 from(A) ::= .                {A;}
 from(A) ::= FROM seltablist(X). {A;X;}
+
+// MySQL match statement
+//
+mysql_match ::= MATCH LP inscollist RP AGAINST LP expr againstmodifier_opt RP.
+againstmodifier_opt ::= .
+againstmodifier_opt ::= IN BOOLEAN MODE.
+againstmodifier_opt ::= WITH QUERY EXPANSION.
 
 // "seltablist" is a "Select Table List" - the content of the FROM clause
 // in a SELECT statement.  "stl_prefix" is a prefix of this list.

@@ -26,7 +26,7 @@
 
 // The name of the generated procedure that implements the parser
 // is as follows:
-%name sqlite3Parser
+%name sqlassieParse
 
 // The following text is included near the beginning of the C source
 // code file that implements the parser.

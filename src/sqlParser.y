@@ -147,7 +147,7 @@ typename(A) ::= ids(X).             {A;X;}
 typename(A) ::= typename(X) ids(Y). {A;X;Y;}
 plus_num(A) ::= number(X).          {A;X;}
 minus_num(A) ::= MINUS number(X).   {A;X;}
-number(A) ::= INTEGER|FLOAT(X).     {A;X;}
+number(A) ::= INTEGER|FLOAT(X).     {A;X; scannerContext->numbers.pop();}
 signed ::= plus_num.
 signed ::= minus_num.
 
@@ -452,9 +452,10 @@ expr(A) ::= LP(B) expr(X) RP(E). {A;X;B;E;}
 term(A) ::= NULL_KW(X).          {A;X;}
 expr(A) ::= id(X).               {A;X;}
 expr(A) ::= JOIN_KW(X).          {A;X;}
-expr(A) ::= nm(X) DOT nm(Y). {A;X;Y;}
+expr(A) ::= nm(X) DOT nm(Y).    {A;X;Y;}
 expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z). {A;X;Y;Z;}
-term(A) ::= INTEGER|FLOAT|BLOB(X).  {A;X;}
+term(A) ::= INTEGER|FLOAT.      {A; scannerContext->numbers.pop();}
+term(A) ::= BLOB(X).  {A;X;}
 term(A) ::= STRING(X).              {A;X;}
 /* MySQL allows date intervals */
 term(A) ::= INTERVAL expr TIME_UNIT RP.    {A;}

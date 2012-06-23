@@ -104,7 +104,6 @@ ParserInterface::~ParserInterface()
 }
 
 
-#include <iostream>
 bool ParserInterface::parse(QueryRisk* const qrPtr)
 {
     assert(NULL != qrPtr);
@@ -123,10 +122,9 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
     do
     {
         lexToken = getLexValue();
-        std::cout << lexToken << std::endl;
         // We want to keep reading all of the tokens, even if parsing has
         // failed, but if parsing has already failed, don't keep calling it
-        if (qrPtr->valid)
+        if (qr_.valid)
         {
             sqlassieParse(lemonParser_, lexToken, nullptr, &scannerContext_);
         }
@@ -134,7 +132,7 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
     while (lexToken != 0);
 
     #ifndef NDEBUG
-        if (qrPtr->valid)
+        if (qr_.valid)
         {
             assert(
                 scannerContext_.identifiers.empty()
@@ -160,7 +158,6 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
     // just keep calling that ourselves until it hits the end of the buffer.
     if (!successfullyParsed_)
     {
-        std::cout << "Grabbing more tokens" << std::endl;
         const int END_OF_TOKENS = 0;
         while (getLexValue() != END_OF_TOKENS);
     }

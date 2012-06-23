@@ -81,10 +81,10 @@ int main(int argc, char* argv[])
         QueryRisk qr;
         ParserInterface parser(query);
 
-        const int status = parser.parse(&qr);
+        const bool successfullyParsed = parser.parse(&qr);
 
         // If the query was successfully parsed (i.e. was a valid query)'
-        if (0 == status && qr.valid)
+        if (successfullyParsed && qr.valid)
         {
             // Don't print valid lines if we're reading from a file
             if (!file)

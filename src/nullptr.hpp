@@ -33,6 +33,11 @@
         #undef NEED_TO_DEFINE_NULLPTR
 #endif
 
+// GCC on MSI Wind sucks
+#undef NEED_TO_DEFINE_NULLPTR
+#define NEED_TO_DEFINE_NULLPTR 0
+#define nullptr 0
+
 #if NEED_TO_DEFINE_NULLPTR
 
 /**

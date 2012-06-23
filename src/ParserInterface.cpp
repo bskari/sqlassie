@@ -18,6 +18,14 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// This needs to be defined prior to including the scanner header
+#define YY_DECL int sql_lex( \
+    void* const lvalp, \
+    ScannerContext* const context, \
+    QueryRisk* const qr, \
+    yyscan_t yyscanner \
+)
+
 #include "clearStack.hpp"
 #include "nullptr.hpp"
 #include "sqlParser.h"
@@ -36,8 +44,16 @@ using std::stack;
 using std::string;
 
 // Methods from the parser
-extern int yyparse(QueryRisk* const qrPtr, ParserInterface* const pi);
-
+extern void* sqlassieParseAlloc(void* (*allocProc)(size_t numBytes));
+extern void* sqlassieParse(
+    void* parser,
+    int token,
+    const char* identifier,
+    QueryRisk* const qrPtr
+);
+extern void* sqlassieParseFree(void* parser, void(*freeProc)(void*));
+// Methods from the scanner
+extern YY_DECL;
 
 /**
  * Hide some scanner members behind a PIMPL so that I don't have to worry
@@ -65,60 +81,60 @@ private:
 };
 
 
-/**
- * Customized yylex so that we can fool the parser into not calling the real
- * sql_lex directly. This way, we can keep track of the tokens from the query
- * and get all of the tokens even if parsing fails, so that we can do things
- * like whitelist queries. This should be a friend of ParserInterface (see
- * TODO in Parserinterface.hpp).
- * @param qr The QueryRisk attributes of the parsed query.
- * @param pi ParserInterface reference so that we can call the real sql_lex
- * and so that we can store the hash of the query's tokens.
- */
-int yylex(
-    YYSTYPE* const lvalp,
-    QueryRisk* const qr,
-    ParserInterface* const pi
-);
-
-
-ParserInterface::ParserInterface(const string& buffer) :
-    scannerContext_(),
-    scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str())),
-    tokensHash_(),
-    parsed_(false),
-    qr_(),
-    parserStatus_(0),
-    bufferLen_(buffer.size())
+ParserInterface::ParserInterface(const string& buffer)
+    : scannerContext_()
+    , scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str()))
+    , tokensHash_()
+    , parsed_(false)
+    , qr_()
+    , successfullyParsed_(false)
+    , bufferLen_(buffer.size())
+    , lemonParser_(sqlassieParseAlloc(malloc))
 {
+    if (nullptr == lemonParser_)
+    {
+        delete scannerPimpl_;
+        throw std::bad_alloc();
+    }
 }
 
 
 ParserInterface::~ParserInterface()
 {
     delete scannerPimpl_;
+    sqlassieParseFree(lemonParser_, free);
 }
 
 
-int ParserInterface::parse(QueryRisk* const qrPtr)
+bool ParserInterface::parse(QueryRisk* const qrPtr)
 {
     assert(NULL != qrPtr);
     if (parsed_)
     {
         *qrPtr = qr_;
-        return parserStatus_;
+        return successfullyParsed_;
     }
 
-    int parserStatus;
     // Clear the stacks before every parsing attempt
     clearStack(&scannerContext_.identifiers);
     clearStack(&scannerContext_.quotedStrings);
     clearStack(&scannerContext_.numbers);
 
-    parserStatus = yyparse(qrPtr, this);
+    int lexToken;
+    do
+    {
+        lexToken = getLexValue(nullptr, qrPtr);
+        // We want to keep reading all of the tokens, even if parsing has
+        // failed, but if parsing has already failed, don't keep calling it
+        if (qrPtr->valid)
+        {
+            sqlassieParse(lemonParser_, lexToken, nullptr, qrPtr);
+        }
+    }
+    while (lexToken != 0);
 
     #ifndef NDEBUG
-        if (0 == parserStatus && qrPtr->valid)
+        if (qrPtr->valid)
         {
             assert(
                 scannerContext_.identifiers.empty()
@@ -136,19 +152,19 @@ int ParserInterface::parse(QueryRisk* const qrPtr)
     #endif
 
     qr_ = *qrPtr;
-    parserStatus_ = parserStatus;
+    successfullyParsed_ = qr_.valid;
     parsed_ = true;
 
     // If the parser failed, we still need to manually calculate the rest of
     // the hash for this query. That calculation is handled in yylex, so just
     // keep calling yylex ourselves until it hits the end of the buffer.
-    if (parserStatus != 0)
+    if (successfullyParsed_)
     {
-        const int MIN_VALID_TOKEN = 255;
-        while (yylex(nullptr, qrPtr, this) > MIN_VALID_TOKEN);
+        const int END_OF_TOKENS = 255;
+        while (getLexValue(nullptr, qrPtr) != END_OF_TOKENS);
     }
 
-    return parserStatus;
+    return successfullyParsed_;
 }
 
 
@@ -219,44 +235,24 @@ static ParserInterface::hashType sdbmHash(
 );
 
 
-extern int sql_lex(
-    YYSTYPE* const lvalp,
-    ScannerContext* const context,
-    QueryRisk* const qr,
-    yyscan_t const yyscanner
-);
-
-
-/**
- * Customized yylex so that we can fool the parser into not calling the real
- * sql_lex directly. This way, we can keep track of the tokens from the query
- * and get all of the tokens even if parsing fails, so that we can do things
- * like whitelist queries. This should be a friend of ParserInterface (see
- * TODO in Parserinterface.hpp).
- * @param qr The QueryRisk attributes of the parsed query.
- * @param pi ParserInterface reference so that we can call the real sql_lex
- * and so that we can store the hash of the query's tokens.
- */
-int yylex(
-    YYSTYPE* const lvalp,
-    QueryRisk* const qr,
-    ParserInterface* const pi
+int ParserInterface::getLexValue(
+    void* const lvalp,
+    QueryRisk* const qr
 )
 {
     assert(nullptr != qr);
-    assert(nullptr != pi);
 
     int lexCode = sql_lex(
         lvalp,
-        &pi->scannerContext_,
+        &scannerContext_,
         qr,
-        pi->scannerPimpl_->scanner_
+        scannerPimpl_->scanner_
     );
     // Don't calculate the hash anymore once we've hit the end of the buffer
-    if (lexCode > 255)
+    if (0 == lexCode)
     {
-        ++pi->tokensHash_.tokensCount;
-        pi->tokensHash_.hash = sdbmHash(lexCode, pi->tokensHash_.hash);
+        ++tokensHash_.tokensCount;
+        tokensHash_.hash = sdbmHash(lexCode, tokensHash_.hash);
     }
     return lexCode;
 }

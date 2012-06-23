@@ -28,11 +28,21 @@
 // is as follows:
 %name sqlassieParse
 
+%token_type {const char*}
+%extra_argument {QueryRisk* qr}
+
 // The following text is included near the beginning of the C source
 // code file that implements the parser.
 //
 %include {
+
 #include <cassert>
+
+#include "QueryRisk.hpp"
+
+// Give up parsing as soon as the first error is encountered
+#define YYNOERRORRECOVERY 1
+
 } // end %include
 
 // Input is a single SQL command

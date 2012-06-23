@@ -52,9 +52,9 @@ public:
     /**
      * Parses the provided buffer.
      * @param qr The QueryRisk attributes of the parsed query.
-     * @return The status code from the Bison parser.
+     * @return If the string was successfully parsed.
      */
-    int parse(QueryRisk* const qr) WARN_UNUSED_RESULT;
+    bool parse(QueryRisk* const qr) WARN_UNUSED_RESULT;
 
     typedef uint64_t hashType;
     struct QueryHash
@@ -82,10 +82,13 @@ public:
     //@}
 
 private:
+    int getLexValue(void* const lvalp, QueryRisk* qr);
+
     bool parsed_;
     QueryRisk qr_;
-    int parserStatus_;
+    bool successfullyParsed_;
     const int bufferLen_;
+    void* lemonParser_;
 
     static boost::mutex parserMutex_;
 

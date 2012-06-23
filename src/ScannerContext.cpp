@@ -18,17 +18,19 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "QueryRisk.hpp"
 #include "ScannerContext.hpp"
 
 #include <stack>
 #include <string>
 
-ScannerContext::ScannerContext() :
+ScannerContext::ScannerContext(QueryRisk* const qrToModify) :
     identifiers(),
     identifier(),
     quotedStrings(),
     quotedString(),
-    numbers()
+    numbers(),
+    qrPtr(qrToModify)
 {
 }
 

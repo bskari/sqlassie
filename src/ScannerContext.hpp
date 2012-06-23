@@ -24,6 +24,8 @@
 #include <stack>
 #include <string>
 
+#include "QueryRisk.hpp"
+
 struct ScannerContext
 {
     std::stack<std::string> identifiers;
@@ -34,7 +36,9 @@ struct ScannerContext
     // get weird segmentation fault errors whenever I'd try to pop it
     std::stack<std::string> numbers;
 
-    ScannerContext();
+    QueryRisk* const qrPtr;
+
+    ScannerContext(QueryRisk* const qrPtr);
     ~ScannerContext();
 
 private:

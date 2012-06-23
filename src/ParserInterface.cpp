@@ -20,9 +20,7 @@
 
 // This needs to be defined prior to including the scanner header
 #define YY_DECL int sql_lex( \
-    void* const lvalp, \
     ScannerContext* const context, \
-    QueryRisk* const qr, \
     yyscan_t yyscanner \
 )
 
@@ -49,7 +47,7 @@ extern void* sqlassieParse(
     void* parser,
     int token,
     const char* identifier,
-    QueryRisk* const qrPtr
+    ScannerContext* qrPtr
 );
 extern void* sqlassieParseFree(void* parser, void(*freeProc)(void*));
 // Methods from the scanner
@@ -82,11 +80,11 @@ private:
 
 
 ParserInterface::ParserInterface(const string& buffer)
-    : scannerContext_()
+    : qr_()
+    , scannerContext_(&qr_)
     , scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str()))
     , tokensHash_()
     , parsed_(false)
-    , qr_()
     , successfullyParsed_(false)
     , bufferLen_(buffer.size())
     , lemonParser_(sqlassieParseAlloc(malloc))
@@ -106,6 +104,7 @@ ParserInterface::~ParserInterface()
 }
 
 
+#include <iostream>
 bool ParserInterface::parse(QueryRisk* const qrPtr)
 {
     assert(NULL != qrPtr);
@@ -123,12 +122,13 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
     int lexToken;
     do
     {
-        lexToken = getLexValue(nullptr, qrPtr);
+        lexToken = getLexValue();
+        std::cout << lexToken << std::endl;
         // We want to keep reading all of the tokens, even if parsing has
         // failed, but if parsing has already failed, don't keep calling it
         if (qrPtr->valid)
         {
-            sqlassieParse(lemonParser_, lexToken, nullptr, qrPtr);
+            sqlassieParse(lemonParser_, lexToken, nullptr, &scannerContext_);
         }
     }
     while (lexToken != 0);
@@ -156,12 +156,13 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
     parsed_ = true;
 
     // If the parser failed, we still need to manually calculate the rest of
-    // the hash for this query. That calculation is handled in yylex, so just
-    // keep calling yylex ourselves until it hits the end of the buffer.
-    if (successfullyParsed_)
+    // the hash for this query. That calculation is handled in getLexValue, so
+    // just keep calling that ourselves until it hits the end of the buffer.
+    if (!successfullyParsed_)
     {
-        const int END_OF_TOKENS = 255;
-        while (getLexValue(nullptr, qrPtr) != END_OF_TOKENS);
+        std::cout << "Grabbing more tokens" << std::endl;
+        const int END_OF_TOKENS = 0;
+        while (getLexValue() != END_OF_TOKENS);
     }
 
     return successfullyParsed_;
@@ -235,17 +236,10 @@ static ParserInterface::hashType sdbmHash(
 );
 
 
-int ParserInterface::getLexValue(
-    void* const lvalp,
-    QueryRisk* const qr
-)
+int ParserInterface::getLexValue()
 {
-    assert(nullptr != qr);
-
     int lexCode = sql_lex(
-        lvalp,
         &scannerContext_,
-        qr,
         scannerPimpl_->scanner_
     );
     // Don't calculate the hash anymore once we've hit the end of the buffer

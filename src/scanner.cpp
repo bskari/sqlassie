@@ -20,9 +20,7 @@
 
 // This needs to be declared prior to including the scanner header
 #define YY_DECL int sql_lex( \
-    void* const lvalp, \
     ScannerContext* const context, \
-    QueryRisk* const qr, \
     yyscan_t yyscanner \
 )
 
@@ -68,14 +66,14 @@ int main()
     string x;
     cout << "Enter MySQL query: ";
 
-    ScannerContext context;
+    QueryRisk qr;
+    ScannerContext context(&qr);
     while (getline(cin, x))
     {
         yyscan_t scanner;
         sql_lex_init(&scanner);
         YY_BUFFER_STATE bufferState = sql__scan_string(x.c_str(), scanner);
-        QueryRisk qr;
-        int lexCode = sql_lex(nullptr, &context, &qr, scanner);
+        int lexCode = sql_lex(&context, scanner);
         do
         {
             assert(
@@ -89,7 +87,7 @@ int main()
                 << ", "
                 << tokenCodes[lexCode]
                 << endl;
-            lexCode = sql_lex(nullptr, &context, &qr, scanner);
+            lexCode = sql_lex(&context, scanner);
         }
         while (lexCode != 0);
 

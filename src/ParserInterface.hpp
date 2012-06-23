@@ -66,6 +66,11 @@ public:
     };
     QueryHash getHash() const;
 
+private:
+    // The below ScannerContext needs to hold a pointer to this value, so
+    // declare it here so that variable initialization order makes sense
+    QueryRisk qr_;
+public:
     ScannerContext scannerContext_;
 
     /**
@@ -82,10 +87,9 @@ public:
     //@}
 
 private:
-    int getLexValue(void* const lvalp, QueryRisk* qr);
+    int getLexValue();
 
     bool parsed_;
-    QueryRisk qr_;
     bool successfullyParsed_;
     const int bufferLen_;
     void* lemonParser_;

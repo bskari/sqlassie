@@ -29,7 +29,7 @@
 %name sqlassieParse
 
 %token_type {const char*}
-%extra_argument {QueryRisk* qr}
+%extra_argument {ScannerContext* scannerContext}
 
 // The following text is included near the beginning of the C source
 // code file that implements the parser.
@@ -38,7 +38,7 @@
 
 #include <cassert>
 
-#include "QueryRisk.hpp"
+#include "ScannerContext.hpp"
 
 // Give up parsing as soon as the first error is encountered
 #define YYNOERRORRECOVERY 1
@@ -77,7 +77,7 @@ no_opt ::= NO.
 // An IDENTIFIER can be a generic identifier, or one of several
 // keywords.  Any non-standard keyword can also be an identifier.
 //
-id(A) ::= ID(X).         {A;X;}
+id(A) ::= ID(X).         {A;X; scannerContext->identifiers.pop();}
 id(A) ::= INDEXED(X).    {A;X;}
 
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to

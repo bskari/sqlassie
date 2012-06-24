@@ -178,10 +178,10 @@ cmd ::= SHOW GLOBAL VARIABLES.
 cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.   {scannerContext->quotedStrings.pop();}
 cmd ::= SHOW CREATE TABLE ID.                   {scannerContext->identifiers.pop();}
 // There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
-cmd ::= SHOW ID.
-cmd ::= SHOW ID likeop expr.
-cmd ::= SHOW ID ID.
-cmd ::= SHOW ID ID likeop expr.
+cmd ::= SHOW ID.                {scannerContext->identifiers.pop();}
+cmd ::= SHOW ID likeop expr.    {scannerContext->identifiers.pop();}
+cmd ::= SHOW ID ID.             {scannerContext->identifiers.pop(); scannerContext->identifiers.pop();}
+cmd ::= SHOW ID ID likeop expr. {scannerContext->identifiers.pop(); scannerContext->identifiers.pop();}
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //

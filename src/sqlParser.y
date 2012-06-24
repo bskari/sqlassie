@@ -101,6 +101,9 @@ id(A) ::= INDEXED(X).    {A;X;}
 // fallback to ID if they will not parse as their original value.
 // This obviates the need for the "id" nonterminal.
 //
+// @TODO (bskari|2012-06-24) Whenever these fallbacks are triggered, the
+// scanner will not have pushed the identifiers onto the stack, and when the
+// parser tries to pop the identifiers stack, the program will crash.
 %fallback ID
   ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN_KW BY CASCADE CAST COLUMNKW
   CONFLICT DATABASE DEFERRED DESC DETACH EACH END EXCLUSIVE EXPLAIN FAIL FOR

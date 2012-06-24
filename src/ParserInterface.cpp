@@ -51,7 +51,7 @@ extern void* sqlassieParse(
     const char* identifier,
     ScannerContext* qrPtr
 );
-extern void* sqlassieParseFree(void* parser, void(*freeProc)(void*));
+extern void* sqlassieParseFree(void* parser, void(*freeProc)(void* ptr));
 // Methods from the scanner
 extern YY_DECL;
 
@@ -243,15 +243,33 @@ static ParserInterface::hashType sdbmHash(
 
 int ParserInterface::getLexValue()
 {
-    int lexCode = sql_lex(
+    const int lexCode = sql_lex(
         &scannerContext_,
         scannerPimpl_->scanner_
     );
-    // Don't calculate the hash anymore once we've hit the end of the buffer
-    if (0 == lexCode)
+    // Don't calculate the hash anymore once we've hit the end of the buffer.
+    // Queries that have a bunch of semicolons at the end are considered to be
+    // the same too, so don't hash them.
+    const int END_OF_BUFFER = 0;
+    if (END_OF_BUFFER != lexCode && SEMI != lexCode)
     {
         ++tokensHash_.tokensCount;
         tokensHash_.hash = sdbmHash(lexCode, tokensHash_.hash);
+
+        // There's a big difference between, for example,
+        // SELECT * FROM email WHERE address = 'brandon@aol.com' AND active = 1
+        // SELECT * FROM order WHERE description = 'software' AND count = 1
+        // even though the lexeme streams are the same. To differentiate them,
+        // also hash the table and column names.
+        if (lexCode == ID)
+        {
+            const string& tableOrColumn = scannerContext_.identifiers.top();
+            const string::const_iterator end(tableOrColumn.end());
+            for (string::const_iterator i(tableOrColumn.begin()); i != end; ++i)
+            {
+                tokensHash_.hash = sdbmHash(*i, tokensHash_.hash);
+            }
+        }
     }
     return lexCode;
 }

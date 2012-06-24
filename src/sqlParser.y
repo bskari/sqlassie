@@ -335,19 +335,17 @@ fullname(A) ::= nm(X) dbnm(Y).  {A;X;Y;}
 
 joinop(X) ::= COMMA.                 {X;}
 joinop(X) ::= join_opt JOIN.         {X;}
-joinop(X) ::= join_opt nm(B) JOIN.   {X;B;}
-joinop(X) ::= join_opt nm(B) nm(C) JOIN. {X;B;C;}
 
 join_opt ::= INNER.
 join_opt ::= CROSS.
-join_opt ::= LEFT.
-join_opt ::= RIGHT.
-join_opt ::= LEFT OUTER.
-join_opt ::= RIGHT OUTER.
-join_opt ::= NATURAL LEFT.
-join_opt ::= NATURAL RIGHT.
-join_opt ::= NATURAL LEFT OUTER.
-join_opt ::= NATURAL RIGHT OUTER.
+join_opt ::= natural_opt left_right_opt outer_opt.
+left_right_opt ::= .
+left_right_opt ::= LEFT.
+left_right_opt ::= RIGHT.
+natural_opt ::= .
+natural_opt ::= NATURAL.
+outer_opt ::= .
+outer_opt ::= OUTER.
 
 on_opt(N) ::= ON expr(E).   {N;E;}
 on_opt(N) ::= .             {N;}

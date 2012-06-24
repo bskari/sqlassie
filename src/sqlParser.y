@@ -111,9 +111,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
   SOUNDS OUTFILE SQL_BIG_RESULT SQL_SMALL_RESULT SQL_BUFFER_RESULT SQL_CACHE
   SQL_NO_CACHE LOCK SHARE MODE BOOLEAN EXPANSION
-%ifdef SQLITE_OMIT_COMPOUND_SELECT
   EXCEPT INTERSECT UNION
-%endif SQLITE_OMIT_COMPOUND_SELECT
   REINDEX RENAME CTIME_KW IF
   .
 %wildcard ANY.
@@ -204,12 +202,10 @@ cmd ::= UNLOCK TABLES lock_tables_list.
 cmd ::= select_opt select(X) outfile_opt lock_read_opt .   {X;}
 
 select(A) ::= oneselect(X).                  {A;X;}
-%ifndef SQLITE_OMIT_COMPOUND_SELECT
 select(A) ::= select(X) multiselect_op(Y) oneselect(Z).  {A;X;Y;Z;}
 multiselect_op(A) ::= UNION(OP).             {A;OP;}
 multiselect_op(A) ::= UNION ALL.             {A;}
 multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
-%endif SQLITE_OMIT_COMPOUND_SELECT
 oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) where_opt(Y)
                  groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {A;D;W;X;Y;P;Q;Z;L;}
 // MySQL match statement
@@ -452,9 +448,7 @@ valuelist(A) ::= VALUES LP nexprlist(X) RP. {A;X;}
 
 // Since a list of VALUEs is inplemented as a compound SELECT, we have
 // to disable the value list option if compound SELECTs are disabled.
-%ifndef SQLITE_OMIT_COMPOUND_SELECT
 valuelist(A) ::= valuelist(X) COMMA LP exprlist(Y) RP. {A;X;Y;}
-%endif SQLITE_OMIT_COMPOUND_SELECT
 
 inscollist_opt(A) ::= .                      {A;}
 inscollist_opt(A) ::= LP inscollist(X) RP.   {A;X;}
@@ -466,6 +460,7 @@ inscollist(A) ::= nm(Y). {A;Y;}
 
 expr(A) ::= term(X).             {A;X;}
 expr(A) ::= LP(B) expr(X) RP(E). {A;X;B;E;}
+expr(A) ::= LP(B) select(X) RP(E). {A;X;B;E;}
 term(A) ::= NULL_KW(X).          {A;X;}
 expr(A) ::= id(X).               {A;X;}
 expr(A) ::= JOIN_KW(X).          {A;X;}

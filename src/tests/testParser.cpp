@@ -470,9 +470,9 @@ void testSelectItems()
     QueryRisk qr;
     const string badQuery("SELECT a.* AS b FROM foo");
     ParserInterface parser(badQuery);
-    const int status = parser.parse(&qr);
+    const bool successfullyParsed = parser.parse(&qr);
     BOOST_CHECK_MESSAGE(
-        0 != status,
+        !successfullyParsed,
         badQuery << " should not parse"
     );
 }
@@ -482,9 +482,9 @@ QueryRisk parseQuery(const string& query)
 {
     QueryRisk qr;
     ParserInterface parser(query);
-    const int status = parser.parse(&qr);
+    const bool successfullyParsed = parser.parse(&qr);
     BOOST_CHECK_MESSAGE(
-        0 == status,
+        successfullyParsed,
         "Query failed to parse: " << query
     );
     return qr;

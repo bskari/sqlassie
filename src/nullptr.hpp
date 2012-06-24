@@ -33,10 +33,12 @@
         #undef NEED_TO_DEFINE_NULLPTR
 #endif
 
-// GCC on MSI Wind sucks
-#undef NEED_TO_DEFINE_NULLPTR
-#define NEED_TO_DEFINE_NULLPTR 0
-#define nullptr 0
+// Versions of GCC prior to 4.6 have problems with this workaround
+#if (__GNUC__ <= 3 || (__GNUC__ == 4 && __GNUC_MINOR__ < 6))
+    #undef NEED_TO_DEFINE_NULLPTR
+    #define NEED_TO_DEFINE_NULLPTR 0
+    #define nullptr 0
+#endif
 
 #if NEED_TO_DEFINE_NULLPTR
 

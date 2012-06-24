@@ -32,13 +32,15 @@
 
 #include <cassert>
 #include <exception>
+#ifndef NDEBUG
+#include <iostream>
 #include <stack>
+#endif
 #include <string>
 
 using boost::lock_guard;
 using std::bad_alloc;
 using std::size_t;
-using std::stack;
 using std::string;
 
 // Methods from the parser
@@ -134,18 +136,23 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
     #ifndef NDEBUG
         if (qr_.valid)
         {
-            assert(
-                scannerContext_.identifiers.empty()
-                && "Identifiers stack not empty"
-            );
-            assert(
-                scannerContext_.quotedStrings.empty()
-                && "Quoted strings stack not empty"
-            );
-            assert(
-                scannerContext_.numbers.empty()
-                && "Numbers stack not empty"
-            );
+            std::stack<string>* refs[] = {
+                &scannerContext_.identifiers,
+                &scannerContext_.quotedStrings,
+                &scannerContext_.numbers
+            };
+            for (size_t i = 0; i < sizeof(refs) / sizeof(refs[0]); ++i)
+            {
+                if (!refs[i]->empty())
+                {
+                    while (!refs[i]->empty())
+                    {
+                        std::cout << refs[i]->top() << '\n';
+                        refs[i]->pop();
+                    }
+                    assert(false && "Stack not empty");
+                }
+            }
         }
     #endif
 

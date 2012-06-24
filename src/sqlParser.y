@@ -163,7 +163,8 @@ typename(A) ::= ids(X).             {A;X;}
 typename(A) ::= typename(X) ids(Y). {A;X;Y;}
 plus_num(A) ::= number(X).          {A;X;}
 minus_num(A) ::= MINUS number(X).   {A;X;}
-number(A) ::= INTEGER|FLOAT(X).     {A;X; scannerContext->numbers.pop();}
+number(A) ::= INTEGER|FLOAT.        {A; scannerContext->numbers.pop();}
+number(A) ::= HEX_NUMBER.           {A; scannerContext->hexNumbers.pop();}
 signed ::= plus_num.
 signed ::= minus_num.
 
@@ -176,6 +177,9 @@ cmd ::= SHOW DATABASES LIKE_KW STRING.          {scannerContext->quotedStrings.p
 cmd ::= SHOW GLOBAL VARIABLES.
 cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.   {scannerContext->quotedStrings.pop();}
 cmd ::= SHOW CREATE TABLE ID.                   {scannerContext->identifiers.pop();}
+// There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
+cmd ::= SHOW ID.
+cmd ::= SHOW ID ID.
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //

@@ -63,47 +63,6 @@
             return 0;
         }
     }
-
-    static std::string hexStringToString(const char* const str)
-    {
-        assert(
-            NULL != str
-            && '\0' != str[0]
-            && '\0' != str[1] && '\0' != str[2]
-            && '\0' != str[3] && "MySQL hex string is too short"
-        );
-        assert(
-            '0' == str[0]
-            && 'x' == str[1]
-            && "MySQL hex string must start with '0x'"
-        );
-
-        std::string value;
-
-        // MySQL starts at the end, so for example, the string
-        // 0x444 is interpreted as 0x4 ('EOT') + 0x44 ('D')
-        const char* iter = str + 2;
-        while (*iter)
-        {
-            ++iter;
-        }
-        iter -= 2;
-        for (; iter >= str + 2; iter -= 2)
-        {
-            int sixteens = hexToNum(*iter) << 4;
-            int ones = hexToNum(*(iter + 1));
-            value = static_cast<char>(sixteens + ones) + value;
-        }
-
-        // If the user gave an odd number of hex digits, then parse the last
-        // digit singly
-        if (iter == str + 1)
-        {
-            value = static_cast<char>(hexToNum(*(iter + 1))) + value;
-        }
-
-        return value;
-    }
 %}
 
 %option prefix="sql_"
@@ -121,11 +80,11 @@ WHITE_SPACE [ \t\n\r\v\f]
 
 ID  ([a-zA-Z_][a-zA-Z0-9_]*)|("{"[a-zA-Z_][a-zA-Z0-9_]*"}")
 QUOTED_IDENTIFIER    "`"[a-zA-Z_][a-zA-Z0-9_]*"`"
-INTEGER     ([0-9][0-9]*)
+INTEGER     [0-9]+
 FLOAT       ([0-9]*"."[0-9]+)|([0-9]+"."[0-9]*)
 GLOBAL_VARIABLE    "@@"{ID}
 
-HEX_STRING    0x[0-9A-Fa-f]{2,}
+HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 
 %%
  /* Comments */
@@ -211,10 +170,12 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 }
 <QUOTED><<EOF>>     {context->qrPtr->valid = false; BEGIN(INITIAL);}
 
-{HEX_STRING}    {
-    ++context->qrPtr->hexStrings;
-    context->quotedStrings.push(hexStringToString(yytext));
-    return STRING;
+{HEX_NUMBER}    {
+    // The determination of whether this is a hex string or not (and then to
+    // update the query risk accordingly) will have to be done in the parser,
+    // because hex integers can be used in certain contexts.
+    context->hexNumbers.push(std::string(yytext));
+    return HEX_NUMBER;
 }
 
  /* Double quoted strings don't count as string literals in strict ANSI SQL;

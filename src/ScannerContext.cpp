@@ -30,6 +30,7 @@ ScannerContext::ScannerContext(QueryRisk* const qrToModify) :
     quotedStrings(),
     quotedString(),
     numbers(),
+    hexNumbers(),
     qrPtr(qrToModify)
 {
 }

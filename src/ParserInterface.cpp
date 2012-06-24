@@ -139,7 +139,8 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
             std::stack<string>* refs[] = {
                 &scannerContext_.identifiers,
                 &scannerContext_.quotedStrings,
-                &scannerContext_.numbers
+                &scannerContext_.numbers,
+                &scannerContext_.hexNumbers
             };
             for (size_t i = 0; i < sizeof(refs) / sizeof(refs[0]); ++i)
             {

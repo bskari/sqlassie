@@ -31,7 +31,7 @@ class ParserInterfaceScannerMembers;
 #include <vector>
 
 /**
- * Interface to the Bison parser so I don't have to keep allocating
+ * Interface to the Lemon parser so I don't have to keep allocating
  * YY_BUFFER_STATESs and stuff all over in my code.
  * @author Brandon Skari
  * @date January 12 2011

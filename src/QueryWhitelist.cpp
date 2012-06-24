@@ -141,11 +141,11 @@ void QueryWhitelist::readFailToParseQueriesFile(const string& filename)
     {
         ParserInterface pi(i->first);
         QueryRisk qr;
-        const int status = pi.parse(&qr);
-        if (0 == status)
+        const bool successfullyParsed = pi.parse(&qr);
+        if (successfullyParsed)
         {
             Logger::log(Logger::WARN)
-                << "Query in parse whitelist file "
+                << "Query in fail-to-parse whitelist file "
                 << filename
                 << " on line "
                 << i->second

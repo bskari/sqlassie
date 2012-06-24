@@ -180,10 +180,10 @@ int main(int argc, char* argv[])
     QueryRisk qr;
     ParserInterface parser(query);
 
-    const int status = parser.parse(&qr);
+    const int successfullyParsed = parser.parse(&qr);
 
     // If the query was successfully parsed (i.e. was a valid query)
-    if (0 == status && qr.valid)
+    if (successfullyParsed && qr.valid)
     {
         assert(
             qr.queryType < NUM_QUERY_TYPES

@@ -165,7 +165,7 @@ void checkParseWhitelisted(const string& query)
     ParserInterface pi(query);
     QueryRisk qr;
     // Save the return code so that I don't get compiler warnings
-    const int _ = pi.parse(&qr);
+    const bool _ = pi.parse(&qr);
     BOOST_CHECK_MESSAGE(
         QueryWhitelist::isParseWhitelisted(pi.getHash()),
         '"' << query << "\" should be parse whitelisted"
@@ -178,7 +178,7 @@ void checkParseNotWhitelisted(const string& query)
     ParserInterface pi(query);
     QueryRisk qr;
     // Save the return code so that I don't get compiler warnings
-    const int _ = pi.parse(&qr);
+    const bool _ = pi.parse(&qr);
     BOOST_CHECK_MESSAGE(
         !QueryWhitelist::isParseWhitelisted(pi.getHash()),
         '"' << query << "\" should not be parse whitelisted"
@@ -191,7 +191,7 @@ void checkRiskWhitelisted(const string &query)
     ParserInterface pi(query);
     QueryRisk qr;
     // Save the return code so that I don't get compiler warnings
-    const int _ = pi.parse(&qr);
+    const bool _ = pi.parse(&qr);
     BOOST_CHECK_MESSAGE(
         QueryWhitelist::isBlockWhitelisted(pi.getHash(), qr),
         '"' << query << "\" should be risk whitelisted"
@@ -204,7 +204,7 @@ void checkRiskNotWhitelisted(const string &query)
     ParserInterface pi(query);
     QueryRisk qr;
     // Save the return code so that I don't get compiler warnings
-    const int _ = pi.parse(&qr);
+    const bool _ = pi.parse(&qr);
     BOOST_CHECK_MESSAGE(
         !QueryWhitelist::isBlockWhitelisted(pi.getHash(), qr),
         '"' << query << "\" should not be risk whitelisted"

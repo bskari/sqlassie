@@ -85,9 +85,9 @@ void testParseKnownGoodQueries()
                 }
                 ParserInterface parser(line);
                 QueryRisk qr;
-                const int status = parser.parse(&qr);
+                const bool successfullyParsed = parser.parse(&qr);
                 BOOST_CHECK_MESSAGE(
-                    0 == status && qr.valid,
+                    successfullyParsed && qr.valid,
                     "Failed to parse: " << line
                 );
             }

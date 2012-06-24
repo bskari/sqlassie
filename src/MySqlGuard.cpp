@@ -299,10 +299,9 @@ void MySqlGuard::analyzeQuery(
 ) const
 {
     QueryRisk qr;
-    int status;
 
     ParserInterface interface(query);
-    status = interface.parse(&qr);
+    const bool successfullyParsed = interface.parse(&qr);
 
     // Check for whitelisted queries
     /// @TODO(bskari) should parse whitelisted only be checked if it fails to
@@ -320,7 +319,7 @@ void MySqlGuard::analyzeQuery(
     *queryType = qr.queryType;
 
     // If the query was not successfully parsed (i.e. it's an invalid query)
-    if (0 != status || !qr.valid)
+    if (!successfullyParsed || !qr.valid)
     {
         Logger::log(Logger::WARN)
             << "Blocked invalid query '"

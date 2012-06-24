@@ -143,12 +143,13 @@ id(A) ::= INDEXED(X).    {A;X;}
 
 // And "ids" is an identifer-or-string.
 //
-ids(A) ::= ID|STRING(X).   {A;X;}
+ids(A) ::= ID(X).       {A;X; scannerContext->identifiers.pop();}
+ids(A) ::= STRING(X).   {A;X; scannerContext->quotedStrings.pop();}
 
 // The name of a column or table can be any of the following:
 //
 nm(A) ::= id(X).         {A;X;}
-nm(A) ::= STRING(X).     {A;X;}
+nm(A) ::= STRING(X).     {A;X; scannerContext->quotedStrings.pop();}
 nm(A) ::= JOIN_KW(X).    {A;X;}
 
 // A typetoken is really one or more tokens that form a type name such
@@ -169,11 +170,11 @@ signed ::= minus_num.
 //////////////////////// The SHOW statement /////////////////////////////////
 //
 cmd ::= SHOW TABLES.
-cmd ::= SHOW TABLES LIKE_KW STRING.
+cmd ::= SHOW TABLES LIKE_KW STRING.             {scannerContext->quotedStrings.pop();}
 cmd ::= SHOW DATABASES.
-cmd ::= SHOW DATABASES LIKE_KW STRING.
+cmd ::= SHOW DATABASES LIKE_KW STRING.          {scannerContext->quotedStrings.pop();}
 cmd ::= SHOW GLOBAL VARIABLES.
-cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.
+cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.   {scannerContext->quotedStrings.pop();}
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //
@@ -468,7 +469,7 @@ expr(A) ::= nm(X) DOT nm(Y).    {A;X;Y;}
 expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z). {A;X;Y;Z;}
 term(A) ::= INTEGER|FLOAT.      {A; scannerContext->numbers.pop();}
 term(A) ::= BLOB(X).  {A;X;}
-term(A) ::= STRING(X).              {A;X;}
+term(A) ::= STRING(X).              {A;X; scannerContext->quotedStrings.pop();}
 /* MySQL allows date intervals */
 term(A) ::= INTERVAL expr TIME_UNIT RP.    {A;}
 expr(A) ::= REGISTER(X).     {A;X;}
@@ -477,8 +478,8 @@ expr(A) ::= expr(E) COLLATE ids(C). {A;E;C;}
 %ifndef SQLITE_OMIT_CAST
 expr(A) ::= CAST(X) LP expr(E) AS typetoken(T) RP(Y). {A;X;Y;E;T;}
 %endif  SQLITE_OMIT_CAST
-expr(A) ::= ID(X) LP distinct(D) exprlist(Y) RP(E). {A;X;Y;D;E;}
-expr(A) ::= ID(X) LP STAR RP(E). {A;X;E;}
+expr(A) ::= ID(X) LP distinct(D) exprlist(Y) RP(E). {A;X;Y;D;E; scannerContext->identifiers.pop();}
+expr(A) ::= ID(X) LP STAR RP(E). {A;X;E; scannerContext->identifiers.pop();}
 term(A) ::= CTIME_KW(OP). {A;OP;}
 
 expr(A) ::= expr(X) AND(OP) expr(Y).    {A;X;Y;OP;}

@@ -114,6 +114,7 @@ id(A) ::= INDEXED(X).    {A;X;}
   EXCEPT INTERSECT UNION
   REINDEX RENAME CTIME_KW IF
   .
+
 %wildcard ANY.
 
 // Define operator precedence early so that this is the first occurance
@@ -203,7 +204,7 @@ set_assignments ::= set_assignment.
 set_assignments ::= set_assignments COMMA set_assignment.
 set_assignment ::= set_opt ID(X) EQ expr.       {X; scannerContext->identifiers.pop();}
 set_assignment ::= set_opt ID(X) expr.          {X; scannerContext->identifiers.pop();}
-set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; scannerContext->identifiers.pop();}
+set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; scannerContext->quotedStrings.pop();}
 set_opt ::= GLOBAL.
 set_opt ::= SESSION.
 set_opt ::= .
@@ -433,11 +434,15 @@ where_opt(A) ::= WHERE expr(X).       {A;X;}
 
 ////////////////////////// The UPDATE command ////////////////////////////////
 //
-cmd ::= UPDATE fullname(X) indexed_opt(I) SET setlist(Y)
+cmd ::= UPDATE update_opt fullname(X) indexed_opt(I) SET setlist(Y)
     where_opt(W) orderby_opt(O) limit_opt(L).  {X;I;Y;W;O;L;}
 
 setlist(A) ::= setlist(Z) COMMA nm(X) EQ expr(Y). {A;X;Y;Z;}
 setlist(A) ::= nm(X) EQ expr(Y). {A;X;Y;}
+
+update_opt ::= .
+update_opt ::= LOW_PRIORITY.
+update_opt ::= IGNORE.
 
 ////////////////////////// The INSERT command /////////////////////////////////
 //
@@ -479,18 +484,19 @@ inscollist(A) ::= nm(Y). {A;Y;}
 /////////////////////////// Expression Processing /////////////////////////////
 //
 
-expr(A) ::= term(X).             {A;X;}
-expr(A) ::= LP(B) expr(X) RP(E). {A;X;B;E;}
-expr(A) ::= LP(B) select(X) RP(E). {A;X;B;E;}
-term(A) ::= NULL_KW(X).          {A;X;}
-expr(A) ::= id(X).               {A;X;}
-expr(A) ::= JOIN_KW(X).          {A;X;}
-expr(A) ::= nm(X) DOT nm(Y).    {A;X;Y;}
-expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z). {A;X;Y;Z;}
-term(A) ::= INTEGER|FLOAT.      {A; scannerContext->numbers.pop();}
-term(A) ::= HEX_NUMBER.         {A; scannerContext->hexNumbers.pop();}
-term(A) ::= BLOB(X).  {A;X;}
-term(A) ::= STRING(X).              {A;X; scannerContext->quotedStrings.pop();}
+expr(A) ::= term(X).                    {A;X;}
+expr(A) ::= LP(B) expr(X) RP(E).        {A;X;B;E;}
+expr(A) ::= LP(B) select(X) RP(E).      {A;X;B;E;}
+term(A) ::= NULL_KW(X).                 {A;X;}
+expr(A) ::= id(X).                      {A;X;}
+expr(A) ::= JOIN_KW(X).                 {A;X;}
+expr(A) ::= nm(X) DOT nm(Y).            {A;X;Y;}
+expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z).  {A;X;Y;Z;}
+term(A) ::= INTEGER|FLOAT.              {A; scannerContext->numbers.pop();}
+term(A) ::= HEX_NUMBER.                 {A; scannerContext->hexNumbers.pop();}
+term(A) ::= BLOB(X).                    {A;X;}
+term(A) ::= STRING(X).                  {A;X; scannerContext->quotedStrings.pop();}
+term(A) ::= GLOBAL_VARIABLE(X).         {A;X; scannerContext->quotedStrings.pop();}
 /* MySQL allows date intervals */
 term(A) ::= INTERVAL expr TIME_UNIT RP.    {A;}
 expr(A) ::= REGISTER(X).     {A;X;}

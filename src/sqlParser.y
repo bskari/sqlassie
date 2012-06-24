@@ -175,6 +175,7 @@ cmd ::= SHOW DATABASES.
 cmd ::= SHOW DATABASES LIKE_KW STRING.          {scannerContext->quotedStrings.pop();}
 cmd ::= SHOW GLOBAL VARIABLES.
 cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.   {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW CREATE TABLE ID.                   {scannerContext->identifiers.pop();}
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //
@@ -186,6 +187,20 @@ cmd ::= DESCRIBE id id(column).     {column;}
 //////////////////////// The USE statement ////////////////////////////////////
 //
 cmd ::= USE id.
+
+//////////////////////// The SET statement ////////////////////////////////////
+//
+cmd ::= SET set_assignments.
+// Set assignments are usually of the form "SET foo = 'bar'", but they can
+// also look like "SET NAMES utf8"
+set_assignments ::= set_assignment.
+set_assignments ::= set_assignments COMMA set_assignment.
+set_assignment ::= set_opt ID(X) EQ expr.       {X; scannerContext->identifiers.pop();}
+set_assignment ::= set_opt ID(X) expr.          {X; scannerContext->identifiers.pop();}
+set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; scannerContext->identifiers.pop();}
+set_opt ::= GLOBAL.
+set_opt ::= SESSION.
+set_opt ::= .
 
 //////////////////////// The LOCK statement ///////////////////////////////////
 //
@@ -334,7 +349,7 @@ on_opt(N) ::= .             {N;}
 // MySQL specific indexing hints
 index_hint_list_opt ::= .
 index_hint_list_opt ::= index_hint_list.
-/// @TODO Make index_hint_list a list
+/// @TODO(bskari|2012-06-24) Make index_hint_list a list
 index_hint_list ::= index_hint.
 index_hint ::= USE index_or_key index_hint_for_opt LP RP.
 index_hint ::= USE index_or_key index_hint_for_opt LP index_list RP.

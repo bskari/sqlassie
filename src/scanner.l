@@ -401,7 +401,7 @@ HEX_STRING    0x[0-9A-Fa-f]{2,}
 }
 {INTEGER}           {context->numbers.push(std::string(yytext)); return INTEGER;}
 {FLOAT}             {context->numbers.push(std::string(yytext)); return FLOAT;}
-{GLOBAL_VARIABLE}   {context->identifiers.push(std::string(yytext)); return STRING;}
+{GLOBAL_VARIABLE}   {context->identifiers.push(std::string(yytext)); return GLOBAL_VARIABLE;}
 
 .    {return ERROR_TOKEN;}
 

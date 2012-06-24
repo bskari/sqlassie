@@ -45,6 +45,26 @@
 
 } // end %include
 
+%syntax_error {
+    // Mark the query as invalid
+    scannerContext->qrPtr->valid = false;
+}
+// parse_failure is normally only called when Lemon's error recovery scheme
+// fails miserably and the parser is hopelessly lost. syntax_failure is called
+// for normal errors. Because I've defined YYNOERRORRECOVERY above, this
+// should never be called, but just in case, I'll add it in.
+%parse_failure {
+    // Mark the query as invalid
+    scannerContext->qrPtr->valid = false;
+    assert(
+        false
+        && "parse_failure should never be called if Lemon's error recovery is disabled. Check that error recovery is actually disabled."
+    );
+}
+
+///////////////////// Begin parsing rules. ////////////////////////////
+//
+
 // Input is a single SQL command
 input ::= cmdlist.
 cmdlist ::= cmdlist ecmd.

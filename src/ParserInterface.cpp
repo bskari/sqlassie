@@ -92,7 +92,7 @@ ParserInterface::ParserInterface(const string& buffer)
     if (nullptr == lemonParser_)
     {
         delete scannerPimpl_;
-        throw std::bad_alloc();
+        throw bad_alloc();
     }
 }
 
@@ -149,7 +149,7 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
         }
     #endif
 
-    qr_ = *qrPtr;
+    *qrPtr = qr_;
     successfullyParsed_ = qr_.valid;
     parsed_ = true;
 

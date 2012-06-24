@@ -66,15 +66,12 @@
 //
 
 // Input is a single SQL command
-input ::= cmdlist.
-cmdlist ::= cmdlist ecmd.
-cmdlist ::= ecmd.
-ecmd ::= SEMI.
-ecmd ::= explain cmdx SEMI.
-explain ::= .           {}
+input ::= cmd ecmd.
+input ::= explain cmd ecmd.
+ecmd ::= .
+ecmd ::= SEMI ecmd.
 explain ::= EXPLAIN.              {}
 explain ::= EXPLAIN QUERY PLAN.   {}
-cmdx ::= cmd.           {}
 
 ///////////////////// Begin and end transactions. ////////////////////////////
 //

@@ -179,7 +179,9 @@ cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.   {scannerContext->quotedStrings.p
 cmd ::= SHOW CREATE TABLE ID.                   {scannerContext->identifiers.pop();}
 // There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
 cmd ::= SHOW ID.
+cmd ::= SHOW ID likeop expr.
 cmd ::= SHOW ID ID.
+cmd ::= SHOW ID ID likeop expr.
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //
@@ -488,6 +490,7 @@ expr(A) ::= JOIN_KW(X).          {A;X;}
 expr(A) ::= nm(X) DOT nm(Y).    {A;X;Y;}
 expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z). {A;X;Y;Z;}
 term(A) ::= INTEGER|FLOAT.      {A; scannerContext->numbers.pop();}
+term(A) ::= HEX_NUMBER.         {A; scannerContext->hexNumbers.pop();}
 term(A) ::= BLOB(X).  {A;X;}
 term(A) ::= STRING(X).              {A;X; scannerContext->quotedStrings.pop();}
 /* MySQL allows date intervals */

@@ -349,14 +349,15 @@ on_opt(N) ::= .             {N;}
 // MySQL specific indexing hints
 index_hint_list_opt ::= .
 index_hint_list_opt ::= index_hint_list.
-/// @TODO(bskari|2012-06-24) Make index_hint_list a list
+index_hint_list ::= index_hint_list index_hint.
 index_hint_list ::= index_hint.
-index_hint ::= USE index_or_key index_hint_for_opt LP RP.
-index_hint ::= USE index_or_key index_hint_for_opt LP index_list RP.
-index_hint ::= IGNORE index_or_key index_hint_for_opt LP index_list RP.
-index_hint ::= FORCE index_or_key index_hint_for_opt LP index_list RP.
-index_or_key ::= INDEX.
-index_or_key ::= KEY.
+index_hint ::= USE index_or_key_opt index_hint_for_opt LP index_list RP.
+index_hint ::= IGNORE index_or_key_opt index_hint_for_opt LP index_list RP.
+index_hint ::= FORCE index_or_key_opt index_hint_for_opt LP index_list RP.
+index_or_key_opt ::= .
+index_or_key_opt ::= INDEX.
+index_or_key_opt ::= KEY.
+index_hint_for_opt ::= .
 index_hint_for_opt ::= FOR JOIN.
 index_hint_for_opt ::= FOR ORDER BY.
 index_hint_for_opt ::= FOR GROUP BY.

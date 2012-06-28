@@ -96,6 +96,12 @@ no_opt ::= NO.
 //
 id(A) ::= ID(X).         {A;X; scannerContext->identifiers.pop();}
 id(A) ::= INDEXED(X).    {A;X;}
+id(A) ::= ID_FALLBACK(X).
+{
+    A;X;
+    // Fallback IDs are recognized by the scanner as keywords, so they won't
+    // have an identifier pushed, so there's nothing to pop here.
+}
 
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to
 // fallback to ID if they will not parse as their original value.
@@ -104,7 +110,7 @@ id(A) ::= INDEXED(X).    {A;X;}
 // @TODO (bskari|2012-06-24) Whenever these fallbacks are triggered, the
 // scanner will not have pushed the identifiers onto the stack, and when the
 // parser tries to pop the identifiers stack, the program will crash.
-%fallback ID
+%fallback ID_FALLBACK
   ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN_KW BY CASCADE CAST COLUMNKW
   CONFLICT DATABASE DEFERRED DESC DETACH EACH END EXCLUSIVE EXPLAIN FAIL FOR
   IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH_KW NO PLAN

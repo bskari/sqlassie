@@ -219,6 +219,11 @@ set_assignment ::= set_opt ID(X) EQ expr.       {X; scannerContext->identifiers.
 set_assignment ::= set_opt ID(X) expr.          {X; scannerContext->identifiers.pop();}
 set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; scannerContext->quotedStrings.pop();}
 set_assignment ::= GLOBAL_VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; scannerContext->quotedStrings.pop();}
+// MySQL also has some long SET statements, like:
+// SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
+cmd ::= SET set_opt TRANSACTION bunch_of_ids.
+bunch_of_ids ::= .
+bunch_of_ids ::= ID bunch_of_ids.
 set_opt ::= GLOBAL.
 set_opt ::= SESSION.
 set_opt ::= .

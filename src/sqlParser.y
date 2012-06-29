@@ -277,9 +277,6 @@ multiselect_op(A) ::= UNION ALL.             {A;}
 multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
 oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) where_opt(Y)
                  groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {A;D;W;X;Y;P;Q;Z;L;}
-// MySQL match statement
-oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) WHERE mysql_match(Y)
-                 groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {A;D;W;X;Y;P;Q;Z;L;}
 
 // The "distinct" nonterminal is true (1) if the DISTINCT keyword is
 // present and false (0) if it is not.
@@ -328,7 +325,6 @@ sclp(A) ::= .                                {A;}
 selcollist(A) ::= sclp(P) expr(X) as(Y).     {A;X;Y;P;}
 selcollist(A) ::= sclp(P) STAR. {A;P;}
 selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y). {A;X;Y;P;}
-selcollist(A) ::= sclp(P) mysql_match(X). {A;X;P;}
 
 // An option "AS <id>" phrase that can follow one of the expressions that
 // define the result set, or one of the tables in the FROM clause.
@@ -612,3 +608,5 @@ exprlist(A) ::= nexprlist(X).                {A;X;}
 exprlist(A) ::= .                            {A;}
 nexprlist(A) ::= nexprlist(X) COMMA expr(Y). {A;X;Y;}
 nexprlist(A) ::= expr(Y). {A;Y;}
+
+expr(A) ::= mysql_match.    {A;}

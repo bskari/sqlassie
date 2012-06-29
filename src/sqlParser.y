@@ -218,6 +218,7 @@ set_assignments ::= set_assignments COMMA set_assignment.
 set_assignment ::= set_opt ID(X) EQ expr.       {X; scannerContext->identifiers.pop();}
 set_assignment ::= set_opt ID(X) expr.          {X; scannerContext->identifiers.pop();}
 set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; scannerContext->quotedStrings.pop();}
+set_assignment ::= GLOBAL_VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; scannerContext->quotedStrings.pop();}
 set_opt ::= GLOBAL.
 set_opt ::= SESSION.
 set_opt ::= .

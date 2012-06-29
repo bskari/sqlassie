@@ -177,9 +177,11 @@ signed ::= minus_num.
 
 //////////////////////// The SHOW statement /////////////////////////////////
 //
-cmd ::= SHOW full_opt TABLES showfromin_opt where_opt.
+cmd ::= SHOW TABLES showfromin_opt where_opt.
+cmd ::= SHOW FULL TABLES showfromin_opt where_opt.
 // MySQL doesn't allow NOT LIKE statements here, so don't use likeop
-cmd ::= SHOW full_opt TABLES showfromin_opt LIKE_KW STRING.     {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW TABLES showfromin_opt LIKE_KW STRING.      {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW FULL TABLES showfromin_opt LIKE_KW STRING. {scannerContext->quotedStrings.pop();}
 cmd ::= SHOW DATABASES where_opt.
 cmd ::= SHOW GLOBAL VARIABLES where_opt.
 cmd ::= SHOW CREATE TABLE id.
@@ -188,8 +190,6 @@ cmd ::= SHOW id.
 cmd ::= SHOW id likeop expr.
 cmd ::= SHOW id id.
 cmd ::= SHOW id id likeop expr.
-full_opt ::= .
-full_opt ::= FULL.
 showfromin_opt ::= .
 showfromin_opt ::= FROM id.
 showfromin_opt ::= IN id.

@@ -118,7 +118,7 @@ id(A) ::= ID_FALLBACK(X).
   SQL_NO_CACHE LOCK SHARE MODE BOOLEAN EXPANSION
   EXCEPT INTERSECT UNION
   REINDEX RENAME CTIME_KW IF
-  FULL TABLES
+  FULL TABLES SCHEMA
   .
 
 %wildcard ANY.
@@ -177,22 +177,49 @@ signed ::= minus_num.
 
 //////////////////////// The SHOW statement /////////////////////////////////
 //
-cmd ::= SHOW TABLES showfromin_opt where_opt.
-cmd ::= SHOW FULL TABLES showfromin_opt where_opt.
-// MySQL doesn't allow NOT LIKE statements here, so don't use likeop
-cmd ::= SHOW TABLES showfromin_opt LIKE_KW STRING.      {scannerContext->quotedStrings.pop();}
-cmd ::= SHOW FULL TABLES showfromin_opt LIKE_KW STRING. {scannerContext->quotedStrings.pop();}
 cmd ::= SHOW DATABASES where_opt.
-cmd ::= SHOW GLOBAL VARIABLES where_opt.
+// MySQL doesn't allow NOT LIKE statements here, so don't use likeop
+cmd ::= SHOW DATABASES LIKE_KW STRING.  {scannerContext->quotedStrings.pop();}
+
+cmd ::= SHOW global_opt VARIABLES where_opt.
+cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.  {scannerContext->quotedStrings.pop();}
+global_opt ::= GLOBAL.
+global_opt ::= .
+
 cmd ::= SHOW CREATE TABLE id.
+cmd ::= SHOW CREATE SCHEMA id.
+cmd ::= SHOW CREATE DATABASE id.
+
 // There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
 cmd ::= SHOW id.
 cmd ::= SHOW id likeop expr.
 cmd ::= SHOW id id.
 cmd ::= SHOW id id likeop expr.
+
+cmd ::= SHOW TABLES showfromin_opt where_opt.
+cmd ::= SHOW FULL TABLES showfromin_opt where_opt.
+cmd ::= SHOW TABLES showfromin_opt LIKE_KW STRING.      {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW FULL TABLES showfromin_opt LIKE_KW STRING. {scannerContext->quotedStrings.pop();}
+
+cmd ::= SHOW COLUMNS where_opt.
+cmd ::= SHOW COLUMNS LIKE_KW STRING.         {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW FULL COLUMNS where_opt.
+cmd ::= SHOW FULL COLUMNS LIKE_KW STRING.    {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW COLUMNS FROM showcolumnsid showfromin_opt where_opt.
+cmd ::= SHOW COLUMNS FROM showcolumnsid showfromin_opt LIKE_KW STRING.         {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW COLUMNS IN showcolumnsid showfromin_opt where_opt.
+cmd ::= SHOW COLUMNS IN showcolumnsid showfromin_opt LIKE_KW STRING.           {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW FULL COLUMNS FROM showcolumnsid showfromin_opt where_opt.
+cmd ::= SHOW FULL COLUMNS FROM showcolumnsid showfromin_opt LIKE_KW STRING.    {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW FULL COLUMNS IN showcolumnsid showfromin_opt where_opt.
+cmd ::= SHOW FULL COLUMNS IN showcolumnsid showfromin_opt LIKE_KW STRING.      {scannerContext->quotedStrings.pop();}
+
 showfromin_opt ::= .
 showfromin_opt ::= FROM id.
 showfromin_opt ::= IN id.
+
+showcolumnsid ::= id.
+showcolumnsid ::= id DOT id.
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //

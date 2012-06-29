@@ -322,12 +322,18 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "describe"|"desc"   {return DESCRIBE;}
 "global"            {return GLOBAL;}
 "variables"         {return VARIABLES;}
+"create"            {return CREATE;}
+"table"             {return TABLE;}
+"database"          {return DATABASE;}
+"databases"         {return DATABASES;}
+"schema"            {return SCHEMA;}
 
 "interval"              {return INTERVAL;}
 "sql_calc_found_rows"   {return SQL_CALC_FOUND_ROWS;}
 
 "unlock"    {return UNLOCK;}
 "tables"    {return TABLES;}
+"columns"   {return COLUMNS;}
 "full"      {return FULL;}
 
 "sql_big_result"    {return SQL_BIG_RESULT;}

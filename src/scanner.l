@@ -204,6 +204,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "commit"        {return COMMIT;}
 "start"         {return START;}
 "transaction"   {return TRANSACTION;}
+"session"       {return SESSION;}
 "rollback"      {return ROLLBACK;}
 "consistent"    {return CONSISTENT;}
 "snapshot"      {return SNAPSHOT;}

@@ -18,14 +18,14 @@ DESC ident '___' /* Describe columns that match a regex */
 /* MySQL SHOW TABLES statements */ SELECT 1
 SHOW TABLES LIKE 'quote'
 SHOW TABLES WHERE 2 = 1 + 1
-SHOW TABLES FROM 'quote'
-SHOW TABLES FROM 'quote' LIKE 'quote'
-SHOW TABLES FROM 'quote' WHERE MD5('quote') = 'quote'
+SHOW TABLES FROM ident
+SHOW TABLES FROM ident LIKE 'quote'
+SHOW TABLES FROM ident WHERE MD5('quote') = 'quote'
 SHOW FULL TABLES LIKE 'quote'
 SHOW FULL TABLES WHERE 2 = 1 + 1
-SHOW FULL TABLES FROM 'quote'
-SHOW FULL TABLES FROM 'quote' LIKE 'quote'
-SHOW FULL TABLES FROM 'quote' WHERE MD5('quote') = 'quote'
+SHOW FULL TABLES FROM ident
+SHOW FULL TABLES FROM ident LIKE 'quote'
+SHOW FULL TABLES FROM ident WHERE MD5('quote') = 'quote'
 
 /* MySQL SHOW TABLES statements */ SELECT 1
 SHOW COLUMNS ident LIKE 'quote'

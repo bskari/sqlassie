@@ -106,10 +106,6 @@ id(A) ::= ID_FALLBACK(X).
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to
 // fallback to ID if they will not parse as their original value.
 // This obviates the need for the "id" nonterminal.
-//
-// @TODO (bskari|2012-06-24) Whenever these fallbacks are triggered, the
-// scanner will not have pushed the identifiers onto the stack, and when the
-// parser tries to pop the identifiers stack, the program will crash.
 %fallback ID_FALLBACK
   ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN_KW BY CASCADE CAST COLUMNKW
   CONFLICT DATABASE DEFERRED DESC DETACH EACH END EXCLUSIVE EXPLAIN FAIL FOR
@@ -122,6 +118,7 @@ id(A) ::= ID_FALLBACK(X).
   SQL_NO_CACHE LOCK SHARE MODE BOOLEAN EXPANSION
   EXCEPT INTERSECT UNION
   REINDEX RENAME CTIME_KW IF
+  FULL TABLES
   .
 
 %wildcard ANY.
@@ -180,25 +177,32 @@ signed ::= minus_num.
 
 //////////////////////// The SHOW statement /////////////////////////////////
 //
-cmd ::= SHOW TABLES.
-cmd ::= SHOW TABLES LIKE_KW STRING.             {scannerContext->quotedStrings.pop();}
-cmd ::= SHOW DATABASES.
-cmd ::= SHOW DATABASES LIKE_KW STRING.          {scannerContext->quotedStrings.pop();}
-cmd ::= SHOW GLOBAL VARIABLES.
-cmd ::= SHOW GLOBAL VARIABLES LIKE_KW STRING.   {scannerContext->quotedStrings.pop();}
-cmd ::= SHOW CREATE TABLE ID.                   {scannerContext->identifiers.pop();}
+cmd ::= SHOW full_opt TABLES showfromin_opt where_opt.
+// MySQL doesn't allow NOT LIKE statements here, so don't use likeop
+cmd ::= SHOW full_opt TABLES showfromin_opt LIKE_KW STRING.     {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW DATABASES where_opt.
+cmd ::= SHOW GLOBAL VARIABLES where_opt.
+cmd ::= SHOW CREATE TABLE id.
 // There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
-cmd ::= SHOW ID.                {scannerContext->identifiers.pop();}
-cmd ::= SHOW ID likeop expr.    {scannerContext->identifiers.pop();}
-cmd ::= SHOW ID ID.             {scannerContext->identifiers.pop(); scannerContext->identifiers.pop();}
-cmd ::= SHOW ID ID likeop expr. {scannerContext->identifiers.pop(); scannerContext->identifiers.pop();}
+cmd ::= SHOW id.
+cmd ::= SHOW id likeop expr.
+cmd ::= SHOW id id.
+cmd ::= SHOW id id likeop expr.
+full_opt ::= .
+full_opt ::= FULL.
+showfromin_opt ::= .
+showfromin_opt ::= FROM id.
+showfromin_opt ::= IN id.
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //
-cmd ::= DESCRIBE id.
+// MySQL lets you use the DESC keyword for DESCRIBE
+describe_kw ::= DESC|DESCRIBE.
+cmd ::= describe_kw id.
+cmd ::= describe_kw id id.
 // You can specify an individual column, or give a regex and show all columns
 // that match it.
-cmd ::= DESCRIBE id id(column).     {column;}
+cmd ::= describe_kw id STRING.     {scannerContext->quotedStrings.pop();}
 
 //////////////////////// The USE statement ////////////////////////////////////
 //
@@ -384,8 +388,8 @@ index_list ::= nm COMMA index_list .
 // with z pointing to the token data and n containing the number of bytes
 // in the token.
 //
-// If there is a "NOT INDEXED" clause, then (z==0 && n==1), which is 
-// normally illegal. The sqlite3SrcListIndexedBy() function 
+// If there is a "NOT INDEXED" clause, then (z==0 && n==1), which is
+// normally illegal. The sqlite3SrcListIndexedBy() function
 // recognizes and interprets this as a special case.
 //
 indexed_opt(A) ::= .                 {A;}
@@ -412,9 +416,9 @@ having_opt(A) ::= HAVING expr(X).  {A;X;}
 
 // The destructor for limit_opt will never fire in the current grammar.
 // The limit_opt non-terminal only occurs at the end of a single production
-// rule for SELECT statements.  As soon as the rule that create the 
+// rule for SELECT statements.  As soon as the rule that create the
 // limit_opt non-terminal reduces, the SELECT statement rule will also
-// reduce.  So there is never a limit_opt non-terminal on the stack 
+// reduce.  So there is never a limit_opt non-terminal on the stack
 // except as a transient.  So there is never anything to destroy.
 //
 //%destructor limit_opt {
@@ -506,6 +510,7 @@ term(A) ::= HEX_NUMBER.                 {A; scannerContext->hexNumbers.pop();}
 term(A) ::= BLOB(X).                    {A;X;}
 term(A) ::= STRING(X).                  {A;X; scannerContext->quotedStrings.pop();}
 term(A) ::= GLOBAL_VARIABLE(X).         {A;X; scannerContext->quotedStrings.pop();}
+term(A) ::= GLOBAL_VARIABLE(X) DOT nm(Y).   {A;X;Y; scannerContext->quotedStrings.pop();}
 /* MySQL allows date intervals */
 term(A) ::= INTERVAL expr TIME_UNIT RP.    {A;}
 expr(A) ::= REGISTER(X).     {A;X;}
@@ -543,7 +548,7 @@ expr(A) ::= expr(X) NOT NULL_KW(E).     {A;X;E;}
 //
 // If expr2 is NULL then code as TK_ISNULL or TK_NOTNULL.  If expr2
 // is any other expression, code as TK_IS or TK_ISNOT.
-// 
+//
 expr(A) ::= expr(X) IS expr(Y).     {A;X;Y;}
 expr(A) ::= expr(X) IS NOT expr(Y). {A;X;Y;}
 

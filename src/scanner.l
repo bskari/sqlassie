@@ -328,6 +328,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 
 "unlock"    {return UNLOCK;}
 "tables"    {return TABLES;}
+"full"      {return FULL;}
 
 "sql_big_result"    {return SQL_BIG_RESULT;}
 "sql_small_result"  {return SQL_SMALL_RESULT;}

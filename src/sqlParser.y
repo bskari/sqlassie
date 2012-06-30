@@ -331,7 +331,7 @@ sclp(A) ::= selcollist(X) COMMA.             {A;X;}
 sclp(A) ::= .                                {A;}
 selcollist(A) ::= sclp(P) expr(X) as(Y).     {A;X;Y;P;}
 selcollist(A) ::= sclp(P) STAR. {A;P;}
-selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y). {A;X;Y;P;}
+selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y) as. {A;X;Y;P;}
 
 // An option "AS <id>" phrase that can follow one of the expressions that
 // define the result set, or one of the tables in the FROM clause.

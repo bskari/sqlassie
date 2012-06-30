@@ -466,15 +466,6 @@ void testSelectItems()
     parseQuery("SELECT a.age AS b FROM foo");
     parseQuery("SELECT a.flags & 0x40 AS b FROM foo");
     parseQuery("SELECT a.flags & 0x40 > 0 AS b FROM foo");
-
-    QueryRisk qr;
-    const string badQuery("SELECT a.* AS b FROM foo");
-    ParserInterface parser(badQuery);
-    const bool successfullyParsed = parser.parse(&qr);
-    BOOST_CHECK_MESSAGE(
-        !successfullyParsed,
-        badQuery << " should not parse"
-    );
 }
 
 

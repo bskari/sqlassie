@@ -119,6 +119,7 @@ id(A) ::= ID_FALLBACK(X).
   FULL TABLES SCHEMA
   DEFAULT
   SOME ANY
+  READ WRITE
   .
 
 // I don't know what this does, so I'm going to remove it

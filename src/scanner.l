@@ -219,8 +219,12 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "distinct"      {return DISTINCT;}
 "all"           {return ALL;}
 "distinctrow"   {return DISTINCTROW;}
- /** @TODO SQL small result, SQL big result, SQL buffer result */
- /** @TODO SQL calc found rows, SQL no cache, SQL cache all */
+"sql_small_result"      {return SQL_SMALL_RESULT;}
+"sql_big_result"        {return SQL_BIG_RESULT;}
+"sql_cache"             {return SQL_CACHE;}
+"sql_no_cache"          {return SQL_NO_CACHE;}
+"sql_calc_found_rows"   {return SQL_CALC_FOUND_ROWS;}
+"sql_buffer_result"     {return SQL_BUFFER_RESULT;}
 
 "left"      {return LEFT;}
 "right"     {return RIGHT;}
@@ -330,18 +334,11 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "schema"            {return SCHEMA;}
 
 "interval"              {return INTERVAL;}
-"sql_calc_found_rows"   {return SQL_CALC_FOUND_ROWS;}
 
 "unlock"    {return UNLOCK;}
 "tables"    {return TABLES;}
 "columns"   {return COLUMNS;}
 "full"      {return FULL;}
-
-"sql_big_result"    {return SQL_BIG_RESULT;}
-"sql_small_result"  {return SQL_SMALL_RESULT;}
-"sql_buffer_result" {return SQL_BUFFER_RESULT;}
-"sql_cache"         {return SQL_CACHE;}
-"sql_no_cache"      {return SQL_NO_CACHE;}
 
 "microsecond"           {return TIME_UNIT;}
 "second"                {return TIME_UNIT;}

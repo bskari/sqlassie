@@ -75,14 +75,13 @@ void testAllTokensScan()
 }
 
 
-#include <iostream>
 set<string> loadScannerTokens(const char* const filename)
 {
     ifstream fin(filename);
     BOOST_REQUIRE_MESSAGE(fin, "Unable to open scanner");
     set<string> tokens;
 
-    regex returnStatementRegex("return ([A-Z]+);");
+    regex returnStatementRegex("return ([A-Z_]+);");
     string line;
     while (getline(fin, line))
     {
@@ -91,7 +90,6 @@ set<string> loadScannerTokens(const char* const filename)
         {
             continue;
         }
-        std::cout << m[1] << std::endl;
         tokens.insert(m[1]);
     }
     return tokens;

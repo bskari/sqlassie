@@ -116,7 +116,6 @@ id(A) ::= ID_FALLBACK(X).
   SOUNDS OUTFILE SQL_BIG_RESULT SQL_SMALL_RESULT SQL_BUFFER_RESULT SQL_CACHE
   SQL_NO_CACHE LOCK SHARE MODE BOOLEAN EXPANSION
   UNION
-  REINDEX RENAME
   FULL TABLES SCHEMA
   DEFAULT
   SOME ANY
@@ -249,6 +248,8 @@ set_assignment ::= set_opt id(X) EQ expr.       {X;}
 set_assignment ::= set_opt id(X) expr.          {X;}
 set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; scannerContext->quotedStrings.pop();}
 set_assignment ::= GLOBAL_VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; scannerContext->quotedStrings.pop();}
+set_assignment ::= VARIABLE(X) EQ expr.  {X; scannerContext->quotedStrings.pop();}
+set_assignment ::= VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; scannerContext->quotedStrings.pop();}
 // MySQL also has some long SET statements, like:
 // SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
 cmd ::= SET set_opt TRANSACTION bunch_of_ids.
@@ -532,7 +533,6 @@ term(A) ::= GLOBAL_VARIABLE(X).         {A;X; scannerContext->quotedStrings.pop(
 term(A) ::= GLOBAL_VARIABLE(X) DOT nm(Y).   {A;X;Y; scannerContext->quotedStrings.pop();}
 /* MySQL allows date intervals */
 term(A) ::= INTERVAL expr TIME_UNIT RP.    {A;}
-expr(A) ::= REGISTER(X).     {A;X;}
 expr(A) ::= VARIABLE(X).     {A;X;}
 expr(A) ::= expr(E) COLLATE ids(C). {A;E;C;}
 %ifndef SQLITE_OMIT_CAST

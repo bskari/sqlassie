@@ -82,7 +82,8 @@ ID  ([a-zA-Z_][a-zA-Z0-9_]*)|("{"[a-zA-Z_][a-zA-Z0-9_]*"}")
 QUOTED_IDENTIFIER    "`"[a-zA-Z_][a-zA-Z0-9_]*"`"
 INTEGER     [0-9]+
 FLOAT       ([0-9]*"."[0-9]+)|([0-9]+"."[0-9]*)
-GLOBAL_VARIABLE    "@@"{ID}
+GLOBAL_VARIABLE     "@@"{ID}
+VARIABLE            "@"{ID}
 
 HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 
@@ -314,6 +315,8 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "share"     {return SHARE;}
 "mode"      {return MODE;}
 "local"     {return LOCAL;}
+"read"      {return READ;}
+"write"     {return WRITE;}
 
 "force"     {return FORCE;}
 "use"       {return USE;}
@@ -383,6 +386,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 {INTEGER}           {context->numbers.push(std::string(yytext)); return INTEGER;}
 {FLOAT}             {context->numbers.push(std::string(yytext)); return FLOAT;}
 {GLOBAL_VARIABLE}   {context->quotedStrings.push(std::string(yytext)); return GLOBAL_VARIABLE;}
+{VARIABLE}          {context->quotedStrings.push(std::string(yytext)); return VARIABLE;}
 
 .    {return ERROR_TOKEN;}
 

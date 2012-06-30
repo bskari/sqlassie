@@ -107,11 +107,10 @@ id(A) ::= ID_FALLBACK(X).
 // fallback to ID if they will not parse as their original value.
 // This obviates the need for the "id" nonterminal.
 %fallback ID_FALLBACK
-  ABORT ACTION AFTER ANALYZE ASC ATTACH BEFORE BEGIN_KW BY CASCADE CAST COLUMNKW
-  CONFLICT DATABASE DEFERRED DESC DETACH EACH END EXCLUSIVE EXPLAIN FAIL FOR
-  IGNORE IMMEDIATE INITIALLY INSTEAD LIKE_KW MATCH_KW NO PLAN
-  QUERY KEY OF OFFSET PRAGMA RAISE RELEASE REPLACE RESTRICT ROW ROLLBACK
-  SAVEPOINT TEMP TRIGGER VACUUM VIEW VIRTUAL
+  ASC BEGIN_KW BY CAST
+  DATABASE DESC END EXPLAIN FOR
+  IGNORE LIKE_KW MATCH_KW NO PLAN
+  QUERY KEY OFFSET RELEASE REPLACE ROLLBACK
   // MySQL specific stuff
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
   SOUNDS OUTFILE SQL_BIG_RESULT SQL_SMALL_RESULT SQL_BUFFER_RESULT SQL_CACHE
@@ -120,9 +119,11 @@ id(A) ::= ID_FALLBACK(X).
   REINDEX RENAME CTIME_KW IF
   FULL TABLES SCHEMA
   DEFAULT
+  SOME ANY
   .
 
-%wildcard ANY.
+// I don't know what this does, so I'm going to remove it
+//%wildcard ANY.
 
 // Define operator precedence early so that this is the first occurance
 // of the operator tokens in the grammer.  Keeping the operators together
@@ -138,7 +139,7 @@ id(A) ::= ID_FALLBACK(X).
 %left OR.
 %left XOR.
 %left AND.
-%right NOT.
+%right NOT SOME ANY.
 %left IS MATCH_KW LIKE_KW SOUNDS BETWEEN IN ISNULL NOTNULL NE EQ.
 %left GT LE LT GE.
 %right ESCAPE.
@@ -378,7 +379,7 @@ dbnm(A) ::= DOT nm(X). {A;X;}
 fullname(A) ::= nm(X) dbnm(Y).  {A;X;Y;}
 
 joinop(X) ::= COMMA.                 {X;}
-joinop(X) ::= join_opt JOIN.         {X;}
+joinop(X) ::= join_opt JOIN_KW.         {X;}
 
 join_opt ::= INNER.
 join_opt ::= CROSS.
@@ -406,7 +407,7 @@ index_or_key_opt ::= .
 index_or_key_opt ::= INDEX.
 index_or_key_opt ::= KEY.
 index_hint_for_opt ::= .
-index_hint_for_opt ::= FOR JOIN.
+index_hint_for_opt ::= FOR JOIN_KW.
 index_hint_for_opt ::= FOR ORDER BY.
 index_hint_for_opt ::= FOR GROUP BY.
 index_list ::= nm .
@@ -590,8 +591,10 @@ expr(A) ::= PLUS(B) expr(X). [BITNOT] {A;X;B;}
 between_op(A) ::= BETWEEN.     {A;}
 between_op(A) ::= NOT BETWEEN. {A;}
 expr(A) ::= expr(W) between_op(N) expr(X) AND expr(Y). [BETWEEN] {A;X;Y;W;N;}
-in_op(A) ::= IN.      {A;}
-in_op(A) ::= NOT IN.  {A;}
+in_op(A) ::= IN.        {A;}
+in_op(A) ::= NOT IN.    {A;}
+in_op(A) ::= ANY.       {A;}
+in_op(A) ::= SOME.      {A;}
 expr(A) ::= expr(X) in_op(N) LP exprlist(Y) RP(E). [IN] {A;X;Y;N;E;}
 expr(A) ::= expr(X) in_op(N) LP select(Y) RP(E).  [IN] {A;X;Y;N;E;}
 expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN] {A;X;Y;N;Z;}

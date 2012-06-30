@@ -232,7 +232,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "inner"     {return INNER;}
 "cross"     {return CROSS;}
 "natural"   {return NATURAL;}
-"join"      {return JOIN;}
+"join"      {return JOIN_KW;}
 "on"        {return ON;}
 "using"     {return USING;}
 
@@ -240,6 +240,8 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 
 ("not"|"!")     {return NOT;}
 "in"            {return IN;}
+"any"           {return ANY;}
+"some"          {return SOME;}
 "between"       {return BETWEEN;}
 "or"            {return OR;}
 "xor"           {return XOR;}
@@ -358,6 +360,12 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "day_minute"            {return TIME_UNIT;}
 "day_hour"              {return TIME_UNIT;}
 "year_month"            {return TIME_UNIT;}
+
+"case"  {return CASE;}
+"when"  {return WHEN;}
+"then"  {return THEN;}
+"else"  {return ELSE;}
+"end"   {return END;}
 
 {ID}    {context->identifiers.push(std::string(yytext)); return ID;}
 {QUOTED_IDENTIFIER}    {

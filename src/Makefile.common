@@ -155,6 +155,7 @@ $(BINARY_DIR)/sqlassie:	sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHa
 
 $(BINARY_DIR)/test:	tests/test.o tests/testNode.o tests/testParser.o \
 	tests/testMySqlConstants.o tests/testQueryWhitelist.o \
+	tests/testScanner.o \
 	Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp	ProxyHalf.o \
 	ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o sqlParser.o \
 	scanner.yy.hpp scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
@@ -167,7 +168,7 @@ $(BINARY_DIR)/test:	tests/test.o tests/testNode.o tests/testParser.o \
 	SensitiveNameChecker.o
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) tests/test.o tests/testNode.o \
 		tests/testParser.o tests/testMySqlConstants.o \
-		tests/testQueryWhitelist.o \
+		tests/testQueryWhitelist.o tests/testScanner.o \
 		Socket.o Proxy.o ProxyHalf.o \
 		ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o \
 		sqlParser.o scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \

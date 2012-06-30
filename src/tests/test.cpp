@@ -27,6 +27,7 @@
 #include "testNode.hpp"
 #include "testParser.hpp"
 #include "testQueryWhitelist.hpp"
+#include "testScanner.hpp"
 
 #include <boost/test/included/unit_test.hpp>
 #include <string>
@@ -91,6 +92,11 @@ test::test_suite* init_unit_test_suite(int, char*[])
     );
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testRiskWhitelist)
+    );
+
+    // Tests from testScanner.cpp
+    test::framework::master_test_suite().add(
+        BOOST_TEST_CASE(testAllTokensScan)
     );
 
     return 0;

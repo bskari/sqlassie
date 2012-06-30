@@ -112,7 +112,7 @@ QueryRisk.o:	QueryRisk.cpp Logger.hpp QueryRisk.hpp
 QueryWhitelist.o:	QueryWhitelist.cpp DescribedException.hpp Logger.hpp \
 	ParserInterface.hpp QueryWhitelist.hpp nullptr.hpp
 
-ScannerContext.o:	ScannerContext.cpp ScannerContext.hpp
+ScannerContext.o:	ScannerContext.cpp QueryRisk.hpp ScannerContext.hpp
 
 SensitiveNameChecker.o:	SensitiveNameChecker.cpp SensitiveNameChecker.hpp
 
@@ -131,7 +131,7 @@ initializeSingletons.o:	initializeSingletons.cpp Logger.hpp \
 logger.o:	logger.cpp Logger.hpp MySqlLoggerListenSocket.hpp
 
 parser.o:	parser.cpp AstNode.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp
+	SensitiveNameChecker.hpp nullptr.hpp scanner.yy.hpp
 
 probabilities.o:	probabilities.cpp csvParse.hpp
 
@@ -142,8 +142,8 @@ riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
 	DlibProbabilities.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp
 
-scanner.o:	scanner.cpp Logger.hpp ScannerContext.hpp nullptr.hpp \
-	scanner.yy.hpp sqlParser.h
+scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ScannerContext.hpp \
+	nullptr.hpp scanner.yy.hpp sqlParser.h
 
 sqlassie.o:	sqlassie.cpp Logger.hpp MySqlGuardListenSocket.hpp \
 	MySqlLoginCheck.hpp QueryWhitelist.hpp SensitiveNameChecker.hpp \
@@ -154,7 +154,8 @@ tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 
 tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp tests/testMySqlConstants.hpp \
-	tests/testNode.hpp tests/testParser.hpp tests/testQueryWhitelist.hpp
+	tests/testNode.hpp tests/testParser.hpp tests/testQueryWhitelist.hpp \
+	tests/testScanner.hpp
 
 tests/testMySqlConstants.o:	tests/testMySqlConstants.cpp MySqlConstants.hpp \
 	tests/testMySqlConstants.hpp
@@ -168,4 +169,6 @@ tests/testParser.o:	tests/testParser.cpp ParserInterface.hpp QueryRisk.hpp \
 
 tests/testQueryWhitelist.o:	tests/testQueryWhitelist.cpp ParserInterface.hpp \
 	QueryRisk.hpp QueryWhitelist.hpp
+
+tests/testScanner.o:	tests/testScanner.cpp tests/testScanner.hpp
 

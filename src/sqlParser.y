@@ -115,8 +115,8 @@ id(A) ::= ID_FALLBACK(X).
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
   SOUNDS OUTFILE SQL_BIG_RESULT SQL_SMALL_RESULT SQL_BUFFER_RESULT SQL_CACHE
   SQL_NO_CACHE LOCK SHARE MODE BOOLEAN EXPANSION
-  EXCEPT INTERSECT UNION
-  REINDEX RENAME CTIME_KW IF
+  UNION
+  REINDEX RENAME
   FULL TABLES SCHEMA
   DEFAULT
   SOME ANY
@@ -140,7 +140,7 @@ id(A) ::= ID_FALLBACK(X).
 %left XOR.
 %left AND.
 %right NOT SOME ANY.
-%left IS MATCH_KW LIKE_KW SOUNDS BETWEEN IN ISNULL NOTNULL NE EQ.
+%left IS MATCH_KW LIKE_KW SOUNDS BETWEEN IN NE EQ.
 %left GT LE LT GE.
 %right ESCAPE.
 %left BITAND BITOR BITXOR LSHIFT RSHIFT.
@@ -276,7 +276,8 @@ select(A) ::= oneselect(X).                  {A;X;}
 select(A) ::= select(X) multiselect_op(Y) oneselect(Z).  {A;X;Y;Z;}
 multiselect_op(A) ::= UNION(OP).             {A;OP;}
 multiselect_op(A) ::= UNION ALL.             {A;}
-multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
+// EXCEPT and INTERSECT are not supported in MySQL
+//multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
 oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) where_opt(Y)
                  groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {A;D;W;X;Y;P;Q;Z;L;}
 
@@ -538,7 +539,6 @@ expr(A) ::= nm(X) DOT nm(Y).            {A;X;Y;}
 expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z).  {A;X;Y;Z;}
 term(A) ::= INTEGER|FLOAT.              {A; scannerContext->numbers.pop();}
 term(A) ::= HEX_NUMBER.                 {A; scannerContext->hexNumbers.pop();}
-term(A) ::= BLOB(X).                    {A;X;}
 term(A) ::= STRING(X).                  {A;X; scannerContext->quotedStrings.pop();}
 term(A) ::= GLOBAL_VARIABLE(X).         {A;X; scannerContext->quotedStrings.pop();}
 term(A) ::= GLOBAL_VARIABLE(X) DOT nm(Y).   {A;X;Y; scannerContext->quotedStrings.pop();}
@@ -552,7 +552,6 @@ expr(A) ::= CAST(X) LP expr(E) AS typetoken(T) RP(Y). {A;X;Y;E;T;}
 %endif  SQLITE_OMIT_CAST
 expr(A) ::= ID(X) LP distinct(D) exprlist(Y) RP(E). {A;X;Y;D;E; scannerContext->identifiers.pop();}
 expr(A) ::= ID(X) LP STAR RP(E). {A;X;E; scannerContext->identifiers.pop();}
-term(A) ::= CTIME_KW(OP). {A;OP;}
 
 expr(A) ::= expr(X) AND(OP) expr(Y).    {A;X;Y;OP;}
 expr(A) ::= expr(X) OR(OP) expr(Y).     {A;X;Y;OP;}
@@ -571,14 +570,10 @@ likeop(A) ::= SOUNDS LIKE_KW(X).     {A;X;}
 expr(A) ::= expr(X) likeop(OP) expr(Y).  [LIKE_KW]  {A;X;Y;OP;}
 expr(A) ::= expr(X) likeop(OP) expr(Y) ESCAPE expr(E).  [LIKE_KW]  {A;X;Y;OP;E;}
 
-expr(A) ::= expr(X) ISNULL|NOTNULL(E).  {A;X;E;}
 expr(A) ::= expr(X) NOT NULL_KW(E).     {A;X;E;}
 
 //    expr1 IS expr2
 //    expr1 IS NOT expr2
-//
-// If expr2 is NULL then code as TK_ISNULL or TK_NOTNULL.  If expr2
-// is any other expression, code as TK_IS or TK_ISNOT.
 //
 expr(A) ::= expr(X) IS expr(Y).     {A;X;Y;}
 expr(A) ::= expr(X) IS NOT expr(Y). {A;X;Y;}

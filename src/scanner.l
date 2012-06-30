@@ -219,6 +219,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "distinct"      {return DISTINCT;}
 "all"           {return ALL;}
 "distinctrow"   {return DISTINCTROW;}
+"collate"       {return COLLATE;}
 "sql_small_result"      {return SQL_SMALL_RESULT;}
 "sql_big_result"        {return SQL_BIG_RESULT;}
 "sql_cache"             {return SQL_CACHE;}
@@ -237,6 +238,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "using"     {return USING;}
 
 "as"    {return AS;}
+"cast"  {return CAST;}
 
 ("not"|"!")     {return NOT;}
 "in"            {return IN;}
@@ -269,6 +271,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "~"     {return BITNOT;}
 "<<"    {return LSHIFT;}
 ">>"    {return RSHIFT;}
+"||"    {return CONCAT;}
 
 ","     {return COMMA;}
 "*"     {return STAR;}

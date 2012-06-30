@@ -105,7 +105,13 @@ set<string> loadParserTokens(const char* const filename)
     string token, _;
     while (fin.ignore(numeric_limits<streamsize>::max(), ' '), fin >> token)
     {
-        tokens.insert(token);
+        // The ID_FALLBACK token is a dummy token that;s used for keywords
+        // that can also be used as identifiers, e.g. 'MATCH'. The scanner
+        // should never return this keyword, so don't check for it.
+        if (token != "ID_FALLBACK")
+        {
+            tokens.insert(token);
+        }
         fin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
     return tokens;

@@ -198,6 +198,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "replace"   {return REPLACE;}
 "delete"    {return DELETE;}
 "explain"   {return EXPLAIN;}
+"extended"  {return EXTENDED;}
 
 "begin"         {return BEGIN_KW;}
 "work"          {return WORK;}
@@ -209,6 +210,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "consistent"    {return CONSISTENT;}
 "snapshot"      {return SNAPSHOT;}
 "chain"         {return CHAIN;}
+"no"            {return NO;}
 "release"       {return RELEASE;}
 
 "low_priority"  {return LOW_PRIORITY;}
@@ -301,6 +303,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "union"     {return UNION;}
 
 "limit"     {return LIMIT;}
+"offset"    {return OFFSET;}
 
 "default"   {return DEFAULT;}
 
@@ -310,6 +313,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "lock"      {return LOCK;}
 "share"     {return SHARE;}
 "mode"      {return MODE;}
+"local"     {return LOCAL;}
 
 "force"     {return FORCE;}
 "use"       {return USE;}

@@ -67,11 +67,12 @@
 
 // Input is a single SQL command
 input ::= cmd ecmd.
-input ::= explain cmd ecmd.
+input ::= explain select_statement ecmd.
 ecmd ::= .
 ecmd ::= SEMI ecmd.
-explain ::= EXPLAIN.              {}
-explain ::= EXPLAIN QUERY PLAN.   {}
+explain ::= EXPLAIN extended_opt.
+extended_opt ::= .
+extended_opt ::= EXTENDED.
 
 ///////////////////// Begin and end transactions. ////////////////////////////
 //
@@ -95,7 +96,6 @@ no_opt ::= NO.
 // keywords.  Any non-standard keyword can also be an identifier.
 //
 id(A) ::= ID(X).         {A;X; scannerContext->identifiers.pop();}
-id(A) ::= INDEXED(X).    {A;X;}
 id(A) ::= ID_FALLBACK(X).
 {
     A;X;
@@ -109,7 +109,7 @@ id(A) ::= ID_FALLBACK(X).
 %fallback ID_FALLBACK
   ASC BEGIN_KW BY CAST
   DATABASE DESC END EXPLAIN FOR
-  IGNORE LIKE_KW MATCH_KW NO PLAN
+  IGNORE LIKE_KW MATCH_KW
   QUERY KEY OFFSET RELEASE REPLACE ROLLBACK
   // MySQL specific stuff
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
@@ -225,7 +225,8 @@ showcolumnsid ::= id DOT id.
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //
-// MySQL lets you use the DESC keyword for DESCRIBE
+// MySQL lets you use the DESC and EXPLAIN keyword for DESCRIBE
+/// @TODO(bskari|2012-06-30) Support EXPLAIN keyword here.
 describe_kw ::= DESC|DESCRIBE.
 cmd ::= describe_kw id.
 cmd ::= describe_kw id id.
@@ -270,7 +271,8 @@ cmd ::= UNLOCK TABLES lock_tables_list.
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //
-cmd ::= select_opt select(X) outfile_opt lock_read_opt .   {X;}
+cmd ::= select_statement.
+select_statement ::= select_opt select(X) outfile_opt lock_read_opt.   {X;}
 
 select(A) ::= oneselect(X).                  {A;X;}
 select(A) ::= select(X) multiselect_op(Y) oneselect(Z).  {A;X;Y;Z;}
@@ -356,7 +358,7 @@ againstmodifier_opt ::= WITH QUERY EXPANSION.
 stl_prefix(A) ::= seltablist(X) joinop(Y).    {A;X;Y;}
 stl_prefix(A) ::= .                           {A;}
 seltablist(A) ::= stl_prefix(X) nm(Y) dbnm(D)
-                as(Z) index_hint_list_opt indexed_opt(I) on_opt(N) using_opt(U). {A;X;Y;D;Z;I;N;U;}
+                as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;Y;D;Z;N;U;}
 seltablist(A) ::= stl_prefix(X) LP select(S) RP
                 as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;S;Z;N;U;}
 seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
@@ -414,20 +416,6 @@ index_hint_for_opt ::= FOR GROUP BY.
 index_list ::= nm .
 index_list ::= nm COMMA index_list .
 
-// Note that this block abuses the Token type just a little. If there is
-// no "INDEXED BY" clause, the returned token is empty (z==0 && n==0). If
-// there is an INDEXED BY clause, then the token is populated as per normal,
-// with z pointing to the token data and n containing the number of bytes
-// in the token.
-//
-// If there is a "NOT INDEXED" clause, then (z==0 && n==1), which is
-// normally illegal. The sqlite3SrcListIndexedBy() function
-// recognizes and interprets this as a special case.
-//
-indexed_opt(A) ::= .                 {A;}
-indexed_opt(A) ::= INDEXED BY nm(X). {A;X;}
-indexed_opt(A) ::= NOT INDEXED.      {A;}
-
 using_opt(U) ::= USING LP inscollist(L) RP.  {U;L;}
 using_opt(U) ::= .                        {U;}
 
@@ -464,8 +452,8 @@ limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {A;X;Y;}
 
 /////////////////////////// The DELETE statement /////////////////////////////
 //
-cmd ::= DELETE delete_opt FROM fullname(X) indexed_opt(I) where_opt(W)
-        orderby_opt(O) limit_opt(L). {X;I;W;O;L;}
+cmd ::= DELETE delete_opt FROM fullname(X) where_opt(W)
+        orderby_opt(O) limit_opt(L). {X;W;O;L;}
 
 delete_opt ::= low_priority_opt quick_opt ignore_opt.
 low_priority_opt ::= .
@@ -479,8 +467,8 @@ where_opt(A) ::= WHERE expr(X).       {A;X;}
 
 ////////////////////////// The UPDATE command ////////////////////////////////
 //
-cmd ::= UPDATE update_opt fullname(X) indexed_opt(I) SET setlist(Y)
-    where_opt(W) orderby_opt(O) limit_opt(L).  {X;I;Y;W;O;L;}
+cmd ::= UPDATE update_opt fullname(X) SET setlist(Y)
+    where_opt(W) orderby_opt(O) limit_opt(L).  {X;Y;W;O;L;}
 
 setlist(A) ::= setlist(Z) COMMA nm(X) EQ expr(Y). {A;X;Y;Z;}
 setlist(A) ::= nm(X) EQ expr(Y). {A;X;Y;}

@@ -14,6 +14,11 @@ DESC ident ident /* Describe a specific column */
 DESC ident 'quote' /* Describe a specific column */
 DESC ident 's%' /* Describe columns that match a regex */
 DESC ident '___' /* Describe columns that match a regex */
+EXPLAIN ident
+EXPLAIN ident ident /* Describe a specific column */
+EXPLAIN ident 'quote' /* Describe a specific column */
+EXPLAIN ident 's%' /* Describe columns that match a regex */
+EXPLAIN ident '___' /* Describe columns that match a regex */
 
 /* MySQL SHOW TABLES statements */ SELECT 1
 SHOW TABLES LIKE 'quote'
@@ -134,3 +139,6 @@ SELECT @@GLOBAL.tx_isolation, @@tx_isolation
 SET GLOBAL tx_isolation = 'REPEATABLE-READ'
 SET SESSION tx_isolation = 'SERIALIZABLE'
 SET NAMES utf8
+
+/* MySQL lets you do extra stuff if there are duplicate keys */ SELECT 1
+INSERT INTO ident (ident, ident) VALUES (1, 'quote') ON DUPLICATE KEY UPDATE ident = ident + 1

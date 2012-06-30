@@ -192,7 +192,7 @@ $(BINARY_DIR)/tunnel:	tunnel.o ProxyListenSocket.hpp \
 		Logger.o \
 		-lboost_thread -lboost_program_options -o $(BINARY_DIR)/tunnel
 
-sqlParser.h: sqlParser.cpp
+sqlParser.h: sqlParser.cpp ;
 
 sqlParser.cpp:	sqlParser.y
 	$(LEMON) -s sqlParser.y
@@ -203,7 +203,7 @@ sqlParser.o:	sqlParser.cpp AlwaysSomethingNode.hpp \
 	ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp InSubselectNode.hpp
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlParser.cpp -c -o sqlParser.o
 
-huginParser.tab.hpp:	huginParser.tab.cpp
+huginParser.tab.hpp:	huginParser.tab.cpp ;
 
 huginParser.tab.cpp:	huginParser.y clearStack.hpp
 	$(YACC) -o huginParser.tab.cpp --defines=huginParser.tab.hpp \
@@ -213,7 +213,7 @@ huginParser.tab.o:	huginParser.tab.cpp
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) huginParser.tab.cpp -c -o \
 		huginParser.tab.o
 
-scanner.yy.hpp:	scanner.yy.cpp
+scanner.yy.hpp:	scanner.yy.cpp ;
 
 scanner.yy.cpp:	scanner.l sqlParser.h
 	$(LEX) --case-insensitive --outfile=scanner.yy.cpp \

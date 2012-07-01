@@ -67,12 +67,8 @@
 
 // Input is a single SQL command
 input ::= cmd ecmd.
-input ::= explain select_statement ecmd.
 ecmd ::= .
 ecmd ::= SEMI ecmd.
-explain ::= EXPLAIN extended_opt.
-extended_opt ::= .
-extended_opt ::= EXTENDED.
 
 ///////////////////// Begin and end transactions. ////////////////////////////
 //
@@ -237,19 +233,28 @@ full_opt ::= FULL.
 // MySQL lets you use the DESC and EXPLAIN keyword for DESCRIBE
 /// @TODO(bskari|2012-06-30) Support EXPLAIN keyword here.
 describe_kw ::= DESC|DESCRIBE.
-cmd ::= describe_kw id.
-cmd ::= describe_kw id id.
+cmd ::= describe_kw id.     {sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;}
+cmd ::= describe_kw id id.  {sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;}
 // You can specify an individual column, or give a regex and show all columns
 // that match it.
-cmd ::= describe_kw id STRING.     {sc->quotedStrings.pop();}
+cmd ::= describe_kw id STRING.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE; sc->quotedStrings.pop();}
+
+//////////////////////// The EXPLAIN statement ///////////////////////////////
+//
+cmd ::= explain select_statement.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_EXPLAIN;}
+explain ::= EXPLAIN extended_opt.
+extended_opt ::= .
+extended_opt ::= EXTENDED.
 
 //////////////////////// The USE statement ////////////////////////////////////
 //
-cmd ::= USE id.
+cmd ::= USE id. {sc->qrPtr->queryType = QueryRisk::TYPE_USE;}
 
 //////////////////////// The SET statement ////////////////////////////////////
 //
-cmd ::= SET set_assignments.
+cmd ::= SET set_assignments.    {sc->qrPtr->queryType = QueryRisk::TYPE_SET;}
 // Set assignments are usually of the form "SET foo = 'bar'", but they can
 // also look like "SET NAMES utf8"
 set_assignments ::= set_assignment.
@@ -262,7 +267,7 @@ set_assignment ::= VARIABLE(X) EQ expr.  {X; sc->quotedStrings.pop();}
 set_assignment ::= VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; sc->quotedStrings.pop();}
 // MySQL also has some long SET statements, like:
 // SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
-cmd ::= SET set_opt TRANSACTION bunch_of_ids.
+cmd ::= SET set_opt TRANSACTION bunch_of_ids.   {sc->qrPtr->queryType = QueryRisk::TYPE_SET;}
 bunch_of_ids ::= .
 bunch_of_ids ::= id bunch_of_ids.
 set_opt ::= GLOBAL.
@@ -271,14 +276,14 @@ set_opt ::= .
 
 //////////////////////// The LOCK statement ///////////////////////////////////
 //
-cmd ::= LOCK TABLES lock_tables_list.
+cmd ::= LOCK TABLES lock_tables_list.   {sc->qrPtr->queryType = QueryRisk::TYPE_LOCK;}
 lock_tables_list ::= as lock_type.
 lock_tables_list ::= as lock_type COMMA lock_tables_list.
 lock_type ::= READ local_opt.
 lock_type ::= low_priority_opt WRITE.
 local_opt ::= .
 local_opt ::= LOCAL.
-cmd ::= UNLOCK TABLES lock_tables_list.
+cmd ::= UNLOCK TABLES lock_tables_list. {sc->qrPtr->queryType = QueryRisk::TYPE_LOCK;}
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //

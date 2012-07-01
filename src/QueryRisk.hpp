@@ -53,7 +53,9 @@ public:
         TYPE_SET,
         TYPE_EXPLAIN,
         TYPE_SHOW,
-        TYPE_DESCRIBE
+        TYPE_DESCRIBE,
+        TYPE_LOCK,
+        TYPE_USE
     };
 
     enum EmptyPassword

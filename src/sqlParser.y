@@ -78,9 +78,13 @@ extended_opt ::= EXTENDED.
 //
 
 cmd ::= START TRANSACTION start_opt.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_TRANSACTION;}
 cmd ::= BEGIN_KW work_opt.
-cmd ::= COMMIT work_opt chain_opt release_opt.     {}
-cmd ::= ROLLBACK work_opt chain_opt release_opt.   {}
+    {sc->qrPtr->queryType = QueryRisk::TYPE_TRANSACTION;}
+cmd ::= COMMIT work_opt chain_opt release_opt.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_TRANSACTION;}
+cmd ::= ROLLBACK work_opt chain_opt release_opt.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_TRANSACTION;}
 work_opt ::= .
 work_opt ::= WORK.
 start_opt ::= .
@@ -180,48 +184,53 @@ signed ::= minus_num.
 //////////////////////// The SHOW statement /////////////////////////////////
 //
 cmd ::= SHOW DATABASES where_opt.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
 // MySQL doesn't allow NOT LIKE statements here, so don't use likeop
-cmd ::= SHOW DATABASES LIKE_KW STRING.  {sc->quotedStrings.pop();}
+cmd ::= SHOW DATABASES LIKE_KW STRING.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
 
 cmd ::= SHOW global_opt VARIABLES where_opt.
-cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.  {sc->quotedStrings.pop();}
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
 global_opt ::= GLOBAL.
 global_opt ::= .
 
-cmd ::= SHOW CREATE TABLE id.
-cmd ::= SHOW CREATE SCHEMA id.
-cmd ::= SHOW CREATE DATABASE id.
+cmd ::= SHOW CREATE TABLE id.       {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW CREATE SCHEMA id.      {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW CREATE DATABASE id.    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
 
 // There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
-cmd ::= SHOW id.
-cmd ::= SHOW id likeop expr.
-cmd ::= SHOW id id.
-cmd ::= SHOW id id likeop expr.
+cmd ::= SHOW id.                    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW id likeop expr.        {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW id id.                 {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW id id likeop expr.     {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
 
-cmd ::= SHOW TABLES showfromin_opt where_opt.
-cmd ::= SHOW FULL TABLES showfromin_opt where_opt.
-cmd ::= SHOW TABLES showfromin_opt LIKE_KW STRING.      {sc->quotedStrings.pop();}
-cmd ::= SHOW FULL TABLES showfromin_opt LIKE_KW STRING. {sc->quotedStrings.pop();}
+cmd ::= SHOW full_opt TABLES show_from_in_id_opt where_opt.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW full_opt TABLES show_from_in_id_opt LIKE_KW STRING.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
 
-cmd ::= SHOW COLUMNS where_opt.
-cmd ::= SHOW COLUMNS LIKE_KW STRING.         {sc->quotedStrings.pop();}
-cmd ::= SHOW FULL COLUMNS where_opt.
-cmd ::= SHOW FULL COLUMNS LIKE_KW STRING.    {sc->quotedStrings.pop();}
-cmd ::= SHOW COLUMNS FROM showcolumnsid showfromin_opt where_opt.
-cmd ::= SHOW COLUMNS FROM showcolumnsid showfromin_opt LIKE_KW STRING.         {sc->quotedStrings.pop();}
-cmd ::= SHOW COLUMNS IN showcolumnsid showfromin_opt where_opt.
-cmd ::= SHOW COLUMNS IN showcolumnsid showfromin_opt LIKE_KW STRING.           {sc->quotedStrings.pop();}
-cmd ::= SHOW FULL COLUMNS FROM showcolumnsid showfromin_opt where_opt.
-cmd ::= SHOW FULL COLUMNS FROM showcolumnsid showfromin_opt LIKE_KW STRING.    {sc->quotedStrings.pop();}
-cmd ::= SHOW FULL COLUMNS IN showcolumnsid showfromin_opt where_opt.
-cmd ::= SHOW FULL COLUMNS IN showcolumnsid showfromin_opt LIKE_KW STRING.      {sc->quotedStrings.pop();}
+cmd ::= SHOW full_opt COLUMNS where_opt.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW full_opt COLUMNS LIKE_KW STRING.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
+cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt where_opt.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt LIKE_KW STRING.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
 
-showfromin_opt ::= .
-showfromin_opt ::= FROM id.
-showfromin_opt ::= IN id.
+show_from_in_id_opt ::= .
+show_from_in_id_opt ::= from_in id.
 
-showcolumnsid ::= id.
-showcolumnsid ::= id DOT id.
+from_in ::= FROM.
+from_in ::= IN.
+
+show_columns_id ::= id.
+show_columns_id ::= id DOT id.
+
+full_opt ::= .
+full_opt ::= FULL.
 
 //////////////////////// The DESCRIBE statement ///////////////////////////////
 //
@@ -455,7 +464,8 @@ limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {A;X;Y;}
 /////////////////////////// The DELETE statement /////////////////////////////
 //
 cmd ::= DELETE delete_opt FROM fullname(X) where_opt(W)
-        orderby_opt(O) limit_opt(L). {X;W;O;L;}
+        orderby_opt(O) limit_opt(L).
+        {X;W;O;L; sc->qrPtr->queryType = QueryRisk::TYPE_DELETE;}
 
 delete_opt ::= low_priority_opt quick_opt ignore_opt.
 low_priority_opt ::= .
@@ -470,7 +480,8 @@ where_opt(A) ::= WHERE expr(X).       {A;X;}
 ////////////////////////// The UPDATE command ////////////////////////////////
 //
 cmd ::= UPDATE update_opt fullname(X) SET setlist(Y)
-    where_opt(W) orderby_opt(O) limit_opt(L).  {X;Y;W;O;L;}
+    where_opt(W) orderby_opt(O) limit_opt(L).
+    {X;Y;W;O;L; sc->qrPtr->queryType = QueryRisk::TYPE_UPDATE;}
 
 setlist(A) ::= setlist(Z) COMMA nm(X) EQ expr(Y). {A;X;Y;Z;}
 setlist(A) ::= nm(X) EQ expr(Y). {A;X;Y;}
@@ -482,9 +493,12 @@ update_opt ::= IGNORE.
 ////////////////////////// The INSERT command /////////////////////////////////
 //
 /** @TODO Handle 'ON DUPLICATE KEY UPDATE col_name=expr [, col_name=expr] ... */
-cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) valuelist(Y). {R;X;Y;F;}
-cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) select(S). {R;X;F;S;}
-cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) DEFAULT VALUES. {R;X;F;}
+cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) valuelist(Y).
+    {R;X;Y;F; sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
+cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) select(S).
+    {R;X;F;S; sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
+cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) DEFAULT VALUES.
+    {R;X;F; sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
 
 into_opt ::= .
 into_opt ::= INTO.

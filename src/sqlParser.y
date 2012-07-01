@@ -29,7 +29,7 @@
 %name sqlassieParse
 
 %token_type {const char*}
-%extra_argument {ScannerContext* scannerContext}
+%extra_argument {ScannerContext* sc}
 
 // The following text is included near the beginning of the C source
 // code file that implements the parser.
@@ -47,7 +47,7 @@
 
 %syntax_error {
     // Mark the query as invalid
-    scannerContext->qrPtr->valid = false;
+    sc->qrPtr->valid = false;
 }
 // parse_failure is normally only called when Lemon's error recovery scheme
 // fails miserably and the parser is hopelessly lost. syntax_failure is called
@@ -55,7 +55,7 @@
 // should never be called, but just in case, I'll add it in.
 %parse_failure {
     // Mark the query as invalid
-    scannerContext->qrPtr->valid = false;
+    sc->qrPtr->valid = false;
     assert(
         false
         && "parse_failure should never be called if Lemon's error recovery is disabled. Check that error recovery is actually disabled."
@@ -95,7 +95,7 @@ no_opt ::= NO.
 // An IDENTIFIER can be a generic identifier, or one of several
 // keywords.  Any non-standard keyword can also be an identifier.
 //
-id(A) ::= ID(X).         {A;X; scannerContext->identifiers.pop();}
+id(A) ::= ID(X).         {A;X; sc->identifiers.pop();}
 id(A) ::= ID_FALLBACK(X).
 {
     A;X;
@@ -152,13 +152,13 @@ id(A) ::= ID_FALLBACK(X).
 
 // And "ids" is an identifer-or-string.
 //
-ids(A) ::= ID(X).       {A;X; scannerContext->identifiers.pop();}
-ids(A) ::= STRING(X).   {A;X; scannerContext->quotedStrings.pop();}
+ids(A) ::= ID(X).       {A;X; sc->identifiers.pop();}
+ids(A) ::= STRING(X).   {A;X; sc->quotedStrings.pop();}
 
 // The name of a column or table can be any of the following:
 //
 nm(A) ::= id(X).         {A;X;}
-nm(A) ::= STRING(X).     {A;X; scannerContext->quotedStrings.pop();}
+nm(A) ::= STRING(X).     {A;X; sc->quotedStrings.pop();}
 nm(A) ::= JOIN_KW(X).    {A;X;}
 
 // A typetoken is really one or more tokens that form a type name such
@@ -172,8 +172,8 @@ typename(A) ::= ids(X).             {A;X;}
 typename(A) ::= typename(X) ids(Y). {A;X;Y;}
 plus_num(A) ::= number(X).          {A;X;}
 minus_num(A) ::= MINUS number(X).   {A;X;}
-number(A) ::= INTEGER|FLOAT.        {A; scannerContext->numbers.pop();}
-number(A) ::= HEX_NUMBER.           {A; scannerContext->hexNumbers.pop();}
+number(A) ::= INTEGER|FLOAT.        {A; sc->numbers.pop();}
+number(A) ::= HEX_NUMBER.           {A; sc->hexNumbers.pop();}
 signed ::= plus_num.
 signed ::= minus_num.
 
@@ -181,10 +181,10 @@ signed ::= minus_num.
 //
 cmd ::= SHOW DATABASES where_opt.
 // MySQL doesn't allow NOT LIKE statements here, so don't use likeop
-cmd ::= SHOW DATABASES LIKE_KW STRING.  {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW DATABASES LIKE_KW STRING.  {sc->quotedStrings.pop();}
 
 cmd ::= SHOW global_opt VARIABLES where_opt.
-cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.  {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.  {sc->quotedStrings.pop();}
 global_opt ::= GLOBAL.
 global_opt ::= .
 
@@ -200,21 +200,21 @@ cmd ::= SHOW id id likeop expr.
 
 cmd ::= SHOW TABLES showfromin_opt where_opt.
 cmd ::= SHOW FULL TABLES showfromin_opt where_opt.
-cmd ::= SHOW TABLES showfromin_opt LIKE_KW STRING.      {scannerContext->quotedStrings.pop();}
-cmd ::= SHOW FULL TABLES showfromin_opt LIKE_KW STRING. {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW TABLES showfromin_opt LIKE_KW STRING.      {sc->quotedStrings.pop();}
+cmd ::= SHOW FULL TABLES showfromin_opt LIKE_KW STRING. {sc->quotedStrings.pop();}
 
 cmd ::= SHOW COLUMNS where_opt.
-cmd ::= SHOW COLUMNS LIKE_KW STRING.         {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW COLUMNS LIKE_KW STRING.         {sc->quotedStrings.pop();}
 cmd ::= SHOW FULL COLUMNS where_opt.
-cmd ::= SHOW FULL COLUMNS LIKE_KW STRING.    {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW FULL COLUMNS LIKE_KW STRING.    {sc->quotedStrings.pop();}
 cmd ::= SHOW COLUMNS FROM showcolumnsid showfromin_opt where_opt.
-cmd ::= SHOW COLUMNS FROM showcolumnsid showfromin_opt LIKE_KW STRING.         {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW COLUMNS FROM showcolumnsid showfromin_opt LIKE_KW STRING.         {sc->quotedStrings.pop();}
 cmd ::= SHOW COLUMNS IN showcolumnsid showfromin_opt where_opt.
-cmd ::= SHOW COLUMNS IN showcolumnsid showfromin_opt LIKE_KW STRING.           {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW COLUMNS IN showcolumnsid showfromin_opt LIKE_KW STRING.           {sc->quotedStrings.pop();}
 cmd ::= SHOW FULL COLUMNS FROM showcolumnsid showfromin_opt where_opt.
-cmd ::= SHOW FULL COLUMNS FROM showcolumnsid showfromin_opt LIKE_KW STRING.    {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW FULL COLUMNS FROM showcolumnsid showfromin_opt LIKE_KW STRING.    {sc->quotedStrings.pop();}
 cmd ::= SHOW FULL COLUMNS IN showcolumnsid showfromin_opt where_opt.
-cmd ::= SHOW FULL COLUMNS IN showcolumnsid showfromin_opt LIKE_KW STRING.      {scannerContext->quotedStrings.pop();}
+cmd ::= SHOW FULL COLUMNS IN showcolumnsid showfromin_opt LIKE_KW STRING.      {sc->quotedStrings.pop();}
 
 showfromin_opt ::= .
 showfromin_opt ::= FROM id.
@@ -232,7 +232,7 @@ cmd ::= describe_kw id.
 cmd ::= describe_kw id id.
 // You can specify an individual column, or give a regex and show all columns
 // that match it.
-cmd ::= describe_kw id STRING.     {scannerContext->quotedStrings.pop();}
+cmd ::= describe_kw id STRING.     {sc->quotedStrings.pop();}
 
 //////////////////////// The USE statement ////////////////////////////////////
 //
@@ -247,10 +247,10 @@ set_assignments ::= set_assignment.
 set_assignments ::= set_assignments COMMA set_assignment.
 set_assignment ::= set_opt id(X) EQ expr.       {X;}
 set_assignment ::= set_opt id(X) expr.          {X;}
-set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; scannerContext->quotedStrings.pop();}
-set_assignment ::= GLOBAL_VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; scannerContext->quotedStrings.pop();}
-set_assignment ::= VARIABLE(X) EQ expr.  {X; scannerContext->quotedStrings.pop();}
-set_assignment ::= VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; scannerContext->quotedStrings.pop();}
+set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; sc->quotedStrings.pop();}
+set_assignment ::= GLOBAL_VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; sc->quotedStrings.pop();}
+set_assignment ::= VARIABLE(X) EQ expr.  {X; sc->quotedStrings.pop();}
+set_assignment ::= VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; sc->quotedStrings.pop();}
 // MySQL also has some long SET statements, like:
 // SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
 cmd ::= SET set_opt TRANSACTION bunch_of_ids.
@@ -273,7 +273,7 @@ cmd ::= UNLOCK TABLES lock_tables_list.
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //
-cmd ::= select_statement.
+cmd ::= select_statement.   {sc->qrPtr->queryType = QueryRisk::TYPE_SELECT;}
 select_statement ::= select_opt select(X) outfile_opt lock_read_opt.   {X;}
 
 select(A) ::= oneselect(X).                  {A;X;}
@@ -527,11 +527,11 @@ expr(A) ::= id(X).                      {A;X;}
 expr(A) ::= JOIN_KW(X).                 {A;X;}
 expr(A) ::= nm(X) DOT nm(Y).            {A;X;Y;}
 expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z).  {A;X;Y;Z;}
-term(A) ::= INTEGER|FLOAT.              {A; scannerContext->numbers.pop();}
-term(A) ::= HEX_NUMBER.                 {A; scannerContext->hexNumbers.pop();}
-term(A) ::= STRING(X).                  {A;X; scannerContext->quotedStrings.pop();}
-term(A) ::= GLOBAL_VARIABLE(X).         {A;X; scannerContext->quotedStrings.pop();}
-term(A) ::= GLOBAL_VARIABLE(X) DOT nm(Y).   {A;X;Y; scannerContext->quotedStrings.pop();}
+term(A) ::= INTEGER|FLOAT.              {A; sc->numbers.pop();}
+term(A) ::= HEX_NUMBER.                 {A; sc->hexNumbers.pop();}
+term(A) ::= STRING(X).                  {A;X; sc->quotedStrings.pop();}
+term(A) ::= GLOBAL_VARIABLE(X).         {A;X; sc->quotedStrings.pop();}
+term(A) ::= GLOBAL_VARIABLE(X) DOT nm(Y).   {A;X;Y; sc->quotedStrings.pop();}
 /* MySQL allows date intervals */
 term(A) ::= INTERVAL expr TIME_UNIT RP.    {A;}
 expr(A) ::= VARIABLE(X).     {A;X;}
@@ -539,8 +539,8 @@ expr(A) ::= expr(E) COLLATE ids(C). {A;E;C;}
 %ifndef SQLITE_OMIT_CAST
 expr(A) ::= CAST(X) LP expr(E) AS typetoken(T) RP(Y). {A;X;Y;E;T;}
 %endif  SQLITE_OMIT_CAST
-expr(A) ::= ID(X) LP distinct(D) exprlist(Y) RP(E). {A;X;Y;D;E; scannerContext->identifiers.pop();}
-expr(A) ::= ID(X) LP STAR RP(E). {A;X;E; scannerContext->identifiers.pop();}
+expr(A) ::= ID(X) LP distinct(D) exprlist(Y) RP(E). {A;X;Y;D;E; sc->identifiers.pop();}
+expr(A) ::= ID(X) LP STAR RP(E). {A;X;E; sc->identifiers.pop();}
 
 expr(A) ::= expr(X) AND(OP) expr(Y).    {A;X;Y;OP;}
 expr(A) ::= expr(X) OR(OP) expr(Y).     {A;X;Y;OP;}

@@ -256,6 +256,8 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
                     case QueryRisk::TYPE_DELETE:
                     case QueryRisk::TYPE_SET:
                     case QueryRisk::TYPE_TRANSACTION:
+                    case QueryRisk::TYPE_LOCK:
+                    case QueryRisk::TYPE_USE:
                         mySqlSocket->sendOkPacket(messageNumber + 1);
                         break;
 

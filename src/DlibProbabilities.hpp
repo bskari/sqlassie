@@ -150,6 +150,10 @@ private:
 
     ComputeEvidenceParameters* cep_;
     double computeEvidence(const Evidence&);
+
+    // Hidden methods
+    DlibProbabilities(const DlibProbabilities&);
+    const DlibProbabilities& operator=(const DlibProbabilities&);
 };
 
 #endif  // SRC_DLIBPROBABILITIES_HPP_

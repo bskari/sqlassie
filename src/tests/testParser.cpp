@@ -50,6 +50,13 @@ using std::string;
  * @param
  */
 static QueryRisk parseQuery(const string& query);
+/**
+ * Parses a query and sets the provided QueryRisk to the risks found.
+ * @param query The query to be parsed.
+ * @param qr Will be updated to reflect the risks in the query.
+ * @param
+ */
+static void checkQueryType(const string& query, const QueryRisk::QueryType type);
 
 
 void testParseKnownGoodQueries()
@@ -469,6 +476,54 @@ void testSelectItems()
 }
 
 
+void testQueryType()
+{
+    checkQueryType("SELECT * FROM a", QueryRisk::TYPE_SELECT);
+    checkQueryType("SELECT a, b, c, d FROM u WHERE 1 = 1", QueryRisk::TYPE_SELECT);
+    checkQueryType("SELECT a, b, c, d FROM u UNION SELECT 1", QueryRisk::TYPE_SELECT);
+    checkQueryType("SELECT 1", QueryRisk::TYPE_SELECT);
+    checkQueryType("SELECT '1'", QueryRisk::TYPE_SELECT);
+
+    checkQueryType("INSERT INTO a (b, c) VALUES ('a', 1)", QueryRisk::TYPE_INSERT);
+    checkQueryType("INSERT INTO a (b) VALUES ((SELECT MAX(id) FROM u))", QueryRisk::TYPE_INSERT);
+
+    checkQueryType("UPDATE u SET x = 0", QueryRisk::TYPE_UPDATE);
+    checkQueryType("UPDATE u SET x = (SELECT MAX(id) FROM u)", QueryRisk::TYPE_UPDATE);
+    checkQueryType("UPDATE u SET x = (SELECT 1)", QueryRisk::TYPE_UPDATE);
+
+    checkQueryType("DELETE FROM a WHERE id = 1", QueryRisk::TYPE_DELETE);
+
+    checkQueryType("BEGIN", QueryRisk::TYPE_TRANSACTION);
+    checkQueryType("START TRANSACTION", QueryRisk::TYPE_TRANSACTION);
+    checkQueryType("START TRANSACTION WITH CONSISTENT SNAPSHOT", QueryRisk::TYPE_TRANSACTION);
+    checkQueryType("COMMIT", QueryRisk::TYPE_TRANSACTION);
+    checkQueryType("ROLLBACK", QueryRisk::TYPE_TRANSACTION);
+
+    checkQueryType("SET autocommit = 1", QueryRisk::TYPE_SET);
+    checkQueryType("SET NAMES utf8", QueryRisk::TYPE_SET);
+    checkQueryType("SET @@global.a = 1, GLOBAL a = 1", QueryRisk::TYPE_SET);
+
+    checkQueryType("EXPLAIN SELECT 1", QueryRisk::TYPE_EXPLAIN);
+    checkQueryType("EXPLAIN SELECT a FROM u", QueryRisk::TYPE_EXPLAIN);
+    checkQueryType("EXPLAIN SELECT a FROM u UNION SELECT 1", QueryRisk::TYPE_EXPLAIN);
+
+    checkQueryType("SHOW DATABASES", QueryRisk::TYPE_SHOW);
+    checkQueryType("SHOW TABLES", QueryRisk::TYPE_SHOW);
+    checkQueryType("SHOW CREATE TABLE a", QueryRisk::TYPE_SHOW);
+
+    checkQueryType("DESCRIBE a", QueryRisk::TYPE_DESCRIBE);
+    checkQueryType("DESC a", QueryRisk::TYPE_DESCRIBE);
+    checkQueryType("EXPLAIN a", QueryRisk::TYPE_DESCRIBE);
+
+    checkQueryType("LOCK TABLES a READ", QueryRisk::TYPE_LOCK);
+    checkQueryType("LOCK TABLES a READ, b WRITE", QueryRisk::TYPE_LOCK);
+    checkQueryType("LOCK TABLES a READ LOCAL", QueryRisk::TYPE_LOCK);
+    checkQueryType("LOCK TABLES b LOW_PRIORITY WRITE", QueryRisk::TYPE_LOCK);
+
+    checkQueryType("USE a", QueryRisk::TYPE_USE);
+}
+
+
 QueryRisk parseQuery(const string& query)
 {
     QueryRisk qr;
@@ -479,4 +534,25 @@ QueryRisk parseQuery(const string& query)
         "Query failed to parse: " << query
     );
     return qr;
+}
+
+
+void checkQueryType(const string& query, const QueryRisk::QueryType type)
+{
+    QueryRisk qr;
+    ParserInterface parser(query);
+    const bool successfullyParsed = parser.parse(&qr);
+    BOOST_CHECK(successfullyParsed);
+    if (successfullyParsed)
+    {
+        BOOST_CHECK_MESSAGE(
+            type == qr.queryType,
+            "Expected '"
+                << query
+                << "' to be "
+                << type
+                << " but instead found "
+                << qr.queryType
+        );
+    }
 }

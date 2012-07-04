@@ -47,4 +47,9 @@ void testQueryRiskAlwaysTrue();
  */
 void testSelectItems();
 
+/**
+ * Test that the type of query is being set.
+ */
+void testQueryType();
+
 #endif  // SRC_TESTS_TESTPARSER_HPP_

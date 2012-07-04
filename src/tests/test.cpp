@@ -54,7 +54,7 @@ test::test_suite* init_unit_test_suite(int, char*[])
 
     Logger::setLevel(Logger::ALL);
 
-    // Tests from parserTest.cpp
+    // Tests from testParser.cpp
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testParseKnownGoodQueries)
     );
@@ -68,10 +68,10 @@ test::test_suite* init_unit_test_suite(int, char*[])
         BOOST_TEST_CASE(testQueryRiskAlwaysTrue)
     );
     test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testSelectItems)
+        BOOST_TEST_CASE(testQueryType)
     );
 
-    // Tests from nodeTest.cpp
+    // Tests from testNode.cpp
     test::framework::master_test_suite().add(BOOST_TEST_CASE(testAstNode));
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testAlwaysSomethingNode)

@@ -25,10 +25,11 @@ AttackProbabilities.o:	AttackProbabilities.cpp AttackProbabilities.hpp
 
 ComparisonNode.o:	ComparisonNode.cpp ComparisonNode.hpp ExpressionNode.hpp \
 	Logger.hpp MySqlConstants.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
-	nullptr.hpp
+	assertCast.hpp nullptr.hpp
 
 ConditionalListNode.o:	ConditionalListNode.cpp AstNode.hpp \
-	ConditionalListNode.hpp ConditionalNode.hpp Logger.hpp nullptr.hpp
+	ConditionalListNode.hpp ConditionalNode.hpp Logger.hpp \
+	assertCast.hpp nullptr.hpp
 
 ConditionalNode.o:	ConditionalNode.cpp AstNode.hpp ConditionalNode.hpp
 
@@ -39,14 +40,14 @@ DlibProbabilities.o:	DlibProbabilities.cpp AttackProbabilities.hpp \
 	huginScanner.yy.hpp nullptr.hpp
 
 ExpressionNode.o:	ExpressionNode.cpp AstNode.hpp ExpressionNode.hpp \
-	Logger.hpp nullptr.hpp
+	Logger.hpp OperatorNode.hpp assertCast.hpp nullptr.hpp sqlParser.h
 
 InSubselectNode.o:	InSubselectNode.cpp InSubselectNode.hpp \
 	InValuesListNode.hpp QueryRisk.hpp
 
 InValuesListNode.o:	InValuesListNode.cpp ConditionalNode.hpp \
 	ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp nullptr.hpp
+	SensitiveNameChecker.hpp assertCast.hpp nullptr.hpp
 
 ListenSocket.o:	ListenSocket.cpp ListenSocket.hpp Logger.hpp \
 	MessageHandler.hpp SocketException.hpp
@@ -60,18 +61,18 @@ MySqlConstants.o:	MySqlConstants.cpp Logger.hpp MySqlConstants.hpp
 
 MySqlErrorMessageBlocker.o:	MySqlErrorMessageBlocker.cpp Logger.hpp \
 	MySqlConstants.hpp MySqlErrorMessageBlocker.hpp MySqlSocket.hpp \
-	ProxyHalf.hpp QueryRisk.hpp Socket.hpp nullptr.hpp
+	ProxyHalf.hpp QueryRisk.hpp Socket.hpp assertCast.hpp nullptr.hpp
 
 MySqlGuard.o:	MySqlGuard.cpp Logger.hpp MySqlConstants.hpp \
 	MySqlErrorMessageBlocker.hpp MySqlGuard.hpp \
 	MySqlGuardObjectContainer.hpp MySqlLoginCheck.hpp MySqlSocket.hpp \
 	ParserInterface.hpp ProxyHalf.hpp QueryRisk.hpp QueryWhitelist.hpp \
-	Socket.hpp nullptr.hpp
+	Socket.hpp assertCast.hpp nullptr.hpp
 
 MySqlGuardListenSocket.o:	MySqlGuardListenSocket.cpp ListenSocket.hpp \
 	Logger.hpp MySqlErrorMessageBlocker.hpp MySqlGuard.hpp \
 	MySqlGuardListenSocket.hpp MySqlLoginCheck.hpp MySqlSocket.hpp \
-	Proxy.hpp Socket.hpp SocketException.hpp nullptr.hpp
+	Proxy.hpp Socket.hpp SocketException.hpp assertCast.hpp nullptr.hpp
 
 MySqlGuardObjectContainer.o:	MySqlGuardObjectContainer.cpp \
 	AttackProbabilities.hpp DescribedException.hpp DlibProbabilities.hpp \
@@ -93,7 +94,10 @@ MySqlPrinter.o:	MySqlPrinter.cpp Logger.hpp MySqlConstants.hpp \
 MySqlSocket.o:	MySqlSocket.cpp MySqlConstants.hpp MySqlSocket.hpp Socket.hpp
 
 NegationNode.o:	NegationNode.cpp ExpressionNode.hpp Logger.hpp \
-	MySqlConstants.hpp NegationNode.hpp QueryRisk.hpp nullptr.hpp
+	MySqlConstants.hpp NegationNode.hpp QueryRisk.hpp assertCast.hpp \
+	nullptr.hpp
+
+OperatorNode.o:	OperatorNode.cpp AstNode.hpp Logger.hpp OperatorNode.hpp
 
 ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp clearStack.hpp \
 	nullptr.hpp scanner.yy.hpp sqlParser.h

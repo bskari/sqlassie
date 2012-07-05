@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "assertCast.hpp"
 #include "Logger.hpp"
 #include "MySqlConstants.hpp"
 #include "MySqlErrorMessageBlocker.hpp"
@@ -64,15 +65,7 @@ void MySqlErrorMessageBlocker::handleMessage(vector<uint8_t>& rawMessage) const
     const uint8_t RESULT_ERROR = 0xFF;
 
     MySqlSocket* mySqlSocketPtr;
-    #ifndef NDEBUG
-        mySqlSocketPtr = dynamic_cast<MySqlSocket*>(outgoingConnection_);
-        assert(
-            nullptr != mySqlSocketPtr &&
-            "MySqlErrorMessageBlocker should have MySqlSockets"
-        );
-    #else
-        mySqlSocketPtr = static_cast<MySqlSocket*>(outgoingConnection_);
-    #endif
+    mySqlSocketPtr = assert_cast<MySqlSocket*>(outgoingConnection_);
 
     assert(
         rawMessage.size() >= 5 &&

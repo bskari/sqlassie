@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "assertCast.hpp"
 #include "ConditionalNode.hpp"
 #include "ExpressionNode.hpp"
 #include "SensitiveNameChecker.hpp"
@@ -76,9 +77,7 @@ bool InValuesListNode::isAlwaysTrue() const
         ++i)
     {
         const ExpressionNode* const expr =
-            dynamic_cast<const ExpressionNode*>(*i);
-        assert(nullptr != expr &&
-            "InValuesListNode should only have ExpressionNode* children");
+            assert_cast<const ExpressionNode*>(*i);
 
         if (firstExpression == expr->getValue())
         {

@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "assertCast.hpp"
 #include "ExpressionNode.hpp"
 #include "Logger.hpp"
 #include "MySqlConstants.hpp"
@@ -59,7 +60,7 @@ bool NegationNode::isAlwaysTrue() const
 {
     assert(1 == children_.size() && "NegationNode should have 1 child");
 
-    const ExpressionNode* const expr = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr = assert_cast<const ExpressionNode*>(
         children_.at(0)
     );
     assert(

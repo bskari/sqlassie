@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "assertCast.hpp"
 #include "ListenSocket.hpp"
 #include "Logger.hpp"
 #include "MySqlErrorMessageBlocker.hpp"
@@ -136,17 +137,9 @@ void MySqlGuardListenSocket::handleConnection(
 
     auto_ptr<Socket> serverConnection(s);
 
-    MySqlSocket* clientPtr;
-    #ifndef NDEBUG
-        clientPtr = dynamic_cast<MySqlSocket*>(clientConnection.get());
-        assert(
-            nullptr != clientPtr
-            && "MySqlGuardListenSocket::handleConnection should be given "
-            && "MySqlSockets"
-        );
-    #else
-        clientPtr = static_cast<MySqlSocket*>(clientConnection.get());
-    #endif
+    MySqlSocket* const clientPtr = assert_cast<MySqlSocket*>(
+        clientConnection.get()
+    );
 
     string clientAddress(clientPtr->getPeerName());
 

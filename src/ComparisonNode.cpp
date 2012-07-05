@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "assertCast.hpp"
 #include "ComparisonNode.hpp"
 #include "ExpressionNode.hpp"
 #include "SensitiveNameChecker.hpp"
@@ -61,12 +62,12 @@ bool ComparisonNode::isAlwaysTrue() const
 {
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 = dynamic_cast<const ExpressionNode*>(
-        children_.at(0));
-    const ExpressionNode* const expr2 = dynamic_cast<const ExpressionNode*>(
-        children_.at(1));
-    assert(nullptr != expr1 && nullptr != expr2 &&
-        "ComparisonNode should only have ExpressionNode children");
+    const ExpressionNode* const expr1 = assert_cast<const ExpressionNode*>(
+        children_.at(0)
+    );
+    const ExpressionNode* const expr2 = assert_cast<const ExpressionNode*>(
+        children_.at(1)
+    );
 
     // Fields may or may not compare correctly, so assume it's legitimate
     if (expr1->isIdentifier() || expr2->isIdentifier())
@@ -142,15 +143,11 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr1 = assert_cast<const ExpressionNode*>(
         children_.at(0)
     );
-    const ExpressionNode* const expr2 = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr2 = assert_cast<const ExpressionNode*>(
         children_.at(1)
-    );
-    assert(
-        nullptr != expr1 && nullptr != expr2 &&
-        "ComparisonNode should only have ExpressionNode children"
     );
 
     // Only check for equality comparisons to password field

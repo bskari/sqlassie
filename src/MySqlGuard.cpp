@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "assertCast.hpp"
 #include "Logger.hpp"
 #include "nullptr.hpp"
 #include "MySqlConstants.hpp"
@@ -133,15 +134,7 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
 
 
     MySqlSocket* mySqlSocket;
-    #ifndef NDEBUG
-        mySqlSocket = dynamic_cast<MySqlSocket*>(incomingConnection_);
-        assert(
-            nullptr != mySqlSocket &&
-            "MySqlGuard should have MySqlSockets"
-        );
-    #else
-        mySqlSocket = static_cast<MySqlSocket*>(incomingConnection_);
-    #endif
+    mySqlSocket = assert_cast<MySqlSocket*>(incomingConnection_);
     const uint8_t messageNumber = rawMessage.at(3);
 
     bool dangerous;
@@ -549,12 +542,8 @@ void MySqlGuard::handleFirstPacket(vector<uint8_t>& rawMessage) const
     }
     if (rawMessage.size() <= i || '\0' != rawMessage.at(i))
     {
-        MySqlSocket* const mss = dynamic_cast<MySqlSocket*>(
+        MySqlSocket* const mss = assert_cast<MySqlSocket*>(
             incomingConnection_
-        );
-        assert(
-            nullptr != mss &&
-            "MySqlGuard should have MySqlSockets"
         );
         const uint8_t packetNumber = rawMessage.at(3);
         mss->sendErrorPacket(packetNumber + 1);
@@ -573,12 +562,8 @@ void MySqlGuard::handleFirstPacket(vector<uint8_t>& rawMessage) const
         )
     )
     {
-        MySqlSocket* const mss = dynamic_cast<MySqlSocket*>(
+        MySqlSocket* const mss = assert_cast<MySqlSocket*>(
             incomingConnection_
-        );
-        assert(
-            nullptr != mss &&
-            "MySqlGuard should have MySqlSockets"
         );
         string errorMessage("Access denied for user '");
         errorMessage += username;

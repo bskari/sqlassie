@@ -18,10 +18,13 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "assertCast.hpp"
 #include "AstNode.hpp"
 #include "ExpressionNode.hpp"
 #include "Logger.hpp"
 #include "nullptr.hpp"
+#include "OperatorNode.hpp"
+#include "sqlParser.h"
 
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
@@ -116,16 +119,11 @@ string ExpressionNode::getValue() const
         && "simple expressions with an operator for children"
     );
 
-    const ExpressionNode* expr1 = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* expr1 = assert_cast<const ExpressionNode*>(
         children_.at(0)
     );
-    const ExpressionNode* expr2 = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* expr2 = assert_cast<const ExpressionNode*>(
         children_.at(2)
-    );
-    assert(
-        nullptr != expr1
-        && nullptr != expr2
-        && "ExpressionNode should only have ExpressionNode children"
     );
 
     // MySQL lets you use quoted strings as integers... but if someone is
@@ -145,55 +143,59 @@ string ExpressionNode::getValue() const
     }
     catch (bad_lexical_cast&) {}
 
-    const string& oper = children_.at(1)->getName();
-    if ("+" == oper)
+    const OperatorNode* const operatorNode = assert_cast<const OperatorNode*>(
+        children_.at(1)
+    );
+
+    const int oper = operatorNode->getOperator();
+    if (PLUS == oper)
     {
         return lexical_cast<string>(child1 + child2);
     }
-    else if ("-" == oper)
+    else if (MINUS == oper)
     {
         return lexical_cast<string>(child1 - child2);
     }
-    else if ("*" == oper)
+    else if (STAR == oper)
     {
         return lexical_cast<string>(child1 * child2);
     }
-    else if ("/" == oper)
+    else if (SLASH == oper)
     {
         return lexical_cast<string>(child1 / child2);
     }
-    else if ("DIV" == oper)
+    else if (INTEGER_DIVIDE == oper)
     {
         // MySQL rounds the parameters if they're floating point
         int64_t llChild1 = llround(child1);
         int64_t llChild2 = llround(child1);
         return lexical_cast<string>(llChild1 / llChild2);
     }
-    else if ("MOD" == oper)
+    else if (REM == oper)
     {
         return lexical_cast<string>(fmod(child1, child2));
     }
-    else if ("&" == oper)
+    else if (BITAND == oper)
     {
         // MySQL rounds floats when used with binary operators
         int c1 = static_cast<int>(round(child1));
         int c2 = static_cast<int>(round(child2));
         return lexical_cast<string>(c1 & c2);
     }
-    else if ("|" == oper)
+    else if (BITOR == oper)
     {
         // MySQL rounds floats when used with binary operators
         int c1 = static_cast<int>(round(child1));
         int c2 = static_cast<int>(round(child2));
         return lexical_cast<string>(c1 | c2);
     }
-    else if ("<<" == oper)
+    else if (LSHIFT == oper)
     {
         int c1 = static_cast<int>(round(child1));
         int c2 = static_cast<int>(round(child2));
         return lexical_cast<string>(c1 << c2);
     }
-    else if (">>" == oper)
+    else if (RSHIFT == oper)
     {
         int c1 = static_cast<int>(round(child1));
         int c2 = static_cast<int>(round(child2));

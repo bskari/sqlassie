@@ -24,6 +24,7 @@
 #include <stack>
 #include <string>
 
+#include "AstNode.hpp"
 #include "QueryRisk.hpp"
 
 struct ScannerContext
@@ -38,6 +39,12 @@ struct ScannerContext
     std::stack<std::string> hexNumbers;
 
     QueryRisk* const qrPtr;
+
+    // To prevent memory leaks in the case of parse failures, I'll push and
+    // pop AST nodes here instead of directly returning them as part of the
+    // parser's rules. I don't care about error recovery when parsing fails
+    // anyway, and I don't feel like adding error handling just for memory.
+    std::stack<AstNode*> nodes;
 
     ScannerContext(QueryRisk* const qrPtr);
     ~ScannerContext();

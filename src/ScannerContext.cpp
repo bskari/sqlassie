@@ -31,11 +31,17 @@ ScannerContext::ScannerContext(QueryRisk* const qrToModify) :
     quotedString(),
     numbers(),
     hexNumbers(),
-    qrPtr(qrToModify)
+    qrPtr(qrToModify),
+    nodes()
 {
 }
 
 
 ScannerContext::~ScannerContext()
 {
+    while (!nodes.empty())
+    {
+        delete nodes.top();
+        nodes.pop();
+    }
 }

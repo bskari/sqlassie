@@ -28,8 +28,10 @@
 // is as follows:
 %name sqlassieParse
 
-%token_type {const char*}
+%token_type {int}
 %extra_argument {ScannerContext* sc}
+
+%type likeop {const char*}
 
 // The following text is included near the beginning of the C source
 // code file that implements the parser.
@@ -37,11 +39,59 @@
 %include {
 
 #include <cassert>
+#include <stack>
 
+#include "assertCast.hpp"
+#include "AstNode.hpp"
+#include "AlwaysSomethingNode.hpp"
+#include "ExpressionNode.hpp"
+#include "NegationNode.hpp"
+#include "nullptr.hpp"
+#include "OperatorNode.hpp"
 #include "ScannerContext.hpp"
+
 
 // Give up parsing as soon as the first error is encountered
 #define YYNOERRORRECOVERY 1
+
+/**
+ * Pushes a new ExpressionNode with two ExpressionNodes as leaves (taken from
+ * the stack) and the given operator.
+ */
+static void addExpressionNode(
+    ScannerContext* const sc,
+    const int operator_
+)
+{
+    assert(nullptr != operator_);
+    AstNode* const e = new ExpressionNode;
+
+    e->addChild(sc->nodes.top());
+    sc->nodes.pop();
+
+    e->addChild(new OperatorNode(operator_));
+
+    e->addChild(sc->nodes.top());
+    sc->nodes.pop();
+
+    sc->nodes.push(e);
+}
+static void addComparisonNode(
+    ScannerContext* sc,
+    const char* const operator_
+)
+{
+    assert(nullptr != operator_);
+    AstNode* const e = new ComparisonNode(operator_);
+
+    e->addChild(sc->nodes.top());
+    sc->nodes.pop();
+
+    e->addChild(sc->nodes.top());
+    sc->nodes.pop();
+
+    sc->nodes.push(e);
+}
 
 } // end %include
 
@@ -95,13 +145,8 @@ no_opt ::= NO.
 // An IDENTIFIER can be a generic identifier, or one of several
 // keywords.  Any non-standard keyword can also be an identifier.
 //
-id(A) ::= ID(X).         {A;X; sc->identifiers.pop();}
-id(A) ::= ID_FALLBACK(X).
-{
-    A;X;
-    // Fallback IDs are recognized by the scanner as keywords, so they won't
-    // have an identifier pushed, so there's nothing to pop here.
-}
+id ::= ID.
+id ::= ID_FALLBACK.
 
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to
 // fallback to ID if they will not parse as their original value.
@@ -497,7 +542,10 @@ update_opt ::= IGNORE.
 
 ////////////////////////// The INSERT command /////////////////////////////////
 //
-/** @TODO Handle 'ON DUPLICATE KEY UPDATE col_name=expr [, col_name=expr] ... */
+/**
+@TODO(bskari|2012-07-04)
+ * Handle 'ON DUPLICATE KEY UPDATE col_name=expr [, col_name=expr] ...
+ */
 cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) valuelist(Y).
     {R;X;Y;F; sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
 cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) select(S).
@@ -538,58 +586,171 @@ inscollist(A) ::= nm(Y). {A;Y;}
 /////////////////////////// Expression Processing /////////////////////////////
 //
 
-expr(A) ::= term(X).                    {A;X;}
-expr(A) ::= LP(B) expr(X) RP(E).        {A;X;B;E;}
-expr(A) ::= LP(B) select(X) RP(E).      {A;X;B;E;}
-term(A) ::= NULL_KW(X).                 {A;X;}
-expr(A) ::= id(X).                      {A;X;}
-expr(A) ::= JOIN_KW(X).                 {A;X;}
-expr(A) ::= nm(X) DOT nm(Y).            {A;X;Y;}
-expr(A) ::= nm(X) DOT nm(Y) DOT nm(Z).  {A;X;Y;Z;}
-term(A) ::= INTEGER|FLOAT.              {A; sc->numbers.pop();}
-term(A) ::= HEX_NUMBER.                 {A; sc->hexNumbers.pop();}
-term(A) ::= STRING(X).                  {A;X; sc->quotedStrings.pop();}
-term(A) ::= GLOBAL_VARIABLE(X).         {A;X; sc->quotedStrings.pop();}
-term(A) ::= GLOBAL_VARIABLE(X) DOT nm(Y).   {A;X;Y; sc->quotedStrings.pop();}
+expr ::= term.
+expr ::= LP expr RP.
+expr ::= LP select RP.
+{
+    /// @TODO(bskari|2012-07-04) What should I do here?
+    sc->nodes.push(new AlwaysSomethingNode(true, "="));
+}
+term ::= NULL_KW.   {sc->nodes.push(new ExpressionNode("NULL", false));}
+expr ::= id.
+expr ::= JOIN_KW.
+expr ::= nm DOT nm.
+expr ::= nm DOT nm DOT nm.
+term ::= INTEGER|FLOAT.
+{
+    ExpressionNode* const ex = new ExpressionNode(sc->numbers.top(), false);
+    sc->numbers.pop();
+    sc->nodes.push(ex);
+}
+term ::= HEX_NUMBER.
+{
+    /// @TODO Translate this to a decimal number?
+    ExpressionNode* const ex = new ExpressionNode(sc->numbers.top(), false);
+    sc->numbers.pop();
+    sc->nodes.push(ex);
+}
+term ::= STRING.
+{
+    ExpressionNode* const ex = new ExpressionNode(sc->quotedStrings.top(), false);
+    sc->quotedStrings.pop();
+    sc->nodes.push(ex);
+}
+term ::= GLOBAL_VARIABLE.
+{
+    /// @TODO(bskari|2012-07-04) Check risky stuff?
+    ExpressionNode* const ex = new ExpressionNode(sc->identifiers.top(), false);
+    sc->identifiers.pop();
+    sc->nodes.push(ex);
+}
+term ::= GLOBAL_VARIABLE DOT nm.
+{
+    /// @TODO(bskari|2012-07-04) Check risky stuff? Do something with nm?
+    sc->identifiers.pop();  // Clear nm
+    ExpressionNode* const ex = new ExpressionNode(sc->identifiers.top(), false);
+    sc->identifiers.pop();
+    sc->nodes.push(ex);
+}
 /* MySQL allows date intervals */
-term(A) ::= INTERVAL expr TIME_UNIT RP.    {A;}
-expr(A) ::= VARIABLE(X).     {A;X;}
-expr(A) ::= expr(E) COLLATE ids(C). {A;E;C;}
-%ifndef SQLITE_OMIT_CAST
-expr(A) ::= CAST(X) LP expr(E) AS typetoken(T) RP(Y). {A;X;Y;E;T;}
-%endif  SQLITE_OMIT_CAST
-expr(A) ::= ID(X) LP distinct(D) exprlist(Y) RP(E). {A;X;Y;D;E; sc->identifiers.pop();}
-expr(A) ::= ID(X) LP STAR RP(E). {A;X;E; sc->identifiers.pop();}
+term ::= INTERVAL expr TIME_UNIT RP.
+expr ::= VARIABLE.
+expr ::= expr COLLATE ids.
+expr ::= CAST LP expr AS typetoken RP.
+expr ::= id LP distinct exprlist RP.
+{
+    /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
+    /// functions here. For example, IF (1, 1, 0) should always be true.
+    sc->nodes.push(new ExpressionNode(" ", false));
+    sc->qrPtr->checkFunction(sc->identifiers.top());
+    sc->identifiers.pop();
+}
+expr ::= id LP STAR RP.
+{
+    /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
+    /// functions here. For example, IF (1, 1, 0) should always be true.
+    sc->nodes.push(new ExpressionNode(" ", false));
+    sc->qrPtr->checkFunction(sc->identifiers.top());
+    sc->identifiers.pop();
+}
+expr ::= expr AND(OP) expr.
+{
+    addExpressionNode(sc, OP);
+}
+expr ::= expr OR(OP) expr.
+{
+    addExpressionNode(sc, OP);
+}
+expr ::= expr XOR(OP) expr.
+{
+    addExpressionNode(sc, OP);
+}
+expr ::= expr LT|GT|LE|GE(OP) expr.
+{
+    addComparisonNode(sc, OP);
+}
+expr ::= expr EQ|NE(OP) expr.
+{
+    addComparisonNode(sc, OP);
+}
+expr ::= expr BITAND|BITOR|BITXOR|LSHIFT|RSHIFT(OP) expr.
+{
+    addExpressionNode(sc, OP);
+}
+expr ::= expr PLUS|MINUS(OP) expr.
+{
+    addExpressionNode(sc, OP);
+}
+expr ::= expr STAR|SLASH|REM|INTEGER_DIVIDE(OP) expr.
+{
+    addExpressionNode(sc, OP);
+}
+expr ::= expr CONCAT(OP) expr.
+{
+    addExpressionNode(sc, OP);
+}
 
-expr(A) ::= expr(X) AND(OP) expr(Y).    {A;X;Y;OP;}
-expr(A) ::= expr(X) OR(OP) expr(Y).     {A;X;Y;OP;}
-expr(A) ::= expr(X) XOR(OP) expr(Y).    {A;X;Y;OP;}
-expr(A) ::= expr(X) LT|GT|GE|LE(OP) expr(Y). {A;X;Y;OP;}
-expr(A) ::= expr(X) EQ|NE(OP) expr(Y).  {A;X;Y;OP;}
-expr(A) ::= expr(X) BITAND|BITOR|BITXOR|LSHIFT|RSHIFT(OP) expr(Y). {A;X;Y;OP;}
-expr(A) ::= expr(X) PLUS|MINUS(OP) expr(Y). {A;X;Y;OP;}
-expr(A) ::= expr(X) STAR|SLASH|REM|INTEGER_DIVIDE(OP) expr(Y). {A;X;Y;OP;}
-expr(A) ::= expr(X) CONCAT(OP) expr(Y). {A;X;Y;OP;}
-likeop(A) ::= LIKE_KW(X).     {A;X;}
-likeop(A) ::= NOT LIKE_KW(X). {A;X;}
-likeop(A) ::= MATCH_KW(X).       {A;X;}
-likeop(A) ::= NOT MATCH_KW(X).   {A;X;}
-likeop(A) ::= SOUNDS LIKE_KW(X).     {A;X;}
-expr(A) ::= expr(X) likeop(OP) expr(Y).  [LIKE_KW]  {A;X;Y;OP;}
-expr(A) ::= expr(X) likeop(OP) expr(Y) ESCAPE expr(E).  [LIKE_KW]  {A;X;Y;OP;E;}
+likeop(A) ::= MATCH_KW.         {A = "match";}
+likeop(A) ::= NOT MATCH_KW.     {A = "not match";}
+likeop(A) ::= LIKE_KW.          {A = "like";}
+likeop(A) ::= NOT LIKE_KW.      {A = "not like";}
+likeop(A) ::= SOUNDS LIKE_KW.   {A = "sounds like";}
 
-expr(A) ::= expr(X) NOT NULL_KW(E).     {A;X;E;}
+expr ::= expr likeop(B) expr.               [LIKE_KW]
+{
+    addComparisonNode(sc, B);
+}
+expr ::= expr likeop(B) expr ESCAPE expr.   [LIKE_KW]
+{
+    addComparisonNode(sc, B);
+    /// @TODO(bskari|2012-07-04) Do I need to do anything with the last expr?
+    delete sc->nodes.top();
+    sc->nodes.pop();
+}
 
-//    expr1 IS expr2
-//    expr1 IS NOT expr2
-//
-expr(A) ::= expr(X) IS expr(Y).     {A;X;Y;}
-expr(A) ::= expr(X) IS NOT expr(Y). {A;X;Y;}
+expr ::= expr IS NULL_KW.
+{
+    const ExpressionNode* const ex = assert_cast<ExpressionNode*>(
+        sc->nodes.top()
+    );
+    // NULL IS NULL is always true, everything else is false, or safe enough
+    // to always be considered false
+    const bool alwaysTrue = (!ex->isIdentifier() && "NULL" != ex->getValue());
+    AstNode* const asn = new AlwaysSomethingNode(alwaysTrue, "=");
+    asn->addChild(sc->nodes.top());
+    sc->nodes.pop();
+    asn->addChild(new ExpressionNode("NULL", false));
+    sc->nodes.push(asn);
+}
+expr ::= expr IS NOT NULL_KW.
+{
+    const ExpressionNode* const ex = assert_cast<ExpressionNode*>(
+        sc->nodes.top()
+    );
+    // NULL IS NOT NULL is always false, everything else is true, or safe
+    // enough to always be considered false
+    const bool alwaysTrue = !(!ex->isIdentifier() && "NULL" != ex->getValue());
+    AstNode* const asn = new AlwaysSomethingNode(alwaysTrue, "!=");
+    asn->addChild(sc->nodes.top());
+    sc->nodes.pop();
+    asn->addChild(new ExpressionNode("NULL", false));
+    sc->nodes.push(asn);
+}
+expr ::= NOT expr.
+{
+    const ExpressionNode* const ex = assert_cast<ExpressionNode*>(
+        sc->nodes.top()
+    );
+    sc->nodes.pop();
+    AstNode* const negationNode = new NegationNode;
+    negationNode->addChild(ex);
+    sc->nodes.push(negationNode);
+}
 
-expr(A) ::= NOT(B) expr(X).    {A;X;B;}
-expr(A) ::= BITNOT(B) expr(X). {A;X;B;}
-expr(A) ::= MINUS(B) expr(X). [BITNOT] {A;X;B;}
-expr(A) ::= PLUS(B) expr(X). [BITNOT] {A;X;B;}
+/// @TODO(bskari|2012-07-04) Do something with these unary operators.
+expr ::= BITNOT expr.
+expr ::= MINUS expr. [BITNOT]
+expr ::= PLUS expr. [BITNOT]
 
 between_op(A) ::= BETWEEN.     {A;}
 between_op(A) ::= NOT BETWEEN. {A;}

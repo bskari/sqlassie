@@ -215,7 +215,7 @@ ids(A) ::= STRING(X).   {A;X; sc->quotedStrings.pop();}
 
 // The name of a column or table can be any of the following:
 //
-nm(A) ::= id(X).         {A;X;}
+nm(A) ::= id(X).         {A;X; sc->identifiers.pop();}
 nm(A) ::= STRING(X).     {A;X; sc->quotedStrings.pop();}
 nm(A) ::= JOIN_KW(X).    {A;X;}
 
@@ -291,12 +291,25 @@ full_opt ::= FULL.
 // MySQL lets you use the DESC and EXPLAIN keyword for DESCRIBE
 /// @TODO(bskari|2012-06-30) Support EXPLAIN keyword here.
 describe_kw ::= DESC|DESCRIBE.
-cmd ::= describe_kw id.     {sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;}
-cmd ::= describe_kw id id.  {sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;}
+cmd ::= describe_kw id.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;
+    sc->identifiers.pop();
+}
+cmd ::= describe_kw id id.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;
+    sc->identifiers.pop();
+    sc->identifiers.pop();
+}
 // You can specify an individual column, or give a regex and show all columns
 // that match it.
 cmd ::= describe_kw id STRING.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE; sc->quotedStrings.pop();}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;
+    sc->identifiers.pop();
+    sc->quotedStrings.pop();
+}
 
 //////////////////////// The EXPLAIN statement ///////////////////////////////
 //
@@ -452,7 +465,6 @@ seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
 /// @TODO(bskari|2012-07-07) Check for sensitive tables
 table_name ::= id.          {sc->identifiers.pop();}
 table_name ::= STRING.      {sc->quotedStrings.pop();}
-table_name ::= JOIN_KW.
 
 dbnm(A) ::= .          {A;}
 dbnm(A) ::= DOT nm(X). {A;X;}
@@ -612,9 +624,26 @@ expr ::= LP select RP.
 }
 term ::= NULL_KW.   {sc->nodes.push(new ExpressionNode("NULL", false));}
 expr ::= id.
+{
+    ExpressionNode* e = new ExpressionNode(sc->identifiers.top(), true);
+    sc->identifiers.pop();
+    sc->nodes.push(e);
+}
 expr ::= JOIN_KW.
-expr ::= nm DOT nm.
-expr ::= nm DOT nm DOT nm.
+expr ::= nm DOT id.
+{
+    /// @TODO(bskari|2012-07-07) nm is the name of a table and should be
+    /// checked for sensitive tables.
+    ExpressionNode* const e = new ExpressionNode(sc->identifiers.top(), true);
+    sc->identifiers.pop();
+    sc->nodes.push(e);
+}
+expr ::= nm DOT table_name DOT id.
+{
+    ExpressionNode* const e = new ExpressionNode(sc->identifiers.top(), true);
+    sc->identifiers.pop();
+    sc->nodes.push(e);
+}
 term ::= INTEGER|FLOAT.
 {
     ExpressionNode* const ex = new ExpressionNode(sc->numbers.top(), false);

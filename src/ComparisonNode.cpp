@@ -18,27 +18,27 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "assertCast.hpp"
 #include "ComparisonNode.hpp"
 #include "ExpressionNode.hpp"
-#include "SensitiveNameChecker.hpp"
 #include "Logger.hpp"
 #include "MySqlConstants.hpp"
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
+#include "SensitiveNameChecker.hpp"
+#include "sqlParser.h"
 
+#include <boost/cast.hpp>
 #include <boost/regex.hpp>
 #include <ctype.h>
 #include <ostream>
-#include <string>
 
-using std::string;
+using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_replace;
 using boost::regex_match;
 
 
-ComparisonNode::ComparisonNode(const string& compareType) :
+ComparisonNode::ComparisonNode(const int compareType) :
     ConditionalNode("Comparison"),
     compareType_(compareType)
 {
@@ -62,10 +62,10 @@ bool ComparisonNode::isAlwaysTrue() const
 {
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 = assert_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(0)
     );
-    const ExpressionNode* const expr2 = assert_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr2 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(1)
     );
 
@@ -75,31 +75,31 @@ bool ComparisonNode::isAlwaysTrue() const
         return false;
     }
 
-    if ("=" == compareType_)
+    if (EQ == compareType_)
     {
         return expr1->getValue() == expr2->getValue();
     }
-    else if ("<" == compareType_)
+    else if (LT == compareType_)
     {
         return expr1->getValue() < expr2->getValue();
     }
-    else if (">" == compareType_)
+    else if (GT == compareType_)
     {
         return expr1->getValue() > expr2->getValue();
     }
-    else if ("<=" == compareType_)
+    else if (LE == compareType_)
     {
         return expr1->getValue() <= expr2->getValue();
     }
-    else if (">=" == compareType_)
+    else if (GE == compareType_)
     {
         return expr1->getValue() >= expr2->getValue();
     }
-    else if ("!=" == compareType_)
+    else if (NE == compareType_)
     {
         return expr1->getValue() != expr2->getValue();
     }
-    else if ("like" == compareType_)
+    else if (LIKE_OP == compareType_)
     {
         // Empty compares are always false
         if (expr2->getValue().size() == 0)
@@ -109,17 +109,7 @@ bool ComparisonNode::isAlwaysTrue() const
         regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2->getValue()));
         return regex_match(expr1->getValue(), perl);
     }
-    else if ("not like" == compareType_)
-    {
-        // Empty compares are always true
-        if (expr2->getValue().size() == 0)
-        {
-            return true;
-        }
-        regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2->getValue()));
-        return !regex_match(expr1->getValue(), perl);
-    }
-    else if ("sounds like" == compareType_)
+    else if (SOUNDS == compareType_)
     {
         return MySqlConstants::soundex(expr1->getValue())
             == MySqlConstants::soundex(expr2->getValue());
@@ -143,16 +133,16 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 = assert_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(0)
     );
-    const ExpressionNode* const expr2 = assert_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr2 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(1)
     );
 
     // Only check for equality comparisons to password field
     if (
-        "=" != compareType_
+        EQ != compareType_
         || SensitiveNameChecker::get().isPasswordField(expr1->getValue())
     )
     {

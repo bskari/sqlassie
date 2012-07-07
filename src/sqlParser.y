@@ -31,17 +31,17 @@
 %token_type {int}
 %extra_argument {ScannerContext* sc}
 
-%type likeop {const char*}
+%type likeop {LikeOpInfo}
 
 // The following text is included near the beginning of the C source
 // code file that implements the parser.
 //
 %include {
 
+#include <boost/cast.hpp>
 #include <cassert>
 #include <stack>
 
-#include "assertCast.hpp"
 #include "AstNode.hpp"
 #include "AlwaysSomethingNode.hpp"
 #include "ExpressionNode.hpp"
@@ -50,6 +50,11 @@
 #include "OperatorNode.hpp"
 #include "ScannerContext.hpp"
 
+struct LikeOpInfo
+{
+    int tokenType;
+    bool negated;
+};
 
 // Give up parsing as soon as the first error is encountered
 #define YYNOERRORRECOVERY 1
@@ -78,7 +83,8 @@ static void addExpressionNode(
 }
 static void addComparisonNode(
     ScannerContext* sc,
-    const char* const operator_
+    const int operator_,
+    bool negation = false
 )
 {
     assert(nullptr != operator_);
@@ -90,7 +96,16 @@ static void addComparisonNode(
     e->addChild(sc->nodes.top());
     sc->nodes.pop();
 
-    sc->nodes.push(e);
+    if (negation)
+    {
+        const AstNode* negationNode = new NegationNode;
+        negationNode->addChild(e);
+        sc->nodes.push(negationNode);
+    }
+    else
+    {
+        sc->nodes.push(e);
+    }
 }
 
 } // end %include
@@ -690,11 +705,11 @@ expr ::= expr CONCAT(OP) expr.
     addExpressionNode(sc, OP);
 }
 
-likeop(A) ::= MATCH_KW.         {A = "match";}
-likeop(A) ::= NOT MATCH_KW.     {A = "not match";}
-likeop(A) ::= LIKE_KW.          {A = "like";}
-likeop(A) ::= NOT LIKE_KW.      {A = "not like";}
-likeop(A) ::= SOUNDS LIKE_KW.   {A = "sounds like";}
+likeop(A) ::= MATCH_KW.         {A.negation = false; A.tokenType = MATCH_KW;}
+likeop(A) ::= NOT MATCH_KW.     {A.negation = true; A.tokenType = MATCH_KW;}
+likeop(A) ::= LIKE_KW.          {A.negation = false; A.tokenType = LIKE_KW;}
+likeop(A) ::= NOT LIKE_KW.      {A.negation = true; A.tokenType = LIKE_KW;}
+likeop(A) ::= SOUNDS LIKE_KW.   {A.negation = false; A.tokenType = SOUNDS;}
 
 expr ::= expr likeop(B) expr.               [LIKE_KW]
 {
@@ -710,7 +725,7 @@ expr ::= expr likeop(B) expr ESCAPE expr.   [LIKE_KW]
 
 expr ::= expr IS NULL_KW.
 {
-    const ExpressionNode* const ex = assert_cast<ExpressionNode*>(
+    const ExpressionNode* const ex = boost::polymorphic_downcast<ExpressionNode*>(
         sc->nodes.top()
     );
     // NULL IS NULL is always true, everything else is false, or safe enough
@@ -724,7 +739,7 @@ expr ::= expr IS NULL_KW.
 }
 expr ::= expr IS NOT NULL_KW.
 {
-    const ExpressionNode* const ex = assert_cast<ExpressionNode*>(
+    const ExpressionNode* const ex = boost::polymorphic_downcast<ExpressionNode*>(
         sc->nodes.top()
     );
     // NULL IS NOT NULL is always false, everything else is true, or safe
@@ -738,7 +753,7 @@ expr ::= expr IS NOT NULL_KW.
 }
 expr ::= NOT expr.
 {
-    const ExpressionNode* const ex = assert_cast<ExpressionNode*>(
+    const ExpressionNode* const ex = boost::polymorphic_downcast<ExpressionNode*>(
         sc->nodes.top()
     );
     sc->nodes.pop();

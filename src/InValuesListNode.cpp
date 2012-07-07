@@ -18,7 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "assertCast.hpp"
 #include "ConditionalNode.hpp"
 #include "ExpressionNode.hpp"
 #include "SensitiveNameChecker.hpp"
@@ -26,10 +25,13 @@
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
 
+#include <boost/cast.hpp>
 #include <boost/regex.hpp>
 #include <cassert>
 #include <string>
 #include <vector>
+
+using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_match;
 using std::string;
@@ -77,7 +79,7 @@ bool InValuesListNode::isAlwaysTrue() const
         ++i)
     {
         const ExpressionNode* const expr =
-            assert_cast<const ExpressionNode*>(*i);
+            polymorphic_downcast<const ExpressionNode*>(*i);
 
         if (firstExpression == expr->getValue())
         {

@@ -18,7 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "assertCast.hpp"
 #include "Logger.hpp"
 #include "MySqlConstants.hpp"
 #include "MySqlErrorMessageBlocker.hpp"
@@ -28,10 +27,12 @@
 #include "QueryRisk.hpp"
 #include "Socket.hpp"
 
+#include <boost/cast.hpp>
 #include <boost/cstdint.hpp>
 #include <cassert>
 #include <vector>
 
+using boost::polymorphic_downcast;
 using std::vector;
 
 MySqlErrorMessageBlocker::MySqlErrorMessageBlocker(
@@ -65,7 +66,7 @@ void MySqlErrorMessageBlocker::handleMessage(vector<uint8_t>& rawMessage) const
     const uint8_t RESULT_ERROR = 0xFF;
 
     MySqlSocket* mySqlSocketPtr;
-    mySqlSocketPtr = assert_cast<MySqlSocket*>(outgoingConnection_);
+    mySqlSocketPtr = polymorphic_downcast<MySqlSocket*>(outgoingConnection_);
 
     assert(
         rawMessage.size() >= 5 &&

@@ -26,7 +26,6 @@
 #include "warnUnusedResult.h"
 
 #include <iosfwd>
-#include <string>
 
 /**
  * Parse tree node that represents a comparison between two expressions. The
@@ -42,7 +41,7 @@ public:
      * Default constructor.
      * @param compareType The type of comparison being used.
      */
-    explicit ComparisonNode(const std::string& compareType);
+    explicit ComparisonNode(const int compareType);
 
     virtual ~ComparisonNode();
 
@@ -78,7 +77,7 @@ public:
     ) const;
 
 protected:
-    std::string compareType_;
+    int compareType_;
 
 private:
     ComparisonNode(const ComparisonNode& rhs);

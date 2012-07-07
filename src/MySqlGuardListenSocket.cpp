@@ -18,7 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "assertCast.hpp"
 #include "ListenSocket.hpp"
 #include "Logger.hpp"
 #include "MySqlErrorMessageBlocker.hpp"
@@ -31,15 +30,17 @@
 #include "Socket.hpp"
 #include "SocketException.hpp"
 
+#include <boost/cast.hpp>
 #include <boost/thread.hpp>
 #include <memory>
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
 
+using boost::polymorphic_downcast;
+using boost::thread;
 using std::auto_ptr;
 using std::string;
-using boost::thread;
 
 
 MySqlGuardListenSocket::MySqlGuardListenSocket(
@@ -137,7 +138,7 @@ void MySqlGuardListenSocket::handleConnection(
 
     auto_ptr<Socket> serverConnection(s);
 
-    MySqlSocket* const clientPtr = assert_cast<MySqlSocket*>(
+    MySqlSocket* const clientPtr = polymorphic_downcast<MySqlSocket*>(
         clientConnection.get()
     );
 

@@ -18,7 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "assertCast.hpp"
 #include "Logger.hpp"
 #include "nullptr.hpp"
 #include "MySqlConstants.hpp"
@@ -35,12 +34,14 @@
 #include "Socket.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/cast.hpp>
 #include <boost/cstdint.hpp>
 #include <cassert>
 #include <vector>
 
-using std::vector;
 using std::string;
+using std::vector;
+using boost::polymorphic_downcast;
 using boost::replace_all;
 
 
@@ -134,7 +135,7 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
 
 
     MySqlSocket* mySqlSocket;
-    mySqlSocket = assert_cast<MySqlSocket*>(incomingConnection_);
+    mySqlSocket = polymorphic_downcast<MySqlSocket*>(incomingConnection_);
     const uint8_t messageNumber = rawMessage.at(3);
 
     bool dangerous;
@@ -542,7 +543,7 @@ void MySqlGuard::handleFirstPacket(vector<uint8_t>& rawMessage) const
     }
     if (rawMessage.size() <= i || '\0' != rawMessage.at(i))
     {
-        MySqlSocket* const mss = assert_cast<MySqlSocket*>(
+        MySqlSocket* const mss = polymorphic_downcast<MySqlSocket*>(
             incomingConnection_
         );
         const uint8_t packetNumber = rawMessage.at(3);
@@ -562,7 +563,7 @@ void MySqlGuard::handleFirstPacket(vector<uint8_t>& rawMessage) const
         )
     )
     {
-        MySqlSocket* const mss = assert_cast<MySqlSocket*>(
+        MySqlSocket* const mss = polymorphic_downcast<MySqlSocket*>(
             incomingConnection_
         );
         string errorMessage("Access denied for user '");

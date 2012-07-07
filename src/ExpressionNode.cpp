@@ -18,7 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "assertCast.hpp"
 #include "AstNode.hpp"
 #include "ExpressionNode.hpp"
 #include "Logger.hpp"
@@ -26,6 +25,7 @@
 #include "OperatorNode.hpp"
 #include "sqlParser.h"
 
+#include <boost/cast.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
 #include <cassert>
@@ -33,9 +33,10 @@
 #include <ostream>
 #include <string>
 
-using std::string;
-using boost::lexical_cast;
 using boost::bad_lexical_cast;
+using boost::lexical_cast;
+using boost::polymorphic_downcast;
+using std::string;
 
 
 ExpressionNode::ExpressionNode() :
@@ -119,10 +120,10 @@ string ExpressionNode::getValue() const
         && "simple expressions with an operator for children"
     );
 
-    const ExpressionNode* expr1 = assert_cast<const ExpressionNode*>(
+    const ExpressionNode* expr1 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(0)
     );
-    const ExpressionNode* expr2 = assert_cast<const ExpressionNode*>(
+    const ExpressionNode* expr2 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(2)
     );
 
@@ -143,7 +144,7 @@ string ExpressionNode::getValue() const
     }
     catch (bad_lexical_cast&) {}
 
-    const OperatorNode* const operatorNode = assert_cast<const OperatorNode*>(
+    const OperatorNode* const operatorNode = polymorphic_downcast<const OperatorNode*>(
         children_.at(1)
     );
 

@@ -18,7 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "assertCast.hpp"
 #include "ExpressionNode.hpp"
 #include "Logger.hpp"
 #include "MySqlConstants.hpp"
@@ -26,15 +25,17 @@
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
 
+#include <boost/cast.hpp>
 #include <boost/regex.hpp>
 #include <ctype.h>
 #include <ostream>
 #include <string>
 
 using std::string;
+using boost::polymorphic_downcast;
 using boost::regex;
-using boost::regex_replace;
 using boost::regex_match;
+using boost::regex_replace;
 
 
 NegationNode::NegationNode() :
@@ -60,7 +61,7 @@ bool NegationNode::isAlwaysTrue() const
 {
     assert(1 == children_.size() && "NegationNode should have 1 child");
 
-    const ExpressionNode* const expr = assert_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr = polymorphic_downcast<const ExpressionNode*>(
         children_.at(0)
     );
     assert(

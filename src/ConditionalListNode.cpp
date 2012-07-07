@@ -18,17 +18,19 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "assertCast.hpp"
 #include "AstNode.hpp"
 #include "ConditionalListNode.hpp"
 #include "ConditionalNode.hpp"
 #include "Logger.hpp"
 #include "nullptr.hpp"
 
+#include <boost/cast.hpp>
 #include <string>
 #include <cassert>
-using std::string;
+
+using boost::polymorphic_downcast;
 using std::ostream;
+using std::string;
 
 
 ConditionalListNode::ConditionalListNode(const char logicalOp) :
@@ -56,10 +58,10 @@ bool ConditionalListNode::isAlwaysTrue() const
     assert(2 == children_.size() &&
         "ConditionalList should have 2 children");
 
-    const ConditionalNode* cond1 = assert_cast<const ConditionalNode*>(
+    const ConditionalNode* cond1 = polymorphic_downcast<const ConditionalNode*>(
         children_.at(0)
     );
-    const ConditionalNode* cond2 = assert_cast<const ConditionalNode*>(
+    const ConditionalNode* cond2 = polymorphic_downcast<const ConditionalNode*>(
         children_.at(1)
     );
 
@@ -91,10 +93,10 @@ bool ConditionalListNode::anyIsAlwaysTrue() const
     assert(2 == children_.size() &&
         "ConditionalList should have 2 children");
 
-    const ConditionalNode* cond1 = assert_cast<const ConditionalNode*>(
+    const ConditionalNode* cond1 = polymorphic_downcast<const ConditionalNode*>(
         children_.at(0)
     );
-    const ConditionalNode* cond2 = assert_cast<const ConditionalNode*>(
+    const ConditionalNode* cond2 = polymorphic_downcast<const ConditionalNode*>(
         children_.at(1)
     );
 
@@ -107,10 +109,10 @@ QueryRisk::EmptyPassword ConditionalListNode::emptyPassword() const
     assert(2 == children_.size() &&
         "ConditionalList should have 2 children");
 
-    const ConditionalNode* cond1 = assert_cast<const ConditionalNode*>(
+    const ConditionalNode* cond1 = polymorphic_downcast<const ConditionalNode*>(
         children_.at(0)
     );
-    const ConditionalNode* cond2 = assert_cast<const ConditionalNode*>(
+    const ConditionalNode* cond2 = polymorphic_downcast<const ConditionalNode*>(
         children_.at(1)
     );
 

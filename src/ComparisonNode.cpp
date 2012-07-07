@@ -99,7 +99,7 @@ bool ComparisonNode::isAlwaysTrue() const
     {
         return expr1->getValue() != expr2->getValue();
     }
-    else if (LIKE_OP == compareType_)
+    else if (LIKE_KW == compareType_)
     {
         // Empty compares are always false
         if (expr2->getValue().size() == 0)

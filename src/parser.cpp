@@ -52,7 +52,7 @@ extern void* sqlassieParseAlloc(void* (*allocProc)(size_t numBytes));
 extern void* sqlassieParse(
     void* parser,
     int token,
-    const char* identifier,
+    const int _,
     ScannerContext* qrPtr
 );
 extern void* sqlassieParseFree(void* parser, void(*freeProc)(void*));

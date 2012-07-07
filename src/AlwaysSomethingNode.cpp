@@ -18,8 +18,9 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ComparisonNode.hpp"
 #include "AlwaysSomethingNode.hpp"
+#include "ComparisonNode.hpp"
+#include "sqlParser.h"
 
 #include <string>
 #include <boost/regex.hpp>
@@ -29,9 +30,19 @@ using boost::regex_match;
 
 AlwaysSomethingNode::AlwaysSomethingNode(
     const bool always,
-    const string& compareType) :
-        ComparisonNode(compareType),
-        always_(always)
+    const int compareType
+)
+    : ComparisonNode(compareType)
+    , always_(always)
+{
+}
+
+
+AlwaysSomethingNode::AlwaysSomethingNode(
+    const bool always
+)
+    : ComparisonNode(EQ)  // This type is a lie, but doesn't matter anyway
+    , always_(always)
 {
 }
 

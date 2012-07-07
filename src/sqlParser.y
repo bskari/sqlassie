@@ -53,7 +53,7 @@
 struct LikeOpInfo
 {
     int tokenType;
-    bool negated;
+    bool negation;
 };
 
 // Give up parsing as soon as the first error is encountered
@@ -68,7 +68,6 @@ static void addExpressionNode(
     const int operator_
 )
 {
-    assert(nullptr != operator_);
     AstNode* const e = new ExpressionNode;
 
     e->addChild(sc->nodes.top());
@@ -87,7 +86,6 @@ static void addComparisonNode(
     bool negation = false
 )
 {
-    assert(nullptr != operator_);
     AstNode* const e = new ComparisonNode(operator_);
 
     e->addChild(sc->nodes.top());
@@ -98,7 +96,7 @@ static void addComparisonNode(
 
     if (negation)
     {
-        const AstNode* negationNode = new NegationNode;
+        AstNode* const negationNode = new NegationNode;
         negationNode->addChild(e);
         sc->nodes.push(negationNode);
     }
@@ -433,8 +431,7 @@ againstmodifier_opt ::= WITH QUERY EXPANSION.
 //
 stl_prefix(A) ::= seltablist(X) joinop(Y).    {A;X;Y;}
 stl_prefix(A) ::= .                           {A;}
-seltablist(A) ::= stl_prefix(X) nm(Y) dbnm(D)
-                as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;Y;D;Z;N;U;}
+seltablist ::= stl_prefix table_name dbnm as index_hint_list_opt on_opt using_opt.
 seltablist(A) ::= stl_prefix(X) LP select(S) RP
                 as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;S;Z;N;U;}
 seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
@@ -451,6 +448,11 @@ seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
 //     sqlite3SrcListShiftJoinType(F);
 //     A = sqlite3SelectNew(pParse,0,F,0,0,0,0,0,0,0);
 //  }
+
+/// @TODO(bskari|2012-07-07) Check for sensitive tables
+table_name ::= id.          {sc->identifiers.pop();}
+table_name ::= STRING.      {sc->quotedStrings.pop();}
+table_name ::= JOIN_KW.
 
 dbnm(A) ::= .          {A;}
 dbnm(A) ::= DOT nm(X). {A;X;}
@@ -606,7 +608,7 @@ expr ::= LP expr RP.
 expr ::= LP select RP.
 {
     /// @TODO(bskari|2012-07-04) What should I do here?
-    sc->nodes.push(new AlwaysSomethingNode(true, "="));
+    sc->nodes.push(new AlwaysSomethingNode(true));
 }
 term ::= NULL_KW.   {sc->nodes.push(new ExpressionNode("NULL", false));}
 expr ::= id.
@@ -622,8 +624,8 @@ term ::= INTEGER|FLOAT.
 term ::= HEX_NUMBER.
 {
     /// @TODO Translate this to a decimal number?
-    ExpressionNode* const ex = new ExpressionNode(sc->numbers.top(), false);
-    sc->numbers.pop();
+    ExpressionNode* const ex = new ExpressionNode(sc->hexNumbers.top(), false);
+    sc->hexNumbers.pop();
     sc->nodes.push(ex);
 }
 term ::= STRING.
@@ -705,19 +707,19 @@ expr ::= expr CONCAT(OP) expr.
     addExpressionNode(sc, OP);
 }
 
-likeop(A) ::= MATCH_KW.         {A.negation = false; A.tokenType = MATCH_KW;}
-likeop(A) ::= NOT MATCH_KW.     {A.negation = true; A.tokenType = MATCH_KW;}
-likeop(A) ::= LIKE_KW.          {A.negation = false; A.tokenType = LIKE_KW;}
-likeop(A) ::= NOT LIKE_KW.      {A.negation = true; A.tokenType = LIKE_KW;}
-likeop(A) ::= SOUNDS LIKE_KW.   {A.negation = false; A.tokenType = SOUNDS;}
+likeop(A) ::= MATCH_KW(OP).         {A.negation = false; A.tokenType = OP;}
+likeop(A) ::= NOT MATCH_KW(OP).     {A.negation = true; A.tokenType = OP;}
+likeop(A) ::= LIKE_KW(OP).          {A.negation = false; A.tokenType = OP;}
+likeop(A) ::= NOT LIKE_KW(OP).      {A.negation = true; A.tokenType = OP;}
+likeop(A) ::= SOUNDS(OP) LIKE_KW.   {A.negation = false; A.tokenType = OP;}
 
 expr ::= expr likeop(B) expr.               [LIKE_KW]
 {
-    addComparisonNode(sc, B);
+    addComparisonNode(sc, B.tokenType, B.negation);
 }
 expr ::= expr likeop(B) expr ESCAPE expr.   [LIKE_KW]
 {
-    addComparisonNode(sc, B);
+    addComparisonNode(sc, B.tokenType, B.negation);
     /// @TODO(bskari|2012-07-04) Do I need to do anything with the last expr?
     delete sc->nodes.top();
     sc->nodes.pop();
@@ -731,7 +733,7 @@ expr ::= expr IS NULL_KW.
     // NULL IS NULL is always true, everything else is false, or safe enough
     // to always be considered false
     const bool alwaysTrue = (!ex->isIdentifier() && "NULL" != ex->getValue());
-    AstNode* const asn = new AlwaysSomethingNode(alwaysTrue, "=");
+    AstNode* const asn = new AlwaysSomethingNode(alwaysTrue);
     asn->addChild(sc->nodes.top());
     sc->nodes.pop();
     asn->addChild(new ExpressionNode("NULL", false));
@@ -745,7 +747,7 @@ expr ::= expr IS NOT NULL_KW.
     // NULL IS NOT NULL is always false, everything else is true, or safe
     // enough to always be considered false
     const bool alwaysTrue = !(!ex->isIdentifier() && "NULL" != ex->getValue());
-    AstNode* const asn = new AlwaysSomethingNode(alwaysTrue, "!=");
+    AstNode* const asn = new AlwaysSomethingNode(alwaysTrue);
     asn->addChild(sc->nodes.top());
     sc->nodes.pop();
     asn->addChild(new ExpressionNode("NULL", false));

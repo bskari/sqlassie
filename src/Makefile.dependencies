@@ -17,7 +17,7 @@
 # along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
 
 AlwaysSomethingNode.o:	AlwaysSomethingNode.cpp AlwaysSomethingNode.hpp \
-	ComparisonNode.hpp
+	ComparisonNode.hpp sqlParser.h
 
 AstNode.o:	AstNode.cpp AstNode.hpp nullptr.hpp
 
@@ -25,7 +25,7 @@ AttackProbabilities.o:	AttackProbabilities.cpp AttackProbabilities.hpp
 
 ComparisonNode.o:	ComparisonNode.cpp ComparisonNode.hpp ExpressionNode.hpp \
 	Logger.hpp MySqlConstants.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
-	nullptr.hpp
+	nullptr.hpp sqlParser.h
 
 ConditionalListNode.o:	ConditionalListNode.cpp AstNode.hpp \
 	ConditionalListNode.hpp ConditionalNode.hpp Logger.hpp nullptr.hpp
@@ -164,7 +164,8 @@ tests/testMySqlConstants.o:	tests/testMySqlConstants.cpp MySqlConstants.hpp \
 
 tests/testNode.o:	tests/testNode.cpp AlwaysSomethingNode.hpp AstNode.hpp \
 	ComparisonNode.hpp ConditionalListNode.hpp ConditionalNode.hpp \
-	ExpressionNode.hpp InValuesListNode.hpp tests/testNode.hpp
+	ExpressionNode.hpp InValuesListNode.hpp NegationNode.hpp sqlParser.h \
+	tests/testNode.hpp
 
 tests/testParser.o:	tests/testParser.cpp ParserInterface.hpp QueryRisk.hpp \
 	tests/testParser.hpp

@@ -48,7 +48,7 @@ extern void* sqlassieParseAlloc(void* (*allocProc)(size_t numBytes));
 extern void* sqlassieParse(
     void* parser,
     int token,
-    const char* identifier,
+    int _,
     ScannerContext* qrPtr
 );
 extern void* sqlassieParseFree(void* parser, void(*freeProc)(void* ptr));
@@ -128,7 +128,7 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
         // failed, but if parsing has already failed, don't keep calling it
         if (qr_.valid)
         {
-            sqlassieParse(lemonParser_, lexToken, nullptr, &scannerContext_);
+            sqlassieParse(lemonParser_, lexToken, 0, &scannerContext_);
         }
     }
     while (lexToken != 0);
@@ -146,6 +146,7 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
             {
                 if (!refs[i]->empty())
                 {
+                    std::cout << "Printing non-empty stack contents\n";
                     while (!refs[i]->empty())
                     {
                         std::cout << refs[i]->top() << '\n';

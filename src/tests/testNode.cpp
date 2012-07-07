@@ -26,6 +26,8 @@
 #include "../ConditionalNode.hpp"
 #include "../ExpressionNode.hpp"
 #include "../InValuesListNode.hpp"
+#include "../NegationNode.hpp"
+#include "../sqlParser.h"
 
 #include <boost/test/unit_test.hpp>
 #include <string>
@@ -46,7 +48,7 @@ void testAlwaysSomethingNode()
     for (unsigned int i = 0; i < sizeof(values) / sizeof(values[0]); ++i)
     {
         const bool value = values[i];
-        AlwaysSomethingNode asn(value, "=");
+        AlwaysSomethingNode asn(value, EQ);
         BOOST_CHECK_EQUAL(value, asn.isAlwaysTrue());
         BOOST_CHECK_EQUAL(value, asn.anyIsAlwaysTrue());
     }
@@ -60,15 +62,16 @@ void testComparisonNode()
     ExpressionNode* enMultiply;
 
     ComparisonNode* cn;
+    NegationNode* nn;
 
-    cn = new ComparisonNode("=");
+    cn = new ComparisonNode(EQ);
     cn->addChild(new ExpressionNode("1", false));
     cn->addChild(new ExpressionNode("2", false));
     BOOST_CHECK(!cn->isAlwaysTrue());
     BOOST_CHECK_EQUAL(QueryRisk::PASSWORD_NOT_USED, cn->emptyPassword());
     delete cn;
 
-    cn = new ComparisonNode("!=");
+    cn = new ComparisonNode(NE);
     cn->addChild(new ExpressionNode("1", false));
     cn->addChild(new ExpressionNode("2", false));
     BOOST_CHECK(cn->isAlwaysTrue());
@@ -88,57 +91,64 @@ void testComparisonNode()
     enSubtract->addChild(new ExpressionNode("-4", false));
     enSubtract->addChild(new AstNode("-"));
     enSubtract->addChild(new ExpressionNode("5", false));
-    cn = new ComparisonNode("=");
+    cn = new ComparisonNode(EQ);
     cn->addChild(enMultiply);
     cn->addChild(enSubtract);
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode("like");
+    cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("skari", false));
     cn->addChild(new ExpressionNode("%", false));
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode("like");
+    cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("skari", false));
     cn->addChild(new ExpressionNode("s%i", false));
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode("like");
+    cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("skari", false));
     cn->addChild(new ExpressionNode("___r_", false));
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode("like");
+    cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("skari", false));
     cn->addChild(new ExpressionNode("___", false));
     BOOST_CHECK(!cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode("not like");
+    nn = new NegationNode;
+    cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("brandon", false));
     cn->addChild(new ExpressionNode("skari", false));
-    BOOST_CHECK(cn->isAlwaysTrue());
-    delete cn;
+    nn->addChild(cn);
+    BOOST_CHECK(nn->isAlwaysTrue());
+    delete nn;
 
-    cn = new ComparisonNode("not like");
+    nn = new NegationNode;
+    cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("brandon", false));
     cn->addChild(new ExpressionNode("s%", false));
-    BOOST_CHECK(cn->isAlwaysTrue());
-    delete cn;
+    nn->addChild(cn);
+    BOOST_CHECK(nn->isAlwaysTrue());
+    delete nn;
 
-    cn = new ComparisonNode("not like");
+    nn = new NegationNode;
+    cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("skari", false));
     cn->addChild(new ExpressionNode("__b__", false));
-    BOOST_CHECK(cn->isAlwaysTrue());
-    delete cn;
+    nn->addChild(cn);
+    BOOST_CHECK(nn->isAlwaysTrue());
+    delete nn;
 
-    cn = new ComparisonNode("not like");
+    nn = new NegationNode;
+    cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("skari", false));
     cn->addChild(new ExpressionNode("______", false));
-    BOOST_CHECK(cn->isAlwaysTrue());
-    delete cn;
+    BOOST_CHECK(nn->isAlwaysTrue());
+    delete nn;
 }

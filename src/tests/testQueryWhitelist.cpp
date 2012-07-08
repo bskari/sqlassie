@@ -85,15 +85,15 @@ void testParseKeywords()
 void testParseChangingStrings()
 {
     // Identical to the query in the whitelist
-    checkParseWhitelisted("SELECT \"foo\" FROM \"bar\" JOIN \"baz\"");
+    checkParseWhitelisted("BEGIN SELECT \"foo\" FROM \"bar\" JOIN \"baz\"");
 
     // Different string literals
-    checkParseWhitelisted("SELECT \"bar\" FROM \"baz\" JOIN \"foo\"");
-    checkParseWhitelisted("SELECT \"foo\" FROM \"foo\" JOIN \"foo\"");
+    checkParseWhitelisted("BEGIN SELECT \"bar\" FROM \"baz\" JOIN \"foo\"");
+    checkParseWhitelisted("BEGIN SELECT \"foo\" FROM \"foo\" JOIN \"foo\"");
 
     // Changing quotation marks
-    checkParseWhitelisted("SELECT 'foo' FROM 'foo' JOIN 'foo'");
-    checkParseWhitelisted("SELECT \"foo\" FROM 'foo' JOIN \"foo\"");
+    checkParseWhitelisted("BEGIN SELECT 'foo' FROM 'foo' JOIN 'foo'");
+    checkParseWhitelisted("BEGIN SELECT \"foo\" FROM 'foo' JOIN \"foo\"");
 }
 
 

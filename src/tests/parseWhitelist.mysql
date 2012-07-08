@@ -5,4 +5,4 @@
 SELECT select FROM from WHERE where = not AND and = or
 
 # Any string should be parsed just fine
-SELECT "foo" FROM "bar" JOIN "baz"
+BEGIN SELECT "foo" FROM "bar" JOIN "baz"

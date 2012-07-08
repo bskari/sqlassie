@@ -306,11 +306,21 @@ cmd ::= SHOW id id likeop expr.
     sc->identifiers.pop();
 }
 
-cmd ::= SHOW full_opt TABLES show_from_in_id_opt where_opt.
+// Using full_opt here wasn't working, so just copy/paste
+cmd ::= SHOW TABLES show_from_in_id_opt where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
-cmd ::= SHOW full_opt TABLES show_from_in_id_opt LIKE_KW STRING.
+cmd ::= SHOW FULL TABLES show_from_in_id_opt where_opt.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+}
+cmd ::= SHOW TABLES show_from_in_id_opt LIKE_KW STRING.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->quotedStrings.pop();
+}
+cmd ::= SHOW FULL TABLES show_from_in_id_opt LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
     sc->quotedStrings.pop();

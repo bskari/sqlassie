@@ -385,8 +385,8 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 }
 {INTEGER}           {context->numbers.push(std::string(yytext)); return INTEGER;}
 {FLOAT}             {context->numbers.push(std::string(yytext)); return FLOAT;}
-{GLOBAL_VARIABLE}   {context->quotedStrings.push(std::string(yytext)); return GLOBAL_VARIABLE;}
-{VARIABLE}          {context->quotedStrings.push(std::string(yytext)); return VARIABLE;}
+{GLOBAL_VARIABLE}   {context->identifiers.push(std::string(yytext)); return GLOBAL_VARIABLE;}
+{VARIABLE}          {context->identifiers.push(std::string(yytext)); return VARIABLE;}
 
 .    {return ERROR_TOKEN;}
 

@@ -255,10 +255,12 @@ cmd ::= SHOW DATABASES LIKE_KW STRING.
 cmd ::= SHOW global_opt VARIABLES where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
 }
 cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.
 {
-    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
 }
 global_opt ::= GLOBAL.
 global_opt ::= .
@@ -333,13 +335,17 @@ cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt LIKE_K
 }
 
 show_from_in_id_opt ::= .
-show_from_in_id_opt ::= from_in id.
+show_from_in_id_opt ::= from_in id. {sc->identifiers.pop();}
 
 from_in ::= FROM.
 from_in ::= IN.
 
-show_columns_id ::= id.
+show_columns_id ::= id.         {sc->identifiers.pop();}
 show_columns_id ::= id DOT id.
+{
+    sc->identifiers.pop();
+    sc->identifiers.pop();
+}
 
 full_opt ::= .
 full_opt ::= FULL.
@@ -372,7 +378,9 @@ cmd ::= describe_kw id STRING.
 //////////////////////// The EXPLAIN statement ///////////////////////////////
 //
 cmd ::= explain select_statement.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_EXPLAIN;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_EXPLAIN;
+}
 explain ::= EXPLAIN extended_opt.
 extended_opt ::= .
 extended_opt ::= EXTENDED.
@@ -388,15 +396,18 @@ cmd ::= SET set_assignments.    {sc->qrPtr->queryType = QueryRisk::TYPE_SET;}
 // also look like "SET NAMES utf8"
 set_assignments ::= set_assignment.
 set_assignments ::= set_assignments COMMA set_assignment.
-set_assignment ::= set_opt id(X) EQ expr.       {X;}
-set_assignment ::= set_opt id(X) expr.          {X;}
-set_assignment ::= GLOBAL_VARIABLE(X) EQ expr.  {X; sc->quotedStrings.pop();}
-set_assignment ::= GLOBAL_VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; sc->quotedStrings.pop();}
-set_assignment ::= VARIABLE(X) EQ expr.  {X; sc->quotedStrings.pop();}
-set_assignment ::= VARIABLE(X) DOT nm(Y) EQ expr.    {X;Y; sc->quotedStrings.pop();}
+set_assignment ::= set_opt id EQ expr.              {sc->identifiers.pop();}
+set_assignment ::= set_opt id expr.                 {sc->identifiers.pop();}
+set_assignment ::= GLOBAL_VARIABLE EQ expr.         {sc->identifiers.pop();}
+set_assignment ::= GLOBAL_VARIABLE DOT nm EQ expr.  {sc->identifiers.pop();}
+set_assignment ::= VARIABLE EQ expr.                {sc->identifiers.pop();}
+set_assignment ::= VARIABLE DOT nm EQ expr.         {sc->identifiers.pop();}
 // MySQL also has some long SET statements, like:
 // SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
-cmd ::= SET set_opt TRANSACTION bunch_of_ids.   {sc->qrPtr->queryType = QueryRisk::TYPE_SET;}
+cmd ::= SET set_opt TRANSACTION bunch_of_ids.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SET;
+}
 bunch_of_ids ::= .
 bunch_of_ids ::= id bunch_of_ids.
 set_opt ::= GLOBAL.
@@ -717,28 +728,31 @@ term ::= HEX_NUMBER.
 }
 term ::= STRING.
 {
-    ExpressionNode* const ex = new ExpressionNode(sc->quotedStrings.top(), false);
+    std::string& term = sc->quotedStrings.top();
+    ExpressionNode* const ex = new ExpressionNode(term, false);
     sc->quotedStrings.pop();
     sc->nodes.push(ex);
 }
 term ::= GLOBAL_VARIABLE.
 {
     /// @TODO(bskari|2012-07-04) Check risky stuff?
-    ExpressionNode* const ex = new ExpressionNode(sc->identifiers.top(), false);
+    std::string& global = sc->identifiers.top();
+    ExpressionNode* const ex = new ExpressionNode(global, false);
     sc->identifiers.pop();
     sc->nodes.push(ex);
 }
-term ::= GLOBAL_VARIABLE DOT nm.
+term ::= GLOBAL_VARIABLE DOT id.
 {
-    /// @TODO(bskari|2012-07-04) Check risky stuff? Do something with nm?
-    sc->identifiers.pop();  // Clear nm
-    ExpressionNode* const ex = new ExpressionNode(sc->identifiers.top(), false);
-    sc->identifiers.pop();
+    /// @TODO(bskari|2012-07-04) Check risky stuff?
+    std::string& identifier = sc->identifiers.top();
+    ExpressionNode* const ex = new ExpressionNode(identifier, false);
+    sc->identifiers.pop();  // Pop the identifier
+    sc->identifiers.pop();  // Pop the global
     sc->nodes.push(ex);
 }
 /* MySQL allows date intervals */
 term ::= INTERVAL expr TIME_UNIT RP.
-expr ::= VARIABLE.
+expr ::= VARIABLE.  {sc->identifiers.pop();}
 expr ::= expr COLLATE ids.
 expr ::= CAST LP expr AS typetoken RP.
 expr ::= id LP distinct exprlist RP.

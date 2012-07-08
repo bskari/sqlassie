@@ -24,7 +24,7 @@ WARNING_CXXFLAGS = -Wall -Wextra -Weffc++ -Wfloat-equal -Wshadow\
 	-Wpointer-arith -Wcast-align -Wstrict-overflow=5\
 	-Wwrite-strings -Wswitch-default -Wswitch-enum -Wparentheses\
 	-Woverloaded-virtual -pedantic
-DEBUG_CXXFLAGS = -g -ftrapv $(CUSTOM_DEBUG_CXXFLAGS)
+DEBUG_CXXFLAGS = -g -ftrapv -fno-inline $(CUSTOM_DEBUG_CXXFLAGS)
 PROFILE_CXXFLAGS = -pg -O3 -march=native -fexpensive-optimizations -pipe\
 	-DNDEBUG -ffast-math $(CUSTOM_PROFILE_CXXFLAGS)
 RELEASE_CXXFLAGS = -O3 -march=native -fexpensive-optimizations\

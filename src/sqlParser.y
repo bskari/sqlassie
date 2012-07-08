@@ -388,7 +388,11 @@ extended_opt ::= EXTENDED.
 
 //////////////////////// The USE statement ////////////////////////////////////
 //
-cmd ::= USE id. {sc->qrPtr->queryType = QueryRisk::TYPE_USE;}
+cmd ::= USE id.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_USE;
+    sc->identifiers.pop();
+}
 
 //////////////////////// The SET statement ////////////////////////////////////
 //
@@ -857,12 +861,11 @@ expr ::= expr IS NOT NULL_KW.
 }
 expr ::= NOT expr.
 {
-    const ExpressionNode* const ex = boost::polymorphic_downcast<ExpressionNode*>(
-        sc->nodes.top()
-    );
+    const ConditionalNode* const cond =
+        boost::polymorphic_downcast<ConditionalNode*>(sc->nodes.top());
     sc->nodes.pop();
     AstNode* const negationNode = new NegationNode;
-    negationNode->addChild(ex);
+    negationNode->addChild(cond);
     sc->nodes.push(negationNode);
 }
 

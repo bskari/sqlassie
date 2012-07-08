@@ -160,6 +160,10 @@ no_opt ::= NO.
 //
 id ::= ID.
 id ::= ID_FALLBACK.
+{
+    // Push a dummy identifier so that popping it later won't break anything
+    sc->identifiers.push(std::string("dummy"));
+}
 
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to
 // fallback to ID if they will not parse as their original value.
@@ -238,41 +242,95 @@ signed ::= minus_num.
 //////////////////////// The SHOW statement /////////////////////////////////
 //
 cmd ::= SHOW DATABASES where_opt.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+}
 // MySQL doesn't allow NOT LIKE statements here, so don't use likeop
 cmd ::= SHOW DATABASES LIKE_KW STRING.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->quotedStrings.pop();
+}
 
 cmd ::= SHOW global_opt VARIABLES where_opt.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+}
 cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();
+}
 global_opt ::= GLOBAL.
 global_opt ::= .
 
-cmd ::= SHOW CREATE TABLE id.       {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
-cmd ::= SHOW CREATE SCHEMA id.      {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
-cmd ::= SHOW CREATE DATABASE id.    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW CREATE TABLE id.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
+}
+cmd ::= SHOW CREATE SCHEMA id.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
+}
+cmd ::= SHOW CREATE DATABASE id.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
+}
 
 // There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
-cmd ::= SHOW id.                    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
-cmd ::= SHOW id likeop expr.        {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
-cmd ::= SHOW id id.                 {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
-cmd ::= SHOW id id likeop expr.     {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+cmd ::= SHOW id.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
+}
+cmd ::= SHOW id likeop expr.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
+}
+cmd ::= SHOW id id.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
+    sc->identifiers.pop();
+}
+cmd ::= SHOW id id likeop expr.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->identifiers.pop();
+    sc->identifiers.pop();
+}
 
 cmd ::= SHOW full_opt TABLES show_from_in_id_opt where_opt.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+}
 cmd ::= SHOW full_opt TABLES show_from_in_id_opt LIKE_KW STRING.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->quotedStrings.pop();
+}
 
 cmd ::= SHOW full_opt COLUMNS where_opt.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+}
 cmd ::= SHOW full_opt COLUMNS LIKE_KW STRING.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->quotedStrings.pop();
+}
 cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt where_opt.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+}
 cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt LIKE_KW STRING.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_SHOW; sc->quotedStrings.pop();}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    sc->quotedStrings.pop();
+}
 
 show_from_in_id_opt ::= .
 show_from_in_id_opt ::= from_in id.

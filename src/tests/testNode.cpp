@@ -27,6 +27,7 @@
 #include "../ExpressionNode.hpp"
 #include "../InValuesListNode.hpp"
 #include "../NegationNode.hpp"
+#include "../OperatorNode.hpp"
 #include "../sqlParser.h"
 
 #include <boost/test/unit_test.hpp>
@@ -81,15 +82,15 @@ void testComparisonNode()
     // (1 + 2) * 3 == (-4 - 5)
     enAdd = new ExpressionNode();
     enAdd->addChild(new ExpressionNode("1", false));
-    enAdd->addChild(new AstNode("+"));
+    enAdd->addChild(new OperatorNode(PLUS));
     enAdd->addChild(new ExpressionNode("2", false));
     enMultiply = new ExpressionNode();
     enMultiply->addChild(enAdd);
-    enMultiply->addChild(new AstNode("*"));
+    enMultiply->addChild(new OperatorNode(STAR));
     enMultiply->addChild(new ExpressionNode("-3", false));
     enSubtract = new ExpressionNode();
     enSubtract->addChild(new ExpressionNode("-4", false));
-    enSubtract->addChild(new AstNode("-"));
+    enSubtract->addChild(new OperatorNode(MINUS));
     enSubtract->addChild(new ExpressionNode("5", false));
     cn = new ComparisonNode(EQ);
     cn->addChild(enMultiply);
@@ -149,6 +150,7 @@ void testComparisonNode()
     cn = new ComparisonNode(LIKE_KW);
     cn->addChild(new ExpressionNode("skari", false));
     cn->addChild(new ExpressionNode("______", false));
+    nn->addChild(cn);
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 }

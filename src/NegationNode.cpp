@@ -59,17 +59,12 @@ AstNode* NegationNode::copy() const
 
 bool NegationNode::isAlwaysTrue() const
 {
-    assert(1 == children_.size() && "NegationNode should have 1 child");
+    assert(1 == children_.size() && "NegationNode should have exactly 1 child");
 
-    const ExpressionNode* const expr = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(0)
-    );
-    assert(
-        nullptr != expr &&
-        "NegationNode should only an ExpressionNode child"
-    );
+    const ConditionalNode* const cond =
+        polymorphic_downcast<const ConditionalNode*>(children_.at(0));
 
-    return !expr->isAlwaysTrue();
+    return !cond->isAlwaysTrue();
 }
 
 

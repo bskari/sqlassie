@@ -162,7 +162,7 @@ id ::= ID.
 id ::= ID_FALLBACK.
 {
     // Push a dummy identifier so that popping it later won't break anything
-    sc->identifiers.push(std::string("dummy"));
+    sc->identifiers.push(std::string("fallback"));
 }
 
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to
@@ -254,13 +254,14 @@ cmd ::= SHOW DATABASES LIKE_KW STRING.
 
 cmd ::= SHOW global_opt VARIABLES where_opt.
 {
+    /// @TODO(bskari|2012-07-08) Are any global variables risky?
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
 }
 cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.
 {
+    /// @TODO(bskari|2012-07-08) Are any global variables risky?
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
+    sc->quotedStrings.pop();
 }
 global_opt ::= GLOBAL.
 global_opt ::= .
@@ -409,7 +410,7 @@ cmd ::= SET set_opt TRANSACTION bunch_of_ids.
     sc->qrPtr->queryType = QueryRisk::TYPE_SET;
 }
 bunch_of_ids ::= .
-bunch_of_ids ::= id bunch_of_ids.
+bunch_of_ids ::= id bunch_of_ids.   {sc->identifiers.pop();}
 set_opt ::= GLOBAL.
 set_opt ::= SESSION.
 set_opt ::= .

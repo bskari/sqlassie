@@ -56,13 +56,13 @@ public:
      */
     bool parse(QueryRisk* const qr) WARN_UNUSED_RESULT;
 
-    typedef uint64_t hashType;
+    typedef size_t hashType;
     struct QueryHash
     {
         hashType hash;
         int tokensCount;
         QueryHash();
-        friend bool operator==(const QueryHash& q1, const QueryHash& q2);
+        friend bool operator==(const QueryHash& qh1, const QueryHash& qh2);
     };
     QueryHash getHash() const;
 

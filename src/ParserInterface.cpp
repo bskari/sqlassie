@@ -32,11 +32,12 @@
 
 #include <cassert>
 #include <exception>
+#include <string>
+
 #ifndef NDEBUG
 #include <iostream>
 #include <stack>
 #endif
-#include <string>
 
 using boost::lock_guard;
 using std::bad_alloc;
@@ -201,7 +202,7 @@ bool operator==(
 
 size_t hash_value(const ParserInterface::QueryHash& qh)
 {
-    return static_cast<std::size_t>(qh.hash + qh.tokensCount);
+    return static_cast<size_t>(qh.hash + qh.tokensCount);
 }
 
 

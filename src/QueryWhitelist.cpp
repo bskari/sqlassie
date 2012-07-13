@@ -220,16 +220,18 @@ std::size_t hash_value(
     {
         // sdbmHash
         qrHash = *iter + (qrHash << 6) + (qrHash << 16) - qrHash;
+        assert(sizeof(*iter) == sizeof(qrHash));
     }
     // If the compiler pads the QueryRisk data structure, then we're done!
-    assert(0 == sizeof(QueryRisk) % sizeof(size_t));
-    if (0 != sizeof(QueryRisk) % sizeof(size_t))
+    assert(0 == sizeof(QueryRisk) % sizeof(qrHash));
+    if (0 != sizeof(QueryRisk) % sizeof(qrHash))
     {
         Logger::log(Logger::WARN)
-            << "Unable to fully hash QueryRisk because it is not 4-byte aligned";
+            << "Unable to fully hash QueryRisk because it is not "
+            << sizeof(qrHash)
+            << "-byte aligned";
     }
 
     // Addition is probably fine, right?
     return qrHash + hash_value(queryProfile.first);
-
 }

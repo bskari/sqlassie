@@ -452,30 +452,6 @@ void testQueryRiskAlwaysTrue()
 }
 
 
-void testSelectItems()
-{
-    parseQuery("SELECT a.* AS b FROM foo");
-    parseQuery("SELECT * FROM foo");
-    parseQuery("SELECT a FROM foo");
-    parseQuery("SELECT a, b, c FROM foo");
-    parseQuery("SELECT a.* FROM foo");
-    parseQuery("SELECT a.name FROM foo");
-    parseQuery("SELECT a.flags & 0x40 FROM foo");
-    parseQuery("SELECT a.flags & 0x40 > 0 FROM foo");
-    parseQuery("SELECT a.flags & 0x40 < 0 FROM foo");
-    parseQuery("SELECT a.flags & 0x40 >= 0 FROM foo");
-    parseQuery("SELECT a.flags & 0x40 <= 0 FROM foo");
-    parseQuery("SELECT a.flags & 0x40 = 0 FROM foo");
-    parseQuery("SELECT a.flags & 0x40 != 0 FROM foo");
-    parseQuery("SELECT a.flags | 0x40 FROM foo");
-    parseQuery("SELECT a.flags ^ 0x40 FROM foo");
-    parseQuery("SELECT a AS b FROM foo");
-    parseQuery("SELECT a.age AS b FROM foo");
-    parseQuery("SELECT a.flags & 0x40 AS b FROM foo");
-    parseQuery("SELECT a.flags & 0x40 > 0 AS b FROM foo");
-}
-
-
 void testQueryType()
 {
     checkQueryType("SELECT * FROM a", QueryRisk::TYPE_SELECT);

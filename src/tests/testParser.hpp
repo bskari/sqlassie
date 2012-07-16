@@ -43,11 +43,6 @@ void testQueryRiskComments();
 void testQueryRiskAlwaysTrue();
 
 /**
- * Test different kinds of select items.
- */
-void testSelectItems();
-
-/**
  * Test that the type of query is being set.
  */
 void testQueryType();

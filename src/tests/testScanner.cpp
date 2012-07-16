@@ -24,10 +24,18 @@
  * @date June 29 2012
  */
 
+// This needs to be defined prior to including the scanner header
+#define YY_DECL int sql_lex( \
+    ScannerContext* const context, \
+    yyscan_t yyscanner \
+)
+
+#include "../nullptr.hpp"
+#include "../scanner.yy.hpp"
+#include "../ScannerContext.hpp"
+#include "../sqlParser.h"
 #include "testScanner.hpp"
-// Artificial include to force dependency generation by my dependency script
-//#include ../scanner
-//#include ../sqlParser.h
+#include "../QueryRisk.hpp"
 
 // Newer versions of the Boost filesystem (1.44+) changed the interface; to
 // keep compatibility, default to the old version
@@ -49,6 +57,13 @@ using std::string;
 
 static set<string> loadScannerTokens(const char* const filename);
 static set<string> loadParserTokens(const char* const filename);
+static void checkScanTokens(
+    const int expectedTokens[],
+    const int numTokens,
+    const char* const tokenStream
+);
+// Methods from the scanner
+extern YY_DECL;
 
 
 void testAllTokensScan()
@@ -72,6 +87,71 @@ void testAllTokensScan()
             );
         }
     }
+}
+
+
+void testScanNumbers()
+{
+    const int INT = INTEGER;
+    const int intTokens[] = {INT, INT, INT, INT};
+    const char* intString = "0    1    000  001";
+    checkScanTokens(
+        intTokens,
+        sizeof(intTokens) / sizeof(intTokens[0]),
+        intString
+    );
+
+    const int FLT = FLOAT;
+    const int floatTokens[] = {FLT, FLT, FLT, FLT};
+    const char* floatString = "0.0  1.0  .1   1.";
+    checkScanTokens(
+        floatTokens,
+        sizeof(floatTokens) / sizeof(floatTokens[0]),
+        floatString
+    );
+
+    const int HEX = HEX_NUMBER;
+    const int hexDecimalTokens[] = {HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX};
+    const char* hexDecimalString = "0x0  0x1  0x2  0x3  0x4  0x5  0x6  0x7  0x8  0x9";
+    checkScanTokens(
+        hexDecimalTokens,
+        sizeof(hexDecimalTokens) / sizeof(hexDecimalTokens[0]),
+        hexDecimalString
+    );
+
+    const int hexLetterTokens[] = {HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX};
+    const char* hexLetterString = "0xA  0xB  0xC  0xD  0xE  0xF  0xa  0xb  0xc  0xd  0xe  0xf";
+    checkScanTokens(
+        hexLetterTokens,
+        sizeof(hexLetterTokens) / sizeof(hexLetterTokens[0]),
+        hexLetterString
+    );
+
+    const int hexUpperTokens[] = {HEX, HEX, HEX, HEX};
+    const char* hexUpperString = "0X0  0XA9 0XFF 0xC0";
+    checkScanTokens(
+        hexUpperTokens,
+        sizeof(hexUpperTokens) / sizeof(hexUpperTokens[0]),
+        hexUpperString
+    );
+
+    const int hexMixedCaseTokens[] = {HEX, HEX, HEX, HEX, HEX};
+    const char* hexMixedCaseString = "0xaF 0xAf 0xaA 0xAa 0xaAbBcCdDeEfF";
+    checkScanTokens(
+        hexMixedCaseTokens,
+        sizeof(hexMixedCaseTokens) / sizeof(hexMixedCaseTokens[0]),
+        hexMixedCaseString
+    );
+
+    // Make sure we don't scan partial hex strings as hex
+    const int nonHexTokens[] = {INT, ID, INT, ID, ID, ID, ID, ID};
+    const char* nonHexString = "0x       0X       X0  x0  x   X";
+    checkScanTokens(
+        nonHexTokens,
+        sizeof(nonHexTokens) / sizeof(nonHexTokens[0]),
+        nonHexString
+    );
+
 }
 
 
@@ -115,4 +195,31 @@ set<string> loadParserTokens(const char* const filename)
         fin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
     return tokens;
+}
+
+
+void checkScanTokens(
+    const int expectedTokens[],
+    const int numTokens,
+    const char* const tokenStream
+)
+{
+    yyscan_t scanner;
+    BOOST_REQUIRE(0 == sql_lex_init(&scanner));
+    YY_BUFFER_STATE bufferState = sql__scan_string(tokenStream, scanner);
+    BOOST_REQUIRE(nullptr != bufferState);
+
+    QueryRisk qr;
+    ScannerContext sc(&qr);
+    for (int i = 0; i < numTokens; ++i)
+    {
+        const int lexCode = sql_lex(&sc, scanner);
+        BOOST_CHECK(lexCode == expectedTokens[i]);
+    }
+    const int lastLexCode = sql_lex(&sc, scanner);
+    const int endOfTokensLexCode = 0;
+    BOOST_CHECK(endOfTokensLexCode == lastLexCode);
+
+    sql__delete_buffer(bufferState, scanner);
+    sql_lex_destroy(scanner);
 }

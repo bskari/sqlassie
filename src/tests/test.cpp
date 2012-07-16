@@ -73,6 +73,9 @@ test::test_suite* init_unit_test_suite(int, char*[])
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testQueryRiskGlobalVariables)
     );
+    test::framework::master_test_suite().add(
+        BOOST_TEST_CASE(testQueryRiskSensitiveTables)
+    );
 
     // Tests from testNode.cpp
     test::framework::master_test_suite().add(BOOST_TEST_CASE(testAstNode));
@@ -100,6 +103,9 @@ test::test_suite* init_unit_test_suite(int, char*[])
     // Tests from testScanner.cpp
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testAllTokensScan)
+    );
+    test::framework::master_test_suite().add(
+        BOOST_TEST_CASE(testScanNumbers)
     );
 
     return 0;

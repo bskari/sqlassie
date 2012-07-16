@@ -26,4 +26,9 @@
  */
 void testAllTokensScan();
 
+/**
+ * Test that various number types are correctly identified.
+ */
+void testScanNumbers();
+
 #endif  // SRC_TESTS_TESTSCANNER_HPP_

@@ -80,8 +80,8 @@ WHITE_SPACE [ \t\n\r\v\f]
 
 ID  ([a-zA-Z_][a-zA-Z0-9_]*)|("{"[a-zA-Z_][a-zA-Z0-9_]*"}")
 QUOTED_IDENTIFIER    "`"[a-zA-Z_][a-zA-Z0-9_]*"`"
-INTEGER     "-"?[0-9]+
-FLOAT       "-"?([0-9]*"."[0-9]+)|([0-9]+"."[0-9]*)
+INTEGER     [0-9]+
+FLOAT       ([0-9]*"."[0-9]+)|([0-9]+"."[0-9]*)
 GLOBAL_VARIABLE     "@@"{ID}
 VARIABLE            "@"{ID}
 

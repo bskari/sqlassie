@@ -32,15 +32,20 @@ void testParseKnownGoodQueries();
 void testQueryRiskSafe();
 
 /**
- * Tests that the risk of certain comment types are correctly identified.
+ * Tests that the risk of certain comment types is correctly identified.
  */
 void testQueryRiskComments();
 
 /**
- * Tests that the risk of always true statements in queries are correctly
+ * Tests that the risk of always true statements in queries is correctly
  * identified.
  */
 void testQueryRiskAlwaysTrue();
+
+/**
+ * Tests that the risk of global variables is correctly counted.
+ */
+void testQueryRiskGlobalVariables();
 
 /**
  * Test that the type of query is being set.

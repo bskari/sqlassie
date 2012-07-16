@@ -452,6 +452,31 @@ void testQueryRiskAlwaysTrue()
 }
 
 
+void testQueryRiskGlobalVariables()
+{
+    QueryRisk qr;
+    string longQuery;
+
+    qr = parseQuery("SELECT @@host");
+    BOOST_CHECK(1 == qr.globalVariables);
+
+    longQuery = string("SELECT @@version, @@version_comment, ")
+        + "@@version_compile_machine, @@version_compile_os";
+    qr = parseQuery(longQuery);
+    BOOST_CHECK(4 == qr.globalVariables);
+
+    longQuery = string("SELECT @@version, @@version_comment ")
+        + "UNION SELECT @@version_compile_machine, @@version_compile_os";
+    qr = parseQuery(longQuery);
+    BOOST_CHECK(4 == qr.globalVariables);
+
+    longQuery = string("SELECT CONCAT(@@version, ' ', @@version_comment, ")
+        + "' ', @@version_compile_machine, ' ', @@version_compile_os)";
+    qr = parseQuery(longQuery);
+    BOOST_CHECK(4 == qr.globalVariables);
+}
+
+
 void testQueryType()
 {
     checkQueryType("SELECT * FROM a", QueryRisk::TYPE_SELECT);

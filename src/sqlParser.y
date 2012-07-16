@@ -413,8 +413,16 @@ set_assignments ::= set_assignment.
 set_assignments ::= set_assignments COMMA set_assignment.
 set_assignment ::= set_opt id EQ expr.              {sc->identifiers.pop();}
 set_assignment ::= set_opt id expr.                 {sc->identifiers.pop();}
-set_assignment ::= GLOBAL_VARIABLE EQ expr.         {sc->identifiers.pop();}
-set_assignment ::= GLOBAL_VARIABLE DOT nm EQ expr.  {sc->identifiers.pop();}
+set_assignment ::= GLOBAL_VARIABLE EQ expr.
+{
+    sc->identifiers.pop();
+    ++sc->qrPtr->globalVariables;
+}
+set_assignment ::= GLOBAL_VARIABLE DOT nm EQ expr.
+{
+    sc->identifiers.pop();
+    ++sc->qrPtr->globalVariables;
+}
 set_assignment ::= VARIABLE EQ expr.                {sc->identifiers.pop();}
 set_assignment ::= VARIABLE DOT nm EQ expr.         {sc->identifiers.pop();}
 // MySQL also has some long SET statements, like:
@@ -755,6 +763,7 @@ term ::= GLOBAL_VARIABLE.
     ExpressionNode* const ex = new ExpressionNode(global, false);
     sc->identifiers.pop();
     sc->nodes.push(ex);
+    ++sc->qrPtr->globalVariables;
 }
 term ::= GLOBAL_VARIABLE DOT id.
 {
@@ -764,6 +773,7 @@ term ::= GLOBAL_VARIABLE DOT id.
     sc->identifiers.pop();  // Pop the identifier
     sc->identifiers.pop();  // Pop the global
     sc->nodes.push(ex);
+    ++sc->qrPtr->globalVariables;
 }
 /* MySQL allows date intervals */
 term ::= INTERVAL expr TIME_UNIT RP.

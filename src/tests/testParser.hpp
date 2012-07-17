@@ -48,6 +48,11 @@ void testQueryRiskAlwaysTrue();
 void testQueryRiskGlobalVariables();
 
 /**
+ * Tests that the risk of sensitive tables is correctly counted.
+ */
+void testQueryRiskSensitiveTables();
+
+/**
  * Test that the type of query is being set.
  */
 void testQueryType();

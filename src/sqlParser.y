@@ -181,7 +181,7 @@ id ::= ID_FALLBACK.
   FULL TABLES SCHEMA
   DEFAULT
   SOME ANY
-  READ WRITE
+  READ WRITE SESSION
   .
 
 // I don't know what this does, so I'm going to remove it
@@ -554,9 +554,16 @@ seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
 //     A = sqlite3SelectNew(pParse,0,F,0,0,0,0,0,0,0);
 //  }
 
-/// @TODO(bskari|2012-07-07) Check for sensitive tables
-table_name ::= id.          {sc->identifiers.pop();}
-table_name ::= STRING.      {sc->quotedStrings.pop();}
+table_name ::= id.
+{
+    sc->qrPtr->checkTable(sc->identifiers.top());
+    sc->identifiers.pop();
+}
+table_name ::= STRING.
+{
+    sc->qrPtr->checkTable(sc->quotedStrings.top());
+    sc->quotedStrings.pop();
+}
 
 dbnm(A) ::= .          {A;}
 dbnm(A) ::= DOT nm(X). {A;X;}

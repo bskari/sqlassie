@@ -477,6 +477,39 @@ void testQueryRiskGlobalVariables()
 }
 
 
+void testQueryRiskSensitiveTables()
+{
+    QueryRisk qr;
+    string longQuery;
+
+    // Sensitive tables as of July 15 2012 (taken from QueryRisk.cpp)
+    // customer member admin user permission session
+
+    qr = parseQuery("SELECT * FROM customer");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery("SELECT name, password FROM user WHERE name = 'quote'");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    longQuery = string("SELECT COUNT(*) FROM benign_table ")
+        + "UNION SELECT password FROM user";
+    qr = parseQuery(longQuery);
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    longQuery = string("SELECT u.name, u.password, s.csrf, s.token ")
+        + "FROM user u JOIN session s ON u.id = s.user_id";
+    qr = parseQuery(longQuery);
+    BOOST_CHECK(2 == qr.sensitiveTables);
+
+    qr = parseQuery("DELETE FROM admin WHERE id = 1");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    longQuery = "INSERT INTO permission (user_id, flags) VALUES (1, 2)";
+    qr = parseQuery(longQuery);
+    BOOST_CHECK(1 == qr.sensitiveTables);
+}
+
+
 void testQueryType()
 {
     checkQueryType("SELECT * FROM a", QueryRisk::TYPE_SELECT);

@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -18,26 +18,19 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "QueryRisk.hpp"
-#include "ScannerContext.hpp"
-
-#include <stack>
 #include <string>
 
-ScannerContext::ScannerContext(QueryRisk* const qrToModify) :
-    identifier(),
-    quotedString(),
-    qrPtr(qrToModify),
-    nodes()
+#include "TokenInfo.hpp"
+
+using std::string;
+
+TokenInfo::TokenInfo()
+    : token_()
+    , scannedString_()
 {
 }
 
 
-ScannerContext::~ScannerContext()
+TokenInfo::~TokenInfo()
 {
-    while (!nodes.empty())
-    {
-        delete nodes.top();
-        nodes.pop();
-    }
 }

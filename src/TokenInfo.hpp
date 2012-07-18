@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -18,26 +18,23 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "QueryRisk.hpp"
-#include "ScannerContext.hpp"
+#ifndef SRC_TOKENINFO_HPP_
+#define SRC_TOKENINFO_HPP_
 
-#include <stack>
-#include <string>
+/**
+ * Stores information about the scanned token.
+ * @author Brandon Skari
+ * @date July 16 2012
+ */
 
-ScannerContext::ScannerContext(QueryRisk* const qrToModify) :
-    identifier(),
-    quotedString(),
-    qrPtr(qrToModify),
-    nodes()
+struct TokenInfo
 {
-}
+public:
+    TokenInfo();
+    ~TokenInfo();
 
+    int token_;
+    std::string scannedString_;
+};
 
-ScannerContext::~ScannerContext()
-{
-    while (!nodes.empty())
-    {
-        delete nodes.top();
-        nodes.pop();
-    }
-}
+#endif  // SRC_TOKENINFO_HPP_

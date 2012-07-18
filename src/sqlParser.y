@@ -28,10 +28,14 @@
 // is as follows:
 %name sqlassieParse
 
-%token_type {int}
+%token_type {TokenInfo*}
 %extra_argument {ScannerContext* sc}
 
 %type likeop {LikeOpInfo}
+
+%type id    {TokenInfo*}
+%type ids   {TokenInfo*}
+%type nm    {TokenInfo*}
 
 // The following text is included near the beginning of the C source
 // code file that implements the parser.
@@ -49,6 +53,7 @@
 #include "nullptr.hpp"
 #include "OperatorNode.hpp"
 #include "ScannerContext.hpp"
+#include "TokenInfo.hpp"
 
 struct LikeOpInfo
 {
@@ -158,12 +163,8 @@ no_opt ::= NO.
 // An IDENTIFIER can be a generic identifier, or one of several
 // keywords.  Any non-standard keyword can also be an identifier.
 //
-id ::= ID.
-id ::= ID_FALLBACK.
-{
-    // Push a dummy identifier so that popping it later won't break anything
-    sc->identifiers.push(std::string("fallback"));
-}
+id(A) ::= ID(X).            {A = X;}
+id(A) ::= ID_FALLBACK(X).   {A = X;}
 
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to
 // fallback to ID if they will not parse as their original value.
@@ -214,14 +215,14 @@ id ::= ID_FALLBACK.
 
 // And "ids" is an identifer-or-string.
 //
-ids(A) ::= ID(X).       {A;X; sc->identifiers.pop();}
-ids(A) ::= STRING(X).   {A;X; sc->quotedStrings.pop();}
+ids(A) ::= ID(X).       {A = X;}
+ids(A) ::= STRING(X).   {A = X;}
 
 // The name of a column or table can be any of the following:
 //
-nm(A) ::= id(X).         {A;X; sc->identifiers.pop();}
-nm(A) ::= STRING(X).     {A;X; sc->quotedStrings.pop();}
-nm(A) ::= JOIN_KW(X).    {A;X;}
+nm(A) ::= id(X).         {A = X;}
+nm(A) ::= STRING(X).     {A = X;}
+nm(A) ::= JOIN_KW(X).    {A = X;}
 
 // A typetoken is really one or more tokens that form a type name such
 // as can be found after the column name in a CREATE TABLE statement.
@@ -234,8 +235,8 @@ typename(A) ::= ids(X).             {A;X;}
 typename(A) ::= typename(X) ids(Y). {A;X;Y;}
 plus_num(A) ::= number(X).          {A;X;}
 minus_num(A) ::= MINUS number(X).   {A;X;}
-number(A) ::= INTEGER|FLOAT.        {A; sc->numbers.pop();}
-number(A) ::= HEX_NUMBER.           {A; sc->hexNumbers.pop();}
+number(A) ::= INTEGER|FLOAT.        {A;}
+number(A) ::= HEX_NUMBER.           {A;}
 signed ::= plus_num.
 signed ::= minus_num.
 
@@ -249,7 +250,6 @@ cmd ::= SHOW DATABASES where_opt.
 cmd ::= SHOW DATABASES LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->quotedStrings.pop();
 }
 
 cmd ::= SHOW global_opt VARIABLES where_opt.
@@ -261,7 +261,6 @@ cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.
 {
     /// @TODO(bskari|2012-07-08) Are any global variables risky?
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->quotedStrings.pop();
 }
 global_opt ::= GLOBAL.
 global_opt ::= .
@@ -269,41 +268,32 @@ global_opt ::= .
 cmd ::= SHOW CREATE TABLE id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
 }
 cmd ::= SHOW CREATE SCHEMA id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
 }
 cmd ::= SHOW CREATE DATABASE id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
 }
 
 // There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
 cmd ::= SHOW id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
 }
 cmd ::= SHOW id likeop expr.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
 }
 cmd ::= SHOW id id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
-    sc->identifiers.pop();
 }
 cmd ::= SHOW id id likeop expr.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->identifiers.pop();
-    sc->identifiers.pop();
 }
 
 // Using full_opt here wasn't working, so just copy/paste
@@ -318,12 +308,10 @@ cmd ::= SHOW FULL TABLES show_from_in_id_opt where_opt.
 cmd ::= SHOW TABLES show_from_in_id_opt LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->quotedStrings.pop();
 }
 cmd ::= SHOW FULL TABLES show_from_in_id_opt LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->quotedStrings.pop();
 }
 
 cmd ::= SHOW full_opt COLUMNS where_opt.
@@ -333,7 +321,6 @@ cmd ::= SHOW full_opt COLUMNS where_opt.
 cmd ::= SHOW full_opt COLUMNS LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->quotedStrings.pop();
 }
 cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt where_opt.
 {
@@ -342,21 +329,16 @@ cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt where_
 cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    sc->quotedStrings.pop();
 }
 
 show_from_in_id_opt ::= .
-show_from_in_id_opt ::= from_in id. {sc->identifiers.pop();}
+show_from_in_id_opt ::= from_in id.
 
 from_in ::= FROM.
 from_in ::= IN.
 
-show_columns_id ::= id.         {sc->identifiers.pop();}
+show_columns_id ::= id.
 show_columns_id ::= id DOT id.
-{
-    sc->identifiers.pop();
-    sc->identifiers.pop();
-}
 
 full_opt ::= .
 full_opt ::= FULL.
@@ -369,21 +351,16 @@ describe_kw ::= DESC|DESCRIBE.
 cmd ::= describe_kw id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;
-    sc->identifiers.pop();
 }
 cmd ::= describe_kw id id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;
-    sc->identifiers.pop();
-    sc->identifiers.pop();
 }
 // You can specify an individual column, or give a regex and show all columns
 // that match it.
 cmd ::= describe_kw id STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;
-    sc->identifiers.pop();
-    sc->quotedStrings.pop();
 }
 
 //////////////////////// The EXPLAIN statement ///////////////////////////////
@@ -401,7 +378,6 @@ extended_opt ::= EXTENDED.
 cmd ::= USE id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_USE;
-    sc->identifiers.pop();
 }
 
 //////////////////////// The SET statement ////////////////////////////////////
@@ -411,20 +387,18 @@ cmd ::= SET set_assignments.    {sc->qrPtr->queryType = QueryRisk::TYPE_SET;}
 // also look like "SET NAMES utf8"
 set_assignments ::= set_assignment.
 set_assignments ::= set_assignments COMMA set_assignment.
-set_assignment ::= set_opt id EQ expr.              {sc->identifiers.pop();}
-set_assignment ::= set_opt id expr.                 {sc->identifiers.pop();}
+set_assignment ::= set_opt id EQ expr.
+set_assignment ::= set_opt id expr.
 set_assignment ::= GLOBAL_VARIABLE EQ expr.
 {
-    sc->identifiers.pop();
     ++sc->qrPtr->globalVariables;
 }
 set_assignment ::= GLOBAL_VARIABLE DOT nm EQ expr.
 {
-    sc->identifiers.pop();
     ++sc->qrPtr->globalVariables;
 }
-set_assignment ::= VARIABLE EQ expr.                {sc->identifiers.pop();}
-set_assignment ::= VARIABLE DOT nm EQ expr.         {sc->identifiers.pop();}
+set_assignment ::= VARIABLE EQ expr.
+set_assignment ::= VARIABLE DOT nm EQ expr.
 // MySQL also has some long SET statements, like:
 // SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
 cmd ::= SET set_opt TRANSACTION bunch_of_ids.
@@ -432,7 +406,7 @@ cmd ::= SET set_opt TRANSACTION bunch_of_ids.
     sc->qrPtr->queryType = QueryRisk::TYPE_SET;
 }
 bunch_of_ids ::= .
-bunch_of_ids ::= id bunch_of_ids.   {sc->identifiers.pop();}
+bunch_of_ids ::= id bunch_of_ids.
 set_opt ::= GLOBAL.
 set_opt ::= SESSION.
 set_opt ::= .
@@ -554,21 +528,29 @@ seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
 //     A = sqlite3SelectNew(pParse,0,F,0,0,0,0,0,0,0);
 //  }
 
-table_name ::= id.
+table_name ::= id(X).
 {
-    sc->qrPtr->checkTable(sc->identifiers.top());
-    sc->identifiers.pop();
+    sc->qrPtr->checkTable(X->scannedString_);
 }
-table_name ::= STRING.
+table_name ::= STRING(X).
 {
-    sc->qrPtr->checkTable(sc->quotedStrings.top());
-    sc->quotedStrings.pop();
+    sc->qrPtr->checkTable(X->scannedString_);
 }
 
-dbnm(A) ::= .          {A;}
-dbnm(A) ::= DOT nm(X). {A;X;}
+dbnm ::= .
+dbnm ::= DOT nm(X).
+{
+    sc->qrPtr->checkTable(X->scannedString_);
+}
 
-fullname(A) ::= nm(X) dbnm(Y).  {A;X;Y;}
+fullname ::= nm(X).
+{
+    sc->qrPtr->checkTable(X->scannedString_);
+}
+fullname ::= nm DOT nm(X).
+{
+    sc->qrPtr->checkTable(X->scannedString_);
+}
 
 joinop(X) ::= COMMA.                 {X;}
 joinop(X) ::= join_opt JOIN_KW.         {X;}
@@ -722,129 +704,117 @@ expr ::= LP select RP.
     sc->nodes.push(new AlwaysSomethingNode(true));
 }
 term ::= NULL_KW.   {sc->nodes.push(new ExpressionNode("NULL", false));}
-expr ::= id.
+expr ::= id(X).
 {
-    ExpressionNode* e = new ExpressionNode(sc->identifiers.top(), true);
-    sc->identifiers.pop();
+    ExpressionNode* e = new ExpressionNode(X->scannedString_, true);
     sc->nodes.push(e);
 }
 expr ::= JOIN_KW.
-expr ::= nm DOT id.
+expr ::= nm(X) DOT id(Y).
 {
-    /// @TODO(bskari|2012-07-07) nm is the name of a table and should be
-    /// checked for sensitive tables.
-    ExpressionNode* const e = new ExpressionNode(sc->identifiers.top(), true);
-    sc->identifiers.pop();
+    sc->qrPtr->checkTable(X->scannedString_);
+    ExpressionNode* const e = new ExpressionNode(Y->scannedString_, true);
     sc->nodes.push(e);
 }
-expr ::= nm DOT table_name DOT id.
+expr ::= nm DOT table_name DOT id(X).
 {
-    ExpressionNode* const e = new ExpressionNode(sc->identifiers.top(), true);
-    sc->identifiers.pop();
+    ExpressionNode* const e = new ExpressionNode(X->scannedString_, true);
     sc->nodes.push(e);
 }
-term ::= INTEGER|FLOAT.
+term ::= INTEGER|FLOAT(X).
 {
-    ExpressionNode* const ex = new ExpressionNode(sc->numbers.top(), false);
-    sc->numbers.pop();
+    ExpressionNode* const ex = new ExpressionNode(X->scannedString_, false);
     sc->nodes.push(ex);
 }
-term ::= HEX_NUMBER.
+term ::= HEX_NUMBER(X).
 {
     /// @TODO Translate this to a decimal number?
-    ExpressionNode* const ex = new ExpressionNode(sc->hexNumbers.top(), false);
-    sc->hexNumbers.pop();
+    ExpressionNode* const ex = new ExpressionNode(X->scannedString_, false);
     sc->nodes.push(ex);
 }
-term ::= STRING.
+term ::= STRING(X).
 {
-    std::string& term = sc->quotedStrings.top();
+    std::string& term = X->scannedString_;
     ExpressionNode* const ex = new ExpressionNode(term, false);
-    sc->quotedStrings.pop();
     sc->nodes.push(ex);
 }
-term ::= GLOBAL_VARIABLE.
+term ::= GLOBAL_VARIABLE(X).
 {
     /// @TODO(bskari|2012-07-04) Check risky stuff?
-    std::string& global = sc->identifiers.top();
+    std::string& global = X->scannedString_;
     ExpressionNode* const ex = new ExpressionNode(global, false);
-    sc->identifiers.pop();
     sc->nodes.push(ex);
     ++sc->qrPtr->globalVariables;
 }
-term ::= GLOBAL_VARIABLE DOT id.
+term ::= GLOBAL_VARIABLE DOT id(X).
 {
     /// @TODO(bskari|2012-07-04) Check risky stuff?
-    std::string& identifier = sc->identifiers.top();
+    std::string& identifier = X->scannedString_;
     ExpressionNode* const ex = new ExpressionNode(identifier, false);
-    sc->identifiers.pop();  // Pop the identifier
-    sc->identifiers.pop();  // Pop the global
     sc->nodes.push(ex);
     ++sc->qrPtr->globalVariables;
 }
 /* MySQL allows date intervals */
 term ::= INTERVAL expr TIME_UNIT RP.
-expr ::= VARIABLE.  {sc->identifiers.pop();}
+expr ::= VARIABLE.
 expr ::= expr COLLATE ids.
 expr ::= CAST LP expr AS typetoken RP.
-expr ::= id LP distinct exprlist RP.
+expr ::= id(X) LP distinct exprlist RP.
 {
     /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
     /// functions here. For example, IF (1, 1, 0) should always be true.
     sc->nodes.push(new ExpressionNode(" ", false));
-    sc->qrPtr->checkFunction(sc->identifiers.top());
-    sc->identifiers.pop();
+    sc->qrPtr->checkFunction(X->scannedString_);
 }
-expr ::= id LP STAR RP.
+expr ::= id(X) LP STAR RP.
 {
     /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
     /// functions here. For example, IF (1, 1, 0) should always be true.
     sc->nodes.push(new ExpressionNode(" ", false));
-    sc->qrPtr->checkFunction(sc->identifiers.top());
-    sc->identifiers.pop();
+    sc->qrPtr->checkFunction(X->scannedString_);
 }
 expr ::= expr AND(OP) expr.
 {
-    addExpressionNode(sc, OP);
+    addExpressionNode(sc, OP->token_);
 }
 expr ::= expr OR(OP) expr.
 {
-    addExpressionNode(sc, OP);
+    addExpressionNode(sc, OP->token_);
 }
 expr ::= expr XOR(OP) expr.
 {
-    addExpressionNode(sc, OP);
+    addExpressionNode(sc, OP->token_);
 }
 expr ::= expr LT|GT|LE|GE(OP) expr.
 {
-    addComparisonNode(sc, OP);
+    addComparisonNode(sc, OP->token_);
 }
 expr ::= expr EQ|NE(OP) expr.
 {
-    addComparisonNode(sc, OP);
+    addComparisonNode(sc, OP->token_);
 }
 expr ::= expr BITAND|BITOR|BITXOR|LSHIFT|RSHIFT(OP) expr.
 {
-    addExpressionNode(sc, OP);
+    addExpressionNode(sc, OP->token_);
 }
 expr ::= expr PLUS|MINUS(OP) expr.
 {
-    addExpressionNode(sc, OP);
+    addExpressionNode(sc, OP->token_);
 }
 expr ::= expr STAR|SLASH|REM|INTEGER_DIVIDE(OP) expr.
 {
-    addExpressionNode(sc, OP);
+    addExpressionNode(sc, OP->token_);
 }
 expr ::= expr CONCAT(OP) expr.
 {
-    addExpressionNode(sc, OP);
+    addExpressionNode(sc, OP->token_);
 }
 
-likeop(A) ::= MATCH_KW(OP).         {A.negation = false; A.tokenType = OP;}
-likeop(A) ::= NOT MATCH_KW(OP).     {A.negation = true; A.tokenType = OP;}
-likeop(A) ::= LIKE_KW(OP).          {A.negation = false; A.tokenType = OP;}
-likeop(A) ::= NOT LIKE_KW(OP).      {A.negation = true; A.tokenType = OP;}
-likeop(A) ::= SOUNDS(OP) LIKE_KW.   {A.negation = false; A.tokenType = OP;}
+likeop(A) ::= MATCH_KW(OP).         {A.negation = false; A.tokenType = OP->token_;}
+likeop(A) ::= NOT MATCH_KW(OP).     {A.negation = true; A.tokenType = OP->token_;}
+likeop(A) ::= LIKE_KW(OP).          {A.negation = false; A.tokenType = OP->token_;}
+likeop(A) ::= NOT LIKE_KW(OP).      {A.negation = true; A.tokenType = OP->token_;}
+likeop(A) ::= SOUNDS(OP) LIKE_KW.   {A.negation = false; A.tokenType = OP->token_;}
 
 expr ::= expr likeop(B) expr.               [LIKE_KW]
 {

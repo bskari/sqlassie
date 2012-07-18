@@ -31,6 +31,7 @@
 #include "QueryRisk.hpp"
 #include "scanner.yy.hpp"
 #include "SensitiveNameChecker.hpp"
+#include "TokenInfo.hpp"
 
 #include <fstream>
 #include <ostream>
@@ -52,7 +53,7 @@ extern void* sqlassieParseAlloc(void* (*allocProc)(size_t numBytes));
 extern void* sqlassieParse(
     void* parser,
     int token,
-    const int _,
+    TokenInfo* ti,
     ScannerContext* qrPtr
 );
 extern void* sqlassieParseFree(void* parser, void(*freeProc)(void*));
@@ -142,6 +143,7 @@ void printParseErrorLocation(const string& query, ostream& out)
     yyscan_t scanner = nullptr;
     YY_BUFFER_STATE bufferState = nullptr;
     void* lemonParser = nullptr;
+    TokenInfo ti;
 
     if (0 != sql_lex_init(&scanner))
     {
@@ -166,7 +168,7 @@ void printParseErrorLocation(const string& query, ostream& out)
         const int lexToken = sql_lex(&sc, scanner);
         if (qr.valid)
         {
-            sqlassieParse(lemonParser, lexToken, nullptr, &sc);
+            sqlassieParse(lemonParser, lexToken, &ti, &sc);
         }
     }
 

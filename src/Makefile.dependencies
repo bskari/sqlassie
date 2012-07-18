@@ -97,8 +97,8 @@ NegationNode.o:	NegationNode.cpp ExpressionNode.hpp Logger.hpp \
 
 OperatorNode.o:	OperatorNode.cpp AstNode.hpp Logger.hpp OperatorNode.hpp
 
-ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp clearStack.hpp \
-	nullptr.hpp scanner.yy.hpp sqlParser.h
+ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp TokenInfo.hpp \
+	clearStack.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
 
 Proxy.o:	Proxy.cpp AutoPtrWithOperatorParens.hpp Logger.hpp Proxy.hpp \
 	ProxyHalf.hpp Socket.hpp
@@ -122,6 +122,8 @@ SimpleProxy.o:	SimpleProxy.cpp SimpleProxy.hpp Socket.hpp SocketException.hpp
 
 Socket.o:	Socket.cpp Logger.hpp Socket.hpp SocketException.hpp nullptr.hpp
 
+TokenInfo.o:	TokenInfo.cpp TokenInfo.hpp
+
 demo.o:	demo.cpp AttackProbabilities.hpp DlibProbabilities.hpp Logger.hpp \
 	MySqlGuard.hpp ParserInterface.hpp QueryRisk.hpp \
 	SensitiveNameChecker.hpp initializeSingletons.hpp nullptr.hpp
@@ -133,7 +135,7 @@ initializeSingletons.o:	initializeSingletons.cpp Logger.hpp \
 logger.o:	logger.cpp Logger.hpp MySqlLoggerListenSocket.hpp
 
 parser.o:	parser.cpp AstNode.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp nullptr.hpp scanner.yy.hpp
+	SensitiveNameChecker.hpp TokenInfo.hpp nullptr.hpp scanner.yy.hpp
 
 probabilities.o:	probabilities.cpp csvParse.hpp
 

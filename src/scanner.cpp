@@ -96,28 +96,6 @@ int main()
 
         cout << "Enter MySQL query: ";
     }
-    cout << endl;
-
-    cout << "Identifiers found:" << endl;
-    while (!context.identifiers.empty())
-    {
-        cout << context.identifiers.top() << endl;
-        context.identifiers.pop();
-    }
-
-    cout << "Quoted strings found:" << endl;
-    while (!context.quotedStrings.empty())
-    {
-        cout << context.quotedStrings.top() << endl;
-        context.quotedStrings.pop();
-    }
-
-    cout << "Numbers found:" << endl;
-    while (!context.numbers.empty())
-    {
-        cout << context.numbers.top() << endl;
-        context.numbers.pop();
-    }
 }
 
 void loadTokensFromFile(const char* const fileName)

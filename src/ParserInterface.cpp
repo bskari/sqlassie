@@ -29,27 +29,26 @@
 #include "sqlParser.h"
 #include "ParserInterface.hpp"
 #include "scanner.yy.hpp"
+#include "TokenInfo.hpp"
 
 #include <cassert>
+#include <boost/shared_ptr.hpp>
 #include <exception>
 #include <string>
+#include <vector>
 
-#ifndef NDEBUG
-#include <iostream>
-#include <stack>
-#endif
-
-using boost::lock_guard;
+using boost::shared_ptr;
 using std::bad_alloc;
 using std::size_t;
 using std::string;
+using std::vector;
 
 // Methods from the parser
 extern void* sqlassieParseAlloc(void* (*allocProc)(size_t numBytes));
 extern void* sqlassieParse(
     void* parser,
     int token,
-    int _,
+    TokenInfo* ti_,
     ScannerContext* qrPtr
 );
 extern void* sqlassieParseFree(void* parser, void(*freeProc)(void* ptr));
@@ -116,48 +115,28 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
         return successfullyParsed_;
     }
 
-    // Clear the stacks before every parsing attempt
-    clearStack(&scannerContext_.identifiers);
-    clearStack(&scannerContext_.quotedStrings);
-    clearStack(&scannerContext_.numbers);
-
     int lexToken;
+    vector<shared_ptr<TokenInfo> > tokenInfos;
     do
     {
-        lexToken = getLexValue();
-        // We want to keep reading all of the tokens, even if parsing has
-        // failed, but if parsing has already failed, don't keep calling it
+        shared_ptr<TokenInfo> ti(new TokenInfo);
+        lexToken = getLexValue(ti.get());
+        // We want to keep reading all of the tokens even if parsing has
+        // failed, but don't try to keep parsing
         if (qr_.valid)
         {
-            sqlassieParse(lemonParser_, lexToken, 0, &scannerContext_);
+            // Save the TokenInfo so that it can be used by the parser
+            tokenInfos.push_back(ti);
+
+            sqlassieParse(
+                lemonParser_,
+                lexToken,
+                ti.get(),
+                &scannerContext_
+            );
         }
     }
     while (lexToken != 0);
-
-    #ifndef NDEBUG
-        if (qr_.valid)
-        {
-            std::stack<string>* refs[] = {
-                &scannerContext_.identifiers,
-                &scannerContext_.quotedStrings,
-                &scannerContext_.numbers,
-                &scannerContext_.hexNumbers
-            };
-            for (size_t i = 0; i < sizeof(refs) / sizeof(refs[0]); ++i)
-            {
-                if (!refs[i]->empty())
-                {
-                    std::cout << "Printing non-empty stack contents\n";
-                    while (!refs[i]->empty())
-                    {
-                        std::cout << refs[i]->top() << '\n';
-                        refs[i]->pop();
-                    }
-                    assert(false && "Stack not empty");
-                }
-            }
-        }
-    #endif
 
     *qrPtr = qr_;
     successfullyParsed_ = qr_.valid;
@@ -168,8 +147,9 @@ bool ParserInterface::parse(QueryRisk* const qrPtr)
     // just keep calling that ourselves until it hits the end of the buffer.
     if (!successfullyParsed_)
     {
+        TokenInfo dummyTokenInfo;
         const int END_OF_TOKENS = 0;
-        while (getLexValue() != END_OF_TOKENS);
+        while (getLexValue(&dummyTokenInfo) != END_OF_TOKENS);
     }
 
     return successfullyParsed_;
@@ -243,8 +223,10 @@ static ParserInterface::hashType sdbmHash(
 );
 
 
-int ParserInterface::getLexValue()
+int ParserInterface::getLexValue(TokenInfo* const ti)
 {
+    assert(nullptr != ti);
+
     const int lexCode = sql_lex(
         &scannerContext_,
         scannerPimpl_->scanner_
@@ -265,14 +247,33 @@ int ParserInterface::getLexValue()
         // also hash the table and column names.
         if (lexCode == ID)
         {
-            const string& tableOrColumn = scannerContext_.identifiers.top();
-            const string::const_iterator end(tableOrColumn.end());
-            for (string::const_iterator i(tableOrColumn.begin()); i != end; ++i)
+            const char* id = sql_get_text(scannerPimpl_->scanner_);
+            while ('\0' != *id)
             {
-                tokensHash_.hash = sdbmHash(*i, tokensHash_.hash);
+                tokensHash_.hash = sdbmHash(*id, tokensHash_.hash);
+                ++id;
             }
         }
     }
+
+    // Set the TokenInfo
+    string id(sql_get_text(scannerPimpl_->scanner_));
+    switch (lexCode)
+    {
+        // ID can be a quoted string, which we trim
+        case ID:
+            if ('`' == id.at(0))
+            {
+                ti->scannedString_ = id.substr(1, id.length() - 2);
+                break;
+            }
+        // Everything else (including regular IDs) just get set normally
+        default:
+            ti->scannedString_ = string(sql_get_text(scannerPimpl_->scanner_));;
+            break;
+    }
+    ti->token_ = lexCode;
+
     return lexCode;
 }
 

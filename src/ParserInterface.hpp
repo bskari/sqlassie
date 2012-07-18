@@ -25,10 +25,10 @@
 class ParserInterfaceScannerMembers;
 #include "QueryRisk.hpp"
 #include "ScannerContext.hpp"
+class TokenInfo;
 
 #include <boost/cstdint.hpp>
 #include <boost/thread/mutex.hpp>
-#include <vector>
 
 /**
  * Interface to the Lemon parser so I don't have to keep allocating
@@ -87,7 +87,7 @@ public:
     //@}
 
 private:
-    int getLexValue();
+    int getLexValue(TokenInfo* const ti);
 
     bool parsed_;
     bool successfullyParsed_;

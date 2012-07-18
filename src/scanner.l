@@ -39,7 +39,6 @@
     #include "ScannerContext.hpp"
 
     #include <cassert>
-    #include <stack>
     #include <string>
 
     static int hexToNum(const char c)
@@ -160,7 +159,6 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
             if (yyleng % 2)
             {
                 BEGIN(INITIAL);
-                context->quotedStrings.push(context->quotedString);
                 return STRING;
             }
             else
@@ -175,7 +173,6 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
     // The determination of whether this is a hex string or not (and then to
     // update the query risk accordingly) will have to be done in the parser,
     // because hex integers can be used in certain contexts.
-    context->hexNumbers.push(std::string(yytext));
     return HEX_NUMBER;
 }
 
@@ -187,7 +184,6 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 <DOUBLE_QUOTED>[^\"]+    {context->quotedString += yytext;}
 <DOUBLE_QUOTED>["]    {
                 BEGIN(INITIAL);
-                context->quotedStrings.push(context->quotedString);
                 return STRING;
 }
 <DOUBLE_QUOTED><<EOF>>    {context->qrPtr->valid = false; BEGIN(INITIAL);}
@@ -377,16 +373,15 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "else"  {return ELSE;}
 "end"   {return END;}
 
-{ID}    {context->identifiers.push(std::string(yytext)); return ID;}
+{ID}    {return ID;}
 {QUOTED_IDENTIFIER}    {
     std::string str(yytext);
-    context->identifiers.push(str.substr(1, str.length() - 2));
     return ID;
 }
-{INTEGER}           {context->numbers.push(std::string(yytext)); return INTEGER;}
-{FLOAT}             {context->numbers.push(std::string(yytext)); return FLOAT;}
-{GLOBAL_VARIABLE}   {context->identifiers.push(std::string(yytext)); return GLOBAL_VARIABLE;}
-{VARIABLE}          {context->identifiers.push(std::string(yytext)); return VARIABLE;}
+{INTEGER}           {return INTEGER;}
+{FLOAT}             {return FLOAT;}
+{GLOBAL_VARIABLE}   {return GLOBAL_VARIABLE;}
+{VARIABLE}          {return VARIABLE;}
 
 .    {return ERROR_TOKEN;}
 

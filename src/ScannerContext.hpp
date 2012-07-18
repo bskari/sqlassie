@@ -29,14 +29,8 @@
 
 struct ScannerContext
 {
-    std::stack<std::string> identifiers;
     std::string identifier;
-    std::stack<std::string> quotedStrings;
     std::string quotedString;
-    // Using strings instead of ints for this stack because otherwise I would
-    // get weird segmentation fault errors whenever I'd try to pop it
-    std::stack<std::string> numbers;
-    std::stack<std::string> hexNumbers;
 
     QueryRisk* const qrPtr;
 

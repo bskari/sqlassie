@@ -31,7 +31,9 @@
 %token_type {TokenInfo*}
 %extra_argument {ScannerContext* sc}
 
-%type likeop {LikeOpInfo}
+%type like_op       {LikeOpInfo}
+%type in_op         {InOpInfo}
+%type between_op    {BetweenOpInfo}
 
 %type id    {TokenInfo*}
 %type ids   {TokenInfo*}
@@ -58,6 +60,17 @@
 struct LikeOpInfo
 {
     int tokenType;
+    bool negation;
+};
+struct BetweenOpInfo
+{
+    int tokenType;
+    bool negation;
+};
+struct InOpInfo
+{
+    int inOpType;
+    int comparisonType;  // Used for ANY and SOME
     bool negation;
 };
 
@@ -245,8 +258,10 @@ signed ::= minus_num.
 cmd ::= SHOW DATABASES where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    // Pop the where_opt node
+    sc->nodes.pop();
 }
-// MySQL doesn't allow NOT LIKE statements here, so don't use likeop
+// MySQL doesn't allow NOT LIKE statements here, so don't use like_op
 cmd ::= SHOW DATABASES LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
@@ -256,6 +271,8 @@ cmd ::= SHOW global_opt VARIABLES where_opt.
 {
     /// @TODO(bskari|2012-07-08) Are any global variables risky?
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    // Pop the where_opt node
+    sc->nodes.pop();
 }
 cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.
 {
@@ -283,7 +300,7 @@ cmd ::= SHOW id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
-cmd ::= SHOW id likeop expr.
+cmd ::= SHOW id like_op expr.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
@@ -291,7 +308,7 @@ cmd ::= SHOW id id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
-cmd ::= SHOW id id likeop expr.
+cmd ::= SHOW id id like_op expr.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
@@ -300,10 +317,14 @@ cmd ::= SHOW id id likeop expr.
 cmd ::= SHOW TABLES show_from_in_id_opt where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    // Pop the where_opt node
+    sc->nodes.pop();
 }
 cmd ::= SHOW FULL TABLES show_from_in_id_opt where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    // Pop the where_opt node
+    sc->nodes.pop();
 }
 cmd ::= SHOW TABLES show_from_in_id_opt LIKE_KW STRING.
 {
@@ -317,6 +338,8 @@ cmd ::= SHOW FULL TABLES show_from_in_id_opt LIKE_KW STRING.
 cmd ::= SHOW full_opt COLUMNS where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    // Pop the where_opt node
+    sc->nodes.pop();
 }
 cmd ::= SHOW full_opt COLUMNS LIKE_KW STRING.
 {
@@ -325,6 +348,8 @@ cmd ::= SHOW full_opt COLUMNS LIKE_KW STRING.
 cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    // Pop the where_opt node
+    sc->nodes.pop();
 }
 cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt LIKE_KW STRING.
 {
@@ -433,8 +458,14 @@ multiselect_op(A) ::= UNION(OP).             {A;OP;}
 multiselect_op(A) ::= UNION ALL.             {A;}
 // EXCEPT and INTERSECT are not supported in MySQL
 //multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
-oneselect(A) ::= SELECT distinct(D) selcollist(W) from(X) where_opt(Y)
-                 groupby_opt(P) having_opt(Q) orderby_opt(Z) limit_opt(L). {A;D;W;X;Y;P;Q;Z;L;}
+oneselect ::= SELECT distinct selcollist from where_opt
+                groupby_opt having_opt orderby_opt limit_opt.
+{
+    const ConditionalNode* const whereNode =
+        boost::polymorphic_cast<const ConditionalNode*>(sc->nodes.top());
+    sc->nodes.pop();
+    sc->qrPtr->alwaysTrue = whereNode->isAlwaysTrue();
+}
 
 // The "distinct" nonterminal is true (1) if the DISTINCT keyword is
 // present and false (0) if it is not.
@@ -623,9 +654,13 @@ limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {A;X;Y;}
 
 /////////////////////////// The DELETE statement /////////////////////////////
 //
-cmd ::= DELETE delete_opt FROM fullname(X) where_opt(W)
-        orderby_opt(O) limit_opt(L).
-        {X;W;O;L; sc->qrPtr->queryType = QueryRisk::TYPE_DELETE;}
+cmd ::= DELETE delete_opt FROM fullname where_opt
+        orderby_opt limit_opt.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_DELETE;
+    // Pop the where_opt node
+    sc->nodes.pop();
+}
 
 delete_opt ::= low_priority_opt quick_opt ignore_opt.
 low_priority_opt ::= .
@@ -634,8 +669,15 @@ quick_opt ::= .
 quick_opt ::= QUICK.
 ignore_opt ::= .
 ignore_opt ::= IGNORE.
-where_opt(A) ::= .                    {A;}
-where_opt(A) ::= WHERE expr(X).       {A;X;}
+where_opt ::= .
+{
+    AstNode* const whereNode = new AlwaysSomethingNode(true, 0);
+    sc->nodes.push(whereNode);
+}
+where_opt ::= WHERE expr.
+{
+    // Just leave the expr node on top of the nodes stack
+}
 
 ////////////////////////// The UPDATE command ////////////////////////////////
 //
@@ -810,17 +852,17 @@ expr ::= expr CONCAT(OP) expr.
     addExpressionNode(sc, OP->token_);
 }
 
-likeop(A) ::= MATCH_KW(OP).         {A.negation = false; A.tokenType = OP->token_;}
-likeop(A) ::= NOT MATCH_KW(OP).     {A.negation = true; A.tokenType = OP->token_;}
-likeop(A) ::= LIKE_KW(OP).          {A.negation = false; A.tokenType = OP->token_;}
-likeop(A) ::= NOT LIKE_KW(OP).      {A.negation = true; A.tokenType = OP->token_;}
-likeop(A) ::= SOUNDS(OP) LIKE_KW.   {A.negation = false; A.tokenType = OP->token_;}
+like_op(A) ::= MATCH_KW(OP).        {A.negation = false; A.tokenType = OP->token_;}
+like_op(A) ::= NOT MATCH_KW(OP).    {A.negation = true; A.tokenType = OP->token_;}
+like_op(A) ::= LIKE_KW(OP).         {A.negation = false; A.tokenType = OP->token_;}
+like_op(A) ::= NOT LIKE_KW(OP).     {A.negation = true; A.tokenType = OP->token_;}
+like_op(A) ::= SOUNDS(OP) LIKE_KW.  {A.negation = false; A.tokenType = OP->token_;}
 
-expr ::= expr likeop(B) expr.               [LIKE_KW]
+expr ::= expr like_op(B) expr. [LIKE_KW]
 {
     addComparisonNode(sc, B.tokenType, B.negation);
 }
-expr ::= expr likeop(B) expr ESCAPE expr.   [LIKE_KW]
+expr ::= expr like_op(B) expr ESCAPE expr. [LIKE_KW]
 {
     addComparisonNode(sc, B.tokenType, B.negation);
     /// @TODO(bskari|2012-07-04) Do I need to do anything with the last expr?
@@ -871,16 +913,37 @@ expr ::= BITNOT expr.
 expr ::= MINUS expr. [BITNOT]
 expr ::= PLUS expr. [BITNOT]
 
-between_op(A) ::= BETWEEN.     {A;}
-between_op(A) ::= NOT BETWEEN. {A;}
-expr(A) ::= expr(W) between_op(N) expr(X) AND expr(Y). [BETWEEN] {A;X;Y;W;N;}
-in_op(A) ::= IN.        {A;}
-in_op(A) ::= NOT IN.    {A;}
-in_op(A) ::= ANY.       {A;}
-in_op(A) ::= SOME.      {A;}
-expr(A) ::= expr(X) in_op(N) LP exprlist(Y) RP(E). [IN] {A;X;Y;N;E;}
-expr(A) ::= expr(X) in_op(N) LP select(Y) RP(E).  [IN] {A;X;Y;N;E;}
-expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN] {A;X;Y;N;Z;}
+between_op(A) ::= BETWEEN.      {A.negation = false;}
+between_op(A) ::= NOT BETWEEN.  {A.negation = true;}
+expr ::= expr between_op(N) expr AND expr. [BETWEEN]
+{
+    AstNode* const comparisonNode = new ComparisonNode(N.tokenType);
+    comparisonNode->addChild(sc->nodes.top());
+    sc->nodes.pop();
+    comparisonNode->addChild(sc->nodes.top());
+    sc->nodes.pop();
+    comparisonNode->addChild(sc->nodes.top());
+    sc->nodes.pop();
+    if (N.negation)
+    {
+        AstNode* const negationNode = new NegationNode;
+        negationNode->addChild(comparisonNode);
+        sc->nodes.push(negationNode);
+    }
+    else
+    {
+        sc->nodes.push(comparisonNode);
+    }
+}
+in_op(A) ::= IN(OP).        {A.negation = false; A.inOpType = OP->token_;}
+in_op(A) ::= NOT IN(OP).    {A.negation = false; A.inOpType = OP->token_;}
+expr(A) ::= expr(X) in_op(N) LP exprlist(Y) RP. [IN]    {A;X;Y;N;}
+expr(A) ::= expr(X) in_op(N) LP select(Y) RP. [IN]      {A;X;Y;N;}
+expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN]        {A;X;Y;N;Z;}
+//// MySQL ANY/SOME operators: = > < >= <= <> !=
+//anyOrSome(A) ::= ANY|SOME.
+//expr(A) ::= expr(X) EQ|NE(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN] {A;X;Y;N;E;}
+//expr(A) ::= expr(X) LT|GT|LE|GT(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN] {A;X;Y;N;E;}
 
 /* CASE expressions */
 expr(A) ::= CASE(C) case_operand(X) case_exprlist(Y) case_else(Z) END(E). {A;X;Y;C;Z;E;}

@@ -69,13 +69,24 @@ bool ComparisonNode::isAlwaysTrue() const
             children_.at(0)
         );
         const ExpressionNode* const minExpr = polymorphic_downcast<const ExpressionNode*>(
-            children_.at(0)
+            children_.at(1)
         );
         const ExpressionNode* const maxExpr = polymorphic_downcast<const ExpressionNode*>(
-            children_.at(0)
+            children_.at(2)
         );
 
-        return minExpr->getValue() <= expr->getValue() && expr->getValue() <= maxExpr->getValue();
+        // We only care about numbers; anything else (like identifiers) is
+        // assumed to not always be true
+        if (
+            ExpressionNode::isNumber(minExpr->getValue())
+            && ExpressionNode::isNumber(minExpr->getValue())
+            && ExpressionNode::isNumber(minExpr->getValue())
+        )
+        {
+            std::cout << minExpr->getValue() << " <= " << expr->getValue() << " <= " << maxExpr->getValue() << std::endl;
+            return minExpr->getValue() <= expr->getValue()
+                && expr->getValue() <= maxExpr->getValue();
+        }
     }
 
     assert(2 == children_.size() && "ComparisonNode should have 2 children");

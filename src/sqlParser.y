@@ -48,8 +48,9 @@
 #include <cassert>
 #include <stack>
 
-#include "AstNode.hpp"
 #include "AlwaysSomethingNode.hpp"
+#include "AstNode.hpp"
+#include "BooleanLogicNode.hpp"
 #include "ExpressionNode.hpp"
 #include "NegationNode.hpp"
 #include "nullptr.hpp"
@@ -81,6 +82,27 @@ struct InOpInfo
  * Pushes a new ExpressionNode with two ExpressionNodes as leaves (taken from
  * the stack) and the given operator.
  */
+static void addBooleanLogicNode(
+    ScannerContext* const sc,
+    const int operator_
+)
+{
+    AstNode* const e = new BooleanLogicNode(operator_);
+
+    e->addChild(sc->nodes.top());
+    sc->nodes.pop();
+
+    e->addChild(sc->nodes.top());
+    sc->nodes.pop();
+
+    sc->nodes.push(e);
+}
+
+
+/**
+ * Pushes a new ExpressionNode with two ExpressionNodes as leaves (taken from
+ * the stack) and the given operator.
+ */
 static void addExpressionNode(
     ScannerContext* const sc,
     const int operator_
@@ -98,13 +120,19 @@ static void addExpressionNode(
 
     sc->nodes.push(e);
 }
+
+
+/**
+ * Pushes a new ComparisonNode with two ExpressionNodes as leaves (taken from
+ * the stack) and the given comparison type.
+ */
 static void addComparisonNode(
     ScannerContext* sc,
-    const int operator_,
+    const int comparisonType_,
     bool negation = false
 )
 {
-    AstNode* const e = new ComparisonNode(operator_);
+    AstNode* const e = new ComparisonNode(comparisonType_);
 
     e->addChild(sc->nodes.top());
     sc->nodes.pop();
@@ -817,15 +845,15 @@ expr ::= id(X) LP STAR RP.
 }
 expr ::= expr AND(OP) expr.
 {
-    addExpressionNode(sc, OP->token_);
+    addBooleanLogicNode(sc, OP->token_);
 }
 expr ::= expr OR(OP) expr.
 {
-    addExpressionNode(sc, OP->token_);
+    addBooleanLogicNode(sc, OP->token_);
 }
 expr ::= expr XOR(OP) expr.
 {
-    addExpressionNode(sc, OP->token_);
+    addBooleanLogicNode(sc, OP->token_);
 }
 expr ::= expr LT|GT|LE|GE(OP) expr.
 {
@@ -910,20 +938,44 @@ expr ::= NOT expr.
 
 /// @TODO(bskari|2012-07-04) Do something with these unary operators.
 expr ::= BITNOT expr.
-expr ::= MINUS expr. [BITNOT]
+expr ::= MINUS(X) expr. [BITNOT]
+{
+    AstNode* negatedExpr = sc->nodes.top();
+    sc->nodes.pop();
+    AstNode* minus = new ExpressionNode;
+
+    minus->addChild(new ExpressionNode("0", false));
+    minus->addChild(new OperatorNode(X->token_));
+    minus->addChild(negatedExpr);
+
+    sc->nodes.push(minus);
+}
 expr ::= PLUS expr. [BITNOT]
 
-between_op(A) ::= BETWEEN.      {A.negation = false;}
-between_op(A) ::= NOT BETWEEN.  {A.negation = true;}
+between_op(A) ::= BETWEEN(X).
+{
+    A.negation = false;
+    A.tokenType = X->token_;
+}
+between_op(A) ::= NOT BETWEEN(X).
+{
+    A.negation = true;
+    A.tokenType = X->token_;
+}
 expr ::= expr between_op(N) expr AND expr. [BETWEEN]
 {
     AstNode* const comparisonNode = new ComparisonNode(N.tokenType);
-    comparisonNode->addChild(sc->nodes.top());
+
+    AstNode* const maxExpr = sc->nodes.top();
     sc->nodes.pop();
-    comparisonNode->addChild(sc->nodes.top());
+    AstNode* const minExpr = sc->nodes.top();
     sc->nodes.pop();
-    comparisonNode->addChild(sc->nodes.top());
+    AstNode* const expr = sc->nodes.top();
     sc->nodes.pop();
+
+    comparisonNode->addChild(expr);
+    comparisonNode->addChild(minExpr);
+    comparisonNode->addChild(maxExpr);
     if (N.negation)
     {
         AstNode* const negationNode = new NegationNode;

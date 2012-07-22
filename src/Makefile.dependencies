@@ -23,6 +23,9 @@ AstNode.o:	AstNode.cpp AstNode.hpp nullptr.hpp
 
 AttackProbabilities.o:	AttackProbabilities.cpp AttackProbabilities.hpp
 
+BooleanLogicNode.o:	BooleanLogicNode.cpp AstNode.hpp BooleanLogicNode.hpp \
+	Logger.hpp OperatorNode.hpp QueryRisk.hpp sqlParser.h
+
 ComparisonNode.o:	ComparisonNode.cpp ComparisonNode.hpp ExpressionNode.hpp \
 	Logger.hpp MySqlConstants.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
 	nullptr.hpp sqlParser.h
@@ -97,8 +100,8 @@ NegationNode.o:	NegationNode.cpp ExpressionNode.hpp Logger.hpp \
 
 OperatorNode.o:	OperatorNode.cpp AstNode.hpp Logger.hpp OperatorNode.hpp
 
-ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp TokenInfo.hpp \
-	clearStack.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
+ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp ScannerContext.hpp \
+	TokenInfo.hpp clearStack.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
 
 Proxy.o:	Proxy.cpp AutoPtrWithOperatorParens.hpp Logger.hpp Proxy.hpp \
 	ProxyHalf.hpp Socket.hpp

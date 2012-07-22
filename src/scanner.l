@@ -62,6 +62,21 @@
             return 0;
         }
     }
+
+    /**
+     * If the type of the QueryRisk hasn't been set yet (i.e. it's still set
+     * to TYPE_UNKNOWN), then set it to the passed in type.
+     */
+    static void maybeSetType(
+        QueryRisk* const qr,
+        const QueryRisk::QueryType type
+    )
+    {
+        if (QueryRisk::TYPE_UNKNOWN == qr->queryType)
+        {
+            qr->queryType = type;
+        }
+    }
 %}
 
 %option prefix="sql_"
@@ -189,21 +204,23 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 <DOUBLE_QUOTED><<EOF>>    {context->qrPtr->valid = false; BEGIN(INITIAL);}
 
 
-"select"    {return SELECT;}
-"insert"    {return INSERT;}
-"update"    {return UPDATE;}
-"replace"   {return REPLACE;}
-"delete"    {return DELETE;}
-"explain"   {return EXPLAIN;}
+ /* Normally, the parser would set these types, but if the query is invalid,
+    the rules that set these won't have a chance to run. */
+"select"    {maybeSetType(context->qrPtr, QueryRisk::TYPE_SELECT); return SELECT;}
+"insert"    {maybeSetType(context->qrPtr, QueryRisk::TYPE_INSERT); return INSERT;}
+"update"    {maybeSetType(context->qrPtr, QueryRisk::TYPE_UPDATE); return UPDATE;}
+"replace"   {maybeSetType(context->qrPtr, QueryRisk::TYPE_UPDATE); return REPLACE;}
+"delete"    {maybeSetType(context->qrPtr, QueryRisk::TYPE_DELETE); return DELETE;}
+"explain"   {maybeSetType(context->qrPtr, QueryRisk::TYPE_EXPLAIN); return EXPLAIN;}
 "extended"  {return EXTENDED;}
 
-"begin"         {return BEGIN_KW;}
+"begin"         {maybeSetType(context->qrPtr, QueryRisk::TYPE_TRANSACTION); return BEGIN_KW;}
 "work"          {return WORK;}
-"commit"        {return COMMIT;}
-"start"         {return START;}
+"commit"        {maybeSetType(context->qrPtr, QueryRisk::TYPE_TRANSACTION); return COMMIT;}
+"start"         {maybeSetType(context->qrPtr, QueryRisk::TYPE_TRANSACTION); return START;}
 "transaction"   {return TRANSACTION;}
 "session"       {return SESSION;}
-"rollback"      {return ROLLBACK;}
+"rollback"      {maybeSetType(context->qrPtr, QueryRisk::TYPE_TRANSACTION); return ROLLBACK;}
 "consistent"    {return CONSISTENT;}
 "snapshot"      {return SNAPSHOT;}
 "chain"         {return CHAIN;}

@@ -44,19 +44,21 @@ using std::ifstream;
 using std::string;
 
 /**
- * Parses a query and sets the provided QueryRisk to the risks found.
+ * Parses a query and returns the risks found.
  * @param query The query to be parsed.
- * @param qr Will be updated to reflect the risks in the query.
- * @param
  */
 static QueryRisk parseQuery(const string& query);
 /**
- * Parses a query and sets the provided QueryRisk to the risks found.
+ * Checks that the type of the query is correctly set.
  * @param query The query to be parsed.
- * @param qr Will be updated to reflect the risks in the query.
- * @param
+ * @param type The expected type of the query.
+ * @param checkParsing True if the query should successfully parse.
  */
-static void checkQueryType(const string& query, const QueryRisk::QueryType type);
+static void checkQueryType(
+    const string& query,
+    const QueryRisk::QueryType type,
+    const bool checkSuccessfullyParsed = true
+);
 
 
 void testParseKnownGoodQueries()
@@ -555,6 +557,46 @@ void testQueryType()
     checkQueryType("LOCK TABLES b LOW_PRIORITY WRITE", QueryRisk::TYPE_LOCK);
 
     checkQueryType("USE a", QueryRisk::TYPE_USE);
+
+    // The parser should still be able to figure out the types when invalid
+    // queries are provided
+
+    checkQueryType("SELECT COUNT(*) FRM user", QueryRisk::TYPE_SELECT, false);
+    checkQueryType("UPDATE f SET x=1", QueryRisk::TYPE_UPDATE, false);
+    checkQueryType("REPLACE f SET x=1", QueryRisk::TYPE_UPDATE, false);
+
+    // "DESCRIBE table_name column_name" is valid; this one is tricky, because
+    // there's a different keyword being used for a different type of query,
+    // which means that it's up to the parser instead of the scanner to
+    // determine the type, which probably won't work because the parser fails.
+    // I'm rather pessimistic about this one ever passing.
+    checkQueryType("EXPLAIN tab col other", QueryRisk::TYPE_DESCRIBE, false);
+
+    checkQueryType(
+        "INSERT INTO user (name, age) VALUES ('b', 7,)",
+        QueryRisk::TYPE_INSERT,
+        false
+    );
+    checkQueryType(
+        "SELECT a, b, c FROM d WHERE a = ''; SELECT a FROM b; -- ' AND b = ''",
+        QueryRisk::TYPE_SELECT,
+        false
+    );
+    checkQueryType(
+        "SELECT a, b, c FROM d WHERE a = ''; SELECT a FROM b; -- ' AND b = ''",
+        QueryRisk::TYPE_SELECT,
+        false
+    );
+    checkQueryType(
+        "BEGIN SELECT INSERT UPDATE",
+        QueryRisk::TYPE_TRANSACTION,
+        false
+    );
+    checkQueryType(
+        "dance for me SQL",
+        QueryRisk::TYPE_UNKNOWN,
+        false
+    );
 }
 
 
@@ -571,22 +613,33 @@ QueryRisk parseQuery(const string& query)
 }
 
 
-void checkQueryType(const string& query, const QueryRisk::QueryType type)
+void checkQueryType(
+    const string& query,
+    const QueryRisk::QueryType type,
+    const bool checkSuccessfullyParsed
+)
 {
     QueryRisk qr;
     ParserInterface parser(query);
     const bool successfullyParsed = parser.parse(&qr);
-    BOOST_CHECK(successfullyParsed);
-    if (successfullyParsed)
+    if (checkSuccessfullyParsed)
     {
         BOOST_CHECK_MESSAGE(
-            type == qr.queryType,
-            "Expected '"
-                << query
-                << "' to be "
-                << type
-                << " but instead found "
-                << qr.queryType
+            successfullyParsed,
+            '"' << query << "\" failed to parse"
         );
+        if (!successfullyParsed)
+        {
+            return;
+        }
     }
+    BOOST_CHECK_MESSAGE(
+        type == qr.queryType,
+        "Expected \""
+            << query
+            << "\" to be "
+            << type
+            << " but instead found "
+            << qr.queryType
+    );
 }

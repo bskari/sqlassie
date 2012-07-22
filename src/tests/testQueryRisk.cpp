@@ -284,6 +284,27 @@ void testQueryRiskAlwaysTrue()
     BOOST_CHECK(qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
+    // expression BETWEEN expression AND expression
+    // ------------------------------------------------------------------------
+    qr = parseQuery("SELECT 2 BETWEEN 1 AND 3");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT 0 BETWEEN -1 AND 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT 1 BETWEEN -1 AND 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT -1 BETWEEN -1 AND 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT 0 BETWEEN 1 AND -1");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT 1 BETWEEN 1 AND 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // ------------------------------------------------------------------------
     // mathematical comparisons
     // ------------------------------------------------------------------------
 

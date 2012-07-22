@@ -60,6 +60,24 @@ AstNode* ComparisonNode::copy() const
 
 bool ComparisonNode::isAlwaysTrue() const
 {
+    if (BETWEEN == compareType_)
+    {
+        assert(3 == children_.size() && "BETWEEN operators should have 3 children");
+        // This is logically equivalent to
+        // (min[child1] <= expr[child0] AND expr[child0] <= max[child2])
+        const ExpressionNode* const expr = polymorphic_downcast<const ExpressionNode*>(
+            children_.at(0)
+        );
+        const ExpressionNode* const minExpr = polymorphic_downcast<const ExpressionNode*>(
+            children_.at(0)
+        );
+        const ExpressionNode* const maxExpr = polymorphic_downcast<const ExpressionNode*>(
+            children_.at(0)
+        );
+
+        return minExpr->getValue() <= expr->getValue() && expr->getValue() <= maxExpr->getValue();
+    }
+
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
     const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(

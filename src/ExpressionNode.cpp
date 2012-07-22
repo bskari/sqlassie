@@ -149,6 +149,7 @@ string ExpressionNode::getValue() const
     );
 
     const int oper = operatorNode->getOperator();
+    /// @TODO(bskari|2012-07-21) Make this a switch
     if (PLUS == oper)
     {
         return lexical_cast<string>(child1 + child2);

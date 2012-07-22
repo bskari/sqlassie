@@ -271,6 +271,10 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 "<="            {return LE;}
 ">="            {return GE;}
 ("="|"<=>")     {return EQ;}
+ /**
+   @TODO(bskari|2012-07-21) != is a nonstandard MySQL extension and should be
+   counted in the QueryRisk for MySQL specific statements.
+  */
 ("!="|"<>")     {return NE;}
 "like"          {return LIKE_KW;}
 "escape"        {return ESCAPE;}

@@ -26,6 +26,7 @@
 #include "testMySqlConstants.hpp"
 #include "testNode.hpp"
 #include "testParser.hpp"
+#include "testQueryRisk.hpp"
 #include "testQueryWhitelist.hpp"
 #include "testScanner.hpp"
 
@@ -59,6 +60,11 @@ test::test_suite* init_unit_test_suite(int, char*[])
         BOOST_TEST_CASE(testParseKnownGoodQueries)
     );
     test::framework::master_test_suite().add(
+        BOOST_TEST_CASE(testQueryType)
+    );
+
+    // Tests from testQueryRiskParser.cpp
+    test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testQueryRiskSafe)
     );
     test::framework::master_test_suite().add(
@@ -66,9 +72,6 @@ test::test_suite* init_unit_test_suite(int, char*[])
     );
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testQueryRiskAlwaysTrue)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testQueryType)
     );
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testQueryRiskGlobalVariables)

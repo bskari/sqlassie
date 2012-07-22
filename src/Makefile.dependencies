@@ -158,8 +158,8 @@ tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 
 tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp tests/testMySqlConstants.hpp \
-	tests/testNode.hpp tests/testParser.hpp tests/testQueryWhitelist.hpp \
-	tests/testScanner.hpp
+	tests/testNode.hpp tests/testParser.hpp tests/testQueryRisk.hpp \
+	tests/testQueryWhitelist.hpp tests/testScanner.hpp
 
 tests/testMySqlConstants.o:	tests/testMySqlConstants.cpp MySqlConstants.hpp \
 	tests/testMySqlConstants.hpp
@@ -171,6 +171,9 @@ tests/testNode.o:	tests/testNode.cpp AlwaysSomethingNode.hpp AstNode.hpp \
 
 tests/testParser.o:	tests/testParser.cpp ParserInterface.hpp QueryRisk.hpp \
 	tests/testParser.hpp
+
+tests/testQueryRisk.o:	tests/testQueryRisk.cpp ParserInterface.hpp \
+	QueryRisk.hpp tests/testParser.hpp
 
 tests/testQueryWhitelist.o:	tests/testQueryWhitelist.cpp ParserInterface.hpp \
 	QueryRisk.hpp QueryWhitelist.hpp

@@ -203,7 +203,6 @@ void testQueryRiskComments()
 void testQueryRiskAlwaysTrue()
 {
     QueryRisk qr;
-    string longQuery;
 
     // ------------------------------------------------------------------------
     // expression IN (expression, expression, expression, ...)
@@ -286,22 +285,22 @@ void testQueryRiskAlwaysTrue()
     // ------------------------------------------------------------------------
     // expression BETWEEN expression AND expression
     // ------------------------------------------------------------------------
-    qr = parseQuery("SELECT 2 BETWEEN 1 AND 3");
+    qr = parseQuery("SELECT * FROM f WHERE 2 BETWEEN 1 AND 3");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT 0 BETWEEN -1 AND 1");
+    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN -1 AND 1");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT 1 BETWEEN -1 AND 1");
+    qr = parseQuery("SELECT * FROM f WHERE 1 BETWEEN -1 AND 1");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT -1 BETWEEN -1 AND 1");
+    qr = parseQuery("SELECT * FROM f WHERE -1 BETWEEN -1 AND 1");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT 0 BETWEEN 1 AND -1");
+    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN 1 AND -1");
     BOOST_CHECK(!qr.alwaysTrue);
 
-    qr = parseQuery("SELECT 1 BETWEEN 1 AND 1");
+    qr = parseQuery("SELECT * FROM f WHERE 1 BETWEEN 1 AND 1");
     BOOST_CHECK(qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
@@ -362,14 +361,16 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE (1 << 2) | 0x10 = 0x14");
     BOOST_CHECK(qr.alwaysTrue);
 
-    longQuery = "SELECT * FROM foo WHERE (0x08 >> 3) |";
-    longQuery += " (0x04 >> 2) | (0x02 >> 1) | (0x01 >> 0) = 0x01";
-    qr = parseQuery(longQuery);
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE (0x08 >> 3) |"
+        " (0x04 >> 2) | (0x02 >> 1) | (0x01 >> 0) = 0x01"
+    );
     BOOST_CHECK(qr.alwaysTrue);
 
-    longQuery = "SELECT * FROM foo WHERE (1 << 0) |";
-    longQuery += "(1 << 1) | (1 << 2) | (1 << 4) = 15";
-    qr = parseQuery(longQuery);
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE (1 << 0) |"
+        "(1 << 1) | (1 << 2) | (1 << 4) = 15"
+    );
     BOOST_CHECK(qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
@@ -404,9 +405,10 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE (1 = 2 OR 2 = 2) AND (1 = 1)");
     BOOST_CHECK(qr.alwaysTrue);
 
-    longQuery = "SELECT * FROM foo WHERE ((1 = 1) AND (1 = 2)) ";
-    longQuery += "OR (1 = 1 AND (1 = 2 OR 2 = 3))";
-    qr = parseQuery(longQuery);
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE ((1 = 1) AND (1 = 2)) "
+        "OR (1 = 1 AND (1 = 2 OR 2 = 3))"
+    );
     BOOST_CHECK(!qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 3)");
@@ -420,24 +422,26 @@ void testQueryRiskAlwaysTrue()
 void testQueryRiskGlobalVariables()
 {
     QueryRisk qr;
-    string longQuery;
 
     qr = parseQuery("SELECT @@host");
     BOOST_CHECK(1 == qr.globalVariables);
 
-    longQuery = string("SELECT @@version, @@version_comment, ")
-        + "@@version_compile_machine, @@version_compile_os";
-    qr = parseQuery(longQuery);
+    qr = parseQuery(
+        "SELECT @@version, @@version_comment, "
+        "@@version_compile_machine, @@version_compile_os"
+    );
     BOOST_CHECK(4 == qr.globalVariables);
 
-    longQuery = string("SELECT @@version, @@version_comment ")
-        + "UNION SELECT @@version_compile_machine, @@version_compile_os";
-    qr = parseQuery(longQuery);
+    qr = parseQuery(
+        "SELECT @@version, @@version_comment "
+        "UNION SELECT @@version_compile_machine, @@version_compile_os"
+    );
     BOOST_CHECK(4 == qr.globalVariables);
 
-    longQuery = string("SELECT CONCAT(@@version, ' ', @@version_comment, ")
-        + "' ', @@version_compile_machine, ' ', @@version_compile_os)";
-    qr = parseQuery(longQuery);
+    qr = parseQuery(
+        "SELECT CONCAT(@@version, ' ', @@version_comment, "
+        "' ', @@version_compile_machine, ' ', @@version_compile_os)"
+    );
     BOOST_CHECK(4 == qr.globalVariables);
 }
 
@@ -445,7 +449,6 @@ void testQueryRiskGlobalVariables()
 void testQueryRiskSensitiveTables()
 {
     QueryRisk qr;
-    string longQuery;
 
     // Sensitive tables as of July 15 2012 (taken from QueryRisk.cpp)
     // customer member admin user permission session
@@ -456,21 +459,22 @@ void testQueryRiskSensitiveTables()
     qr = parseQuery("SELECT name, password FROM user WHERE name = 'quote'");
     BOOST_CHECK(1 == qr.sensitiveTables);
 
-    longQuery = string("SELECT COUNT(*) FROM benign_table ")
-        + "UNION SELECT password FROM user";
-    qr = parseQuery(longQuery);
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM benign_table "
+        "UNION SELECT password FROM user"
+    );
     BOOST_CHECK(1 == qr.sensitiveTables);
 
-    longQuery = string("SELECT u.name, u.password, s.csrf, s.token ")
-        + "FROM user u JOIN session s ON u.id = s.user_id";
-    qr = parseQuery(longQuery);
+    qr = parseQuery(
+        "SELECT u.name, u.password, s.csrf, s.token "
+        "FROM user u JOIN session s ON u.id = s.user_id"
+    );
     BOOST_CHECK(2 == qr.sensitiveTables);
 
     qr = parseQuery("DELETE FROM admin WHERE id = 1");
     BOOST_CHECK(1 == qr.sensitiveTables);
 
-    longQuery = "INSERT INTO permission (user_id, flags) VALUES (1, 2)";
-    qr = parseQuery(longQuery);
+    qr = parseQuery("INSERT INTO permission (user_id, flags) VALUES (1, 2)");
     BOOST_CHECK(1 == qr.sensitiveTables);
 }
 

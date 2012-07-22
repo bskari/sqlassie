@@ -29,6 +29,7 @@
 #include "sqlParser.h"
 #include "ParserInterface.hpp"
 #include "scanner.yy.hpp"
+#include "ScannerContext.hpp"
 #include "TokenInfo.hpp"
 
 #include <cassert>

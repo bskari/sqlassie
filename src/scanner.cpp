@@ -27,6 +27,7 @@
 #include "Logger.hpp"
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
+#include "ReadlineStream.hpp"
 #include "sqlParser.h"
 #include "scanner.yy.hpp"
 #include "ScannerContext.hpp"
@@ -41,7 +42,6 @@
 
 using boost::lexical_cast;
 using std::cerr;
-using std::cin;
 using std::cout;
 using std::endl;
 using std::ifstream;
@@ -64,11 +64,10 @@ int main()
     loadTokensFromFile("sqlParser.h");
 
     string x;
-    cout << "Enter MySQL query: ";
-
+    ReadlineStream rs("scanner> ");
     QueryRisk qr;
     ScannerContext context(&qr);
-    while (getline(cin, x))
+    while (getline(rs, x))
     {
         yyscan_t scanner;
         sql_lex_init(&scanner);

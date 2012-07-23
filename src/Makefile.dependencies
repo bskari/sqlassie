@@ -117,6 +117,8 @@ QueryRisk.o:	QueryRisk.cpp Logger.hpp QueryRisk.hpp
 QueryWhitelist.o:	QueryWhitelist.cpp DescribedException.hpp Logger.hpp \
 	ParserInterface.hpp QueryWhitelist.hpp nullptr.hpp
 
+ReadlineStream.o:	ReadlineStream.cpp ReadlineStream.hpp
+
 ScannerContext.o:	ScannerContext.cpp QueryRisk.hpp ScannerContext.hpp
 
 SensitiveNameChecker.o:	SensitiveNameChecker.cpp SensitiveNameChecker.hpp
@@ -138,7 +140,8 @@ initializeSingletons.o:	initializeSingletons.cpp Logger.hpp \
 logger.o:	logger.cpp Logger.hpp MySqlLoggerListenSocket.hpp
 
 parser.o:	parser.cpp AstNode.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp TokenInfo.hpp nullptr.hpp scanner.yy.hpp
+	ReadlineStream.hpp SensitiveNameChecker.hpp TokenInfo.hpp \
+	nullptr.hpp scanner.yy.hpp
 
 probabilities.o:	probabilities.cpp csvParse.hpp
 

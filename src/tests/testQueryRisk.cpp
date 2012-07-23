@@ -373,6 +373,35 @@ void testQueryRiskAlwaysTrue()
     );
     BOOST_CHECK(qr.alwaysTrue);
 
+    qr = parseQuery("SELECT * FROM foo WHERE 1 = 1.0");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1.0 = 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1.0000 = 1.0");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    const char* const zeroes[] = {"0", "0.", ".0", "0.0"};
+    string s("SELECT * FROM f WHERE ");
+    for (size_t i = 0; i < sizeof(zeroes) / sizeof(zeroes[0]); ++i)
+    {
+        for (size_t j = 0; j < sizeof(zeroes) / sizeof(zeroes[0]); ++j)
+        {
+            qr = parseQuery(s + zeroes[i] + " = " + zeroes[j]);
+            BOOST_CHECK(qr.alwaysTrue);
+        }
+    }
+
+    qr = parseQuery("SELECT * FROM u WHERE age + 1 = age + 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM u WHERE age + 1 = 1 + age");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM u WHERE age + 3 = 1 + age * 1 + 2");
+    BOOST_CHECK(qr.alwaysTrue);
+
     // ------------------------------------------------------------------------
     // string comparisons
     // ------------------------------------------------------------------------

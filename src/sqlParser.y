@@ -167,7 +167,8 @@ static void addComparisonNode(
     sc->qrPtr->valid = false;
     assert(
         false
-        && "parse_failure should never be called if Lemon's error recovery is disabled. Check that error recovery is actually disabled."
+        && "parse_failure should never be called if Lemon's error recovery is"
+        " disabled. Check that error recovery is actually disabled."
     );
 }
 
@@ -323,7 +324,7 @@ cmd ::= SHOW CREATE DATABASE id.
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
 
-// There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS", etc.
+// There are other commands too, like "SHOW FULL PROCESSLIST", "SHOW USERS"
 cmd ::= SHOW id.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
@@ -373,13 +374,15 @@ cmd ::= SHOW full_opt COLUMNS LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
-cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt where_opt.
+cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt
+    where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
     // Pop the where_opt node
     sc->nodes.pop();
 }
-cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt LIKE_KW STRING.
+cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt
+    LIKE_KW STRING.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
@@ -466,14 +469,20 @@ set_opt ::= .
 
 //////////////////////// The LOCK statement ///////////////////////////////////
 //
-cmd ::= LOCK TABLES lock_tables_list.   {sc->qrPtr->queryType = QueryRisk::TYPE_LOCK;}
+cmd ::= LOCK TABLES lock_tables_list.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_LOCK;
+}
 lock_tables_list ::= as lock_type.
 lock_tables_list ::= as lock_type COMMA lock_tables_list.
 lock_type ::= READ local_opt.
 lock_type ::= low_priority_opt WRITE.
 local_opt ::= .
 local_opt ::= LOCAL.
-cmd ::= UNLOCK TABLES lock_tables_list. {sc->qrPtr->queryType = QueryRisk::TYPE_LOCK;}
+cmd ::= UNLOCK TABLES lock_tables_list.
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_LOCK;
+}
 
 //////////////////////// The SELECT statement /////////////////////////////////
 //
@@ -558,7 +567,8 @@ from(A) ::= FROM seltablist(X). {A;X;}
 
 // MySQL match statement
 //
-mysql_match ::= MATCH_KW LP inscollist RP AGAINST LP expr againstmodifier_opt RP.
+mysql_match ::= MATCH_KW LP inscollist RP
+            AGAINST LP expr againstmodifier_opt RP.
 againstmodifier_opt ::= .
 againstmodifier_opt ::= IN NATURAL LANGUAGE MODE.
 againstmodifier_opt ::= IN BOOLEAN MODE.
@@ -569,7 +579,8 @@ againstmodifier_opt ::= WITH QUERY EXPANSION.
 //
 stl_prefix(A) ::= seltablist(X) joinop(Y).    {A;X;Y;}
 stl_prefix(A) ::= .                           {A;}
-seltablist ::= stl_prefix table_name dbnm as index_hint_list_opt on_opt using_opt.
+seltablist ::= stl_prefix table_name dbnm
+                as index_hint_list_opt on_opt using_opt.
 seltablist(A) ::= stl_prefix(X) LP select(S) RP
                 as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;S;Z;N;U;}
 seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
@@ -726,12 +737,12 @@ update_opt ::= IGNORE.
 @TODO(bskari|2012-07-04)
  * Handle 'ON DUPLICATE KEY UPDATE col_name=expr [, col_name=expr] ...
  */
-cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) valuelist(Y).
-    {R;X;Y;F; sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
-cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) select(S).
-    {R;X;F;S; sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
-cmd ::= insert_cmd(R) insert_opt into_opt fullname(X) inscollist_opt(F) DEFAULT VALUES.
-    {R;X;F; sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
+cmd ::= insert_cmd insert_opt into_opt fullname inscollist_opt valuelist.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
+cmd ::= insert_cmd insert_opt into_opt fullname inscollist_opt select.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
+cmd ::= insert_cmd insert_opt into_opt fullname inscollist_opt DEFAULT VALUES.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
 
 into_opt ::= .
 into_opt ::= INTO.
@@ -880,11 +891,26 @@ expr ::= expr CONCAT(OP) expr.
     addExpressionNode(sc, OP->token_);
 }
 
-like_op(A) ::= MATCH_KW(OP).        {A.negation = false; A.tokenType = OP->token_;}
-like_op(A) ::= NOT MATCH_KW(OP).    {A.negation = true; A.tokenType = OP->token_;}
-like_op(A) ::= LIKE_KW(OP).         {A.negation = false; A.tokenType = OP->token_;}
-like_op(A) ::= NOT LIKE_KW(OP).     {A.negation = true; A.tokenType = OP->token_;}
-like_op(A) ::= SOUNDS(OP) LIKE_KW.  {A.negation = false; A.tokenType = OP->token_;}
+like_op(A) ::= MATCH_KW(OP).
+{
+    A.negation = false; A.tokenType = OP->token_;
+}
+like_op(A) ::= NOT MATCH_KW(OP).
+{
+    A.negation = true; A.tokenType = OP->token_;
+}
+like_op(A) ::= LIKE_KW(OP).
+{
+    A.negation = false; A.tokenType = OP->token_;
+}
+like_op(A) ::= NOT LIKE_KW(OP).
+{
+    A.negation = true; A.tokenType = OP->token_;
+}
+like_op(A) ::= SOUNDS(OP) LIKE_KW.
+{
+    A.negation = false; A.tokenType = OP->token_;
+}
 
 expr ::= expr like_op(B) expr. [LIKE_KW]
 {
@@ -900,9 +926,8 @@ expr ::= expr like_op(B) expr ESCAPE expr. [LIKE_KW]
 
 expr ::= expr IS NULL_KW.
 {
-    const ExpressionNode* const ex = boost::polymorphic_downcast<ExpressionNode*>(
-        sc->nodes.top()
-    );
+    const ExpressionNode* const ex =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     // NULL IS NULL is always true, everything else is false, or safe enough
     // to always be considered false
     const bool alwaysTrue = (!ex->isIdentifier() && "NULL" != ex->getValue());
@@ -914,9 +939,8 @@ expr ::= expr IS NULL_KW.
 }
 expr ::= expr IS NOT NULL_KW.
 {
-    const ExpressionNode* const ex = boost::polymorphic_downcast<ExpressionNode*>(
-        sc->nodes.top()
-    );
+    const ExpressionNode* const ex =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     // NULL IS NOT NULL is always false, everything else is true, or safe
     // enough to always be considered false
     const bool alwaysTrue = !(!ex->isIdentifier() && "NULL" != ex->getValue());
@@ -994,11 +1018,11 @@ expr(A) ::= expr(X) in_op(N) LP select(Y) RP. [IN]      {A;X;Y;N;}
 expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN]        {A;X;Y;N;Z;}
 //// MySQL ANY/SOME operators: = > < >= <= <> !=
 //anyOrSome(A) ::= ANY|SOME.
-//expr(A) ::= expr(X) EQ|NE(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN] {A;X;Y;N;E;}
-//expr(A) ::= expr(X) LT|GT|LE|GT(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN] {A;X;Y;N;E;}
+//expr(A) ::= expr(X) EQ|NE(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN]
+//expr(A) ::= expr(X) LT|GT|LE|GT(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN]
 
 /* CASE expressions */
-expr(A) ::= CASE(C) case_operand(X) case_exprlist(Y) case_else(Z) END(E). {A;X;Y;C;Z;E;}
+expr ::= CASE case_operand case_exprlist case_else END.
 case_exprlist(A) ::= case_exprlist(X) WHEN expr(Y) THEN expr(Z). {A;X;Y;Z;}
 case_exprlist(A) ::= WHEN expr(Y) THEN expr(Z). {A;Y;Z;}
 case_else(A) ::=  ELSE expr(X).         {A;X;}

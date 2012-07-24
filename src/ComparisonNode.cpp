@@ -62,18 +62,18 @@ bool ComparisonNode::isAlwaysTrue() const
 {
     if (BETWEEN == compareType_)
     {
-        assert(3 == children_.size() && "BETWEEN operators should have 3 children");
+        assert(
+            3 == children_.size()
+            && "BETWEEN operators should have 3 children"
+        );
         // This is logically equivalent to
         // (min[child1] <= expr[child0] AND expr[child0] <= max[child2])
-        const ExpressionNode* const expr = polymorphic_downcast<const ExpressionNode*>(
-            children_.at(0)
-        );
-        const ExpressionNode* const minExpr = polymorphic_downcast<const ExpressionNode*>(
-            children_.at(1)
-        );
-        const ExpressionNode* const maxExpr = polymorphic_downcast<const ExpressionNode*>(
-            children_.at(2)
-        );
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(children_.at(0));
+        const ExpressionNode* const minExpr =
+            polymorphic_downcast<const ExpressionNode*>(children_.at(1));
+        const ExpressionNode* const maxExpr =
+            polymorphic_downcast<const ExpressionNode*>(children_.at(2));
 
         // We only care about numbers; anything else (like identifiers) is
         // assumed to not always be true
@@ -83,7 +83,6 @@ bool ComparisonNode::isAlwaysTrue() const
             && ExpressionNode::isNumber(minExpr->getValue())
         )
         {
-            std::cout << minExpr->getValue() << " <= " << expr->getValue() << " <= " << maxExpr->getValue() << std::endl;
             return minExpr->getValue() <= expr->getValue()
                 && expr->getValue() <= maxExpr->getValue();
         }
@@ -91,12 +90,10 @@ bool ComparisonNode::isAlwaysTrue() const
 
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(0)
-    );
-    const ExpressionNode* const expr2 = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(1)
-    );
+    const ExpressionNode* const expr1 =
+        polymorphic_downcast<const ExpressionNode*>(children_.at(0));
+    const ExpressionNode* const expr2 =
+        polymorphic_downcast<const ExpressionNode*>(children_.at(1));
 
     // Fields may or may not compare correctly, so assume it's legitimate
     if (expr1->isIdentifier() || expr2->isIdentifier())
@@ -162,12 +159,10 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(0)
-    );
-    const ExpressionNode* const expr2 = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(1)
-    );
+    const ExpressionNode* const expr1 =
+        polymorphic_downcast<const ExpressionNode*>(children_.at(0));
+    const ExpressionNode* const expr2 =
+        polymorphic_downcast<const ExpressionNode*>(children_.at(1));
 
     // Only check for equality comparisons to password field
     if (

@@ -24,17 +24,23 @@
 #include <stack>
 #include <string>
 
+#include "AstNode.hpp"
+#include "QueryRisk.hpp"
+
 struct ScannerContext
 {
-    std::stack<std::string> identifiers;
     std::string identifier;
-    std::stack<std::string> quotedStrings;
     std::string quotedString;
-    // Using strings instead of ints for this stack because otherwise I would
-    // get weird segmentation fault errors whenever I'd try to pop it
-    std::stack<std::string> numbers;
 
-    ScannerContext();
+    QueryRisk* const qrPtr;
+
+    // To prevent memory leaks in the case of parse failures, I'll push and
+    // pop AST nodes here instead of directly returning them as part of the
+    // parser's rules. I don't care about error recovery when parsing fails
+    // anyway, and I don't feel like adding error handling just for memory.
+    std::stack<AstNode*> nodes;
+
+    ScannerContext(QueryRisk* const qrPtr);
     ~ScannerContext();
 
 private:

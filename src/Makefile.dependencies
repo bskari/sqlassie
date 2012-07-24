@@ -17,15 +17,18 @@
 # along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
 
 AlwaysSomethingNode.o:	AlwaysSomethingNode.cpp AlwaysSomethingNode.hpp \
-	ComparisonNode.hpp
+	ComparisonNode.hpp sqlParser.h
 
 AstNode.o:	AstNode.cpp AstNode.hpp nullptr.hpp
 
 AttackProbabilities.o:	AttackProbabilities.cpp AttackProbabilities.hpp
 
+BooleanLogicNode.o:	BooleanLogicNode.cpp AstNode.hpp BooleanLogicNode.hpp \
+	Logger.hpp OperatorNode.hpp QueryRisk.hpp sqlParser.h
+
 ComparisonNode.o:	ComparisonNode.cpp ComparisonNode.hpp ExpressionNode.hpp \
 	Logger.hpp MySqlConstants.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
-	nullptr.hpp
+	nullptr.hpp sqlParser.h
 
 ConditionalListNode.o:	ConditionalListNode.cpp AstNode.hpp \
 	ConditionalListNode.hpp ConditionalNode.hpp Logger.hpp nullptr.hpp
@@ -39,7 +42,7 @@ DlibProbabilities.o:	DlibProbabilities.cpp AttackProbabilities.hpp \
 	huginScanner.yy.hpp nullptr.hpp
 
 ExpressionNode.o:	ExpressionNode.cpp AstNode.hpp ExpressionNode.hpp \
-	Logger.hpp nullptr.hpp
+	Logger.hpp OperatorNode.hpp nullptr.hpp sqlParser.h
 
 InSubselectNode.o:	InSubselectNode.cpp InSubselectNode.hpp \
 	InValuesListNode.hpp QueryRisk.hpp
@@ -95,11 +98,13 @@ MySqlSocket.o:	MySqlSocket.cpp MySqlConstants.hpp MySqlSocket.hpp Socket.hpp
 NegationNode.o:	NegationNode.cpp ExpressionNode.hpp Logger.hpp \
 	MySqlConstants.hpp NegationNode.hpp QueryRisk.hpp nullptr.hpp
 
-ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp clearStack.hpp \
-	nullptr.hpp parser.tab.hpp scanner.yy.hpp
+OperatorNode.o:	OperatorNode.cpp AstNode.hpp Logger.hpp OperatorNode.hpp
+
+ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp ScannerContext.hpp \
+	TokenInfo.hpp clearStack.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
 
 Proxy.o:	Proxy.cpp AutoPtrWithOperatorParens.hpp Logger.hpp Proxy.hpp \
-	ProxyHalf.hpp
+	ProxyHalf.hpp Socket.hpp
 
 ProxyHalf.o:	ProxyHalf.cpp Logger.hpp ProxyHalf.hpp Socket.hpp \
 	SocketException.hpp
@@ -112,13 +117,17 @@ QueryRisk.o:	QueryRisk.cpp Logger.hpp QueryRisk.hpp
 QueryWhitelist.o:	QueryWhitelist.cpp DescribedException.hpp Logger.hpp \
 	ParserInterface.hpp QueryWhitelist.hpp nullptr.hpp
 
-ScannerContext.o:	ScannerContext.cpp ScannerContext.hpp
+ReadlineStream.o:	ReadlineStream.cpp ReadlineStream.hpp
+
+ScannerContext.o:	ScannerContext.cpp QueryRisk.hpp ScannerContext.hpp
 
 SensitiveNameChecker.o:	SensitiveNameChecker.cpp SensitiveNameChecker.hpp
 
 SimpleProxy.o:	SimpleProxy.cpp SimpleProxy.hpp Socket.hpp SocketException.hpp
 
 Socket.o:	Socket.cpp Logger.hpp Socket.hpp SocketException.hpp nullptr.hpp
+
+TokenInfo.o:	TokenInfo.cpp TokenInfo.hpp
 
 demo.o:	demo.cpp AttackProbabilities.hpp DlibProbabilities.hpp Logger.hpp \
 	MySqlGuard.hpp ParserInterface.hpp QueryRisk.hpp \
@@ -131,7 +140,8 @@ initializeSingletons.o:	initializeSingletons.cpp Logger.hpp \
 logger.o:	logger.cpp Logger.hpp MySqlLoggerListenSocket.hpp
 
 parser.o:	parser.cpp AstNode.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp
+	ReadlineStream.hpp SensitiveNameChecker.hpp TokenInfo.hpp \
+	nullptr.hpp scanner.yy.hpp
 
 probabilities.o:	probabilities.cpp csvParse.hpp
 
@@ -143,7 +153,7 @@ riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp
 
 scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ScannerContext.hpp \
-	nullptr.hpp parser.tab.hpp scanner.yy.hpp
+	nullptr.hpp scanner.yy.hpp sqlParser.h
 
 sqlassie.o:	sqlassie.cpp Logger.hpp MySqlGuardListenSocket.hpp \
 	MySqlLoginCheck.hpp QueryWhitelist.hpp SensitiveNameChecker.hpp \
@@ -154,18 +164,26 @@ tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 
 tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp tests/testMySqlConstants.hpp \
-	tests/testNode.hpp tests/testParser.hpp tests/testQueryWhitelist.hpp
+	tests/testNode.hpp tests/testParser.hpp tests/testQueryRisk.hpp \
+	tests/testQueryWhitelist.hpp tests/testScanner.hpp
 
 tests/testMySqlConstants.o:	tests/testMySqlConstants.cpp MySqlConstants.hpp \
 	tests/testMySqlConstants.hpp
 
 tests/testNode.o:	tests/testNode.cpp AlwaysSomethingNode.hpp AstNode.hpp \
 	ComparisonNode.hpp ConditionalListNode.hpp ConditionalNode.hpp \
-	ExpressionNode.hpp InValuesListNode.hpp tests/testNode.hpp
+	ExpressionNode.hpp InValuesListNode.hpp NegationNode.hpp \
+	OperatorNode.hpp sqlParser.h tests/testNode.hpp
 
 tests/testParser.o:	tests/testParser.cpp ParserInterface.hpp QueryRisk.hpp \
 	tests/testParser.hpp
 
+tests/testQueryRisk.o:	tests/testQueryRisk.cpp ParserInterface.hpp \
+	QueryRisk.hpp tests/testParser.hpp
+
 tests/testQueryWhitelist.o:	tests/testQueryWhitelist.cpp ParserInterface.hpp \
 	QueryRisk.hpp QueryWhitelist.hpp
+
+tests/testScanner.o:	tests/testScanner.cpp QueryRisk.hpp ScannerContext.hpp \
+	nullptr.hpp scanner.yy.hpp sqlParser.h tests/testScanner.hpp
 

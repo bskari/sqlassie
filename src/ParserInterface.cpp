@@ -18,26 +18,43 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// This needs to be defined prior to including the scanner header
+#define YY_DECL int sql_lex( \
+    ScannerContext* const context, \
+    yyscan_t yyscanner \
+)
+
 #include "clearStack.hpp"
 #include "nullptr.hpp"
-#include "parser.tab.hpp"
+#include "sqlParser.h"
 #include "ParserInterface.hpp"
 #include "scanner.yy.hpp"
+#include "ScannerContext.hpp"
+#include "TokenInfo.hpp"
 
 #include <cassert>
+#include <boost/shared_ptr.hpp>
 #include <exception>
-#include <stack>
 #include <string>
+#include <vector>
 
-using boost::lock_guard;
+using boost::shared_ptr;
 using std::bad_alloc;
 using std::size_t;
-using std::stack;
 using std::string;
+using std::vector;
 
 // Methods from the parser
-extern int yyparse(QueryRisk* const qrPtr, ParserInterface* const pi);
-
+extern void* sqlassieParseAlloc(void* (*allocProc)(size_t numBytes));
+extern void* sqlassieParse(
+    void* parser,
+    int token,
+    TokenInfo* ti_,
+    ScannerContext* qrPtr
+);
+extern void* sqlassieParseFree(void* parser, void(*freeProc)(void* ptr));
+// Methods from the scanner
+extern YY_DECL;
 
 /**
  * Hide some scanner members behind a PIMPL so that I don't have to worry
@@ -65,90 +82,78 @@ private:
 };
 
 
-/**
- * Customized yylex so that we can fool the parser into not calling the real
- * sql_lex directly. This way, we can keep track of the tokens from the query
- * and get all of the tokens even if parsing fails, so that we can do things
- * like whitelist queries. This should be a friend of ParserInterface (see
- * TODO in Parserinterface.hpp).
- * @param qr The QueryRisk attributes of the parsed query.
- * @param pi ParserInterface reference so that we can call the real sql_lex
- * and so that we can store the hash of the query's tokens.
- */
-int yylex(
-    YYSTYPE* const lvalp,
-    QueryRisk* const qr,
-    ParserInterface* const pi
-);
-
-
-ParserInterface::ParserInterface(const string& buffer) :
-    scannerContext_(),
-    scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str())),
-    tokensHash_(),
-    parsed_(false),
-    qr_(),
-    parserStatus_(0),
-    bufferLen_(buffer.size())
+ParserInterface::ParserInterface(const string& buffer)
+    : qr_()
+    , scannerContext_(&qr_)
+    , scannerPimpl_(new ParserInterfaceScannerMembers(buffer.c_str()))
+    , tokensHash_()
+    , parsed_(false)
+    , successfullyParsed_(false)
+    , bufferLen_(buffer.size())
+    , lemonParser_(sqlassieParseAlloc(malloc))
 {
+    if (nullptr == lemonParser_)
+    {
+        delete scannerPimpl_;
+        throw bad_alloc();
+    }
 }
 
 
 ParserInterface::~ParserInterface()
 {
     delete scannerPimpl_;
+    sqlassieParseFree(lemonParser_, free);
 }
 
 
-int ParserInterface::parse(QueryRisk* const qrPtr)
+bool ParserInterface::parse(QueryRisk* const qrPtr)
 {
     assert(NULL != qrPtr);
     if (parsed_)
     {
         *qrPtr = qr_;
-        return parserStatus_;
+        return successfullyParsed_;
     }
 
-    int parserStatus;
-    // Clear the stacks before every parsing attempt
-    clearStack(&scannerContext_.identifiers);
-    clearStack(&scannerContext_.quotedStrings);
-    clearStack(&scannerContext_.numbers);
-
-    parserStatus = yyparse(qrPtr, this);
-
-    #ifndef NDEBUG
-        if (0 == parserStatus && qrPtr->valid)
+    int lexToken;
+    vector<shared_ptr<TokenInfo> > tokenInfos;
+    do
+    {
+        shared_ptr<TokenInfo> ti(new TokenInfo);
+        lexToken = getLexValue(ti.get());
+        // We want to keep reading all of the tokens even if parsing has
+        // failed, but don't try to keep parsing
+        if (qr_.valid)
         {
-            assert(
-                scannerContext_.identifiers.empty()
-                && "Identifiers stack not empty"
-            );
-            assert(
-                scannerContext_.quotedStrings.empty()
-                && "Quoted strings stack not empty"
-            );
-            assert(
-                scannerContext_.numbers.empty()
-                && "Numbers stack not empty"
+            // Save the TokenInfo so that it can be used by the parser
+            tokenInfos.push_back(ti);
+
+            sqlassieParse(
+                lemonParser_,
+                lexToken,
+                ti.get(),
+                &scannerContext_
             );
         }
-    #endif
+    }
+    while (lexToken != 0);
 
-    qr_ = *qrPtr;
-    parserStatus_ = parserStatus;
+    *qrPtr = qr_;
+    successfullyParsed_ = qr_.valid;
     parsed_ = true;
 
     // If the parser failed, we still need to manually calculate the rest of
-    // the hash for this query. That calculation is handled in yylex, so just
-    // keep calling yylex ourselves until it hits the end of the buffer.
-    if (parserStatus != 0)
+    // the hash for this query. That calculation is handled in getLexValue, so
+    // just keep calling that ourselves until it hits the end of the buffer.
+    if (!successfullyParsed_)
     {
-        const int MIN_VALID_TOKEN = 255;
-        while (yylex(nullptr, qrPtr, this) > MIN_VALID_TOKEN);
+        TokenInfo dummyTokenInfo;
+        const int END_OF_TOKENS = 0;
+        while (getLexValue(&dummyTokenInfo) != END_OF_TOKENS);
     }
 
-    return parserStatus;
+    return successfullyParsed_;
 }
 
 
@@ -178,7 +183,7 @@ bool operator==(
 
 size_t hash_value(const ParserInterface::QueryHash& qh)
 {
-    return static_cast<std::size_t>(qh.hash + qh.tokensCount);
+    return static_cast<size_t>(qh.hash + qh.tokensCount);
 }
 
 
@@ -219,45 +224,57 @@ static ParserInterface::hashType sdbmHash(
 );
 
 
-extern int sql_lex(
-    YYSTYPE* const lvalp,
-    ScannerContext* const context,
-    QueryRisk* const qr,
-    yyscan_t const yyscanner
-);
-
-
-/**
- * Customized yylex so that we can fool the parser into not calling the real
- * sql_lex directly. This way, we can keep track of the tokens from the query
- * and get all of the tokens even if parsing fails, so that we can do things
- * like whitelist queries. This should be a friend of ParserInterface (see
- * TODO in Parserinterface.hpp).
- * @param qr The QueryRisk attributes of the parsed query.
- * @param pi ParserInterface reference so that we can call the real sql_lex
- * and so that we can store the hash of the query's tokens.
- */
-int yylex(
-    YYSTYPE* const lvalp,
-    QueryRisk* const qr,
-    ParserInterface* const pi
-)
+int ParserInterface::getLexValue(TokenInfo* const ti)
 {
-    assert(nullptr != qr);
-    assert(nullptr != pi);
+    assert(nullptr != ti);
 
-    int lexCode = sql_lex(
-        lvalp,
-        &pi->scannerContext_,
-        qr,
-        pi->scannerPimpl_->scanner_
+    const int lexCode = sql_lex(
+        &scannerContext_,
+        scannerPimpl_->scanner_
     );
-    // Don't calculate the hash anymore once we've hit the end of the buffer
-    if (lexCode > 255)
+    // Don't calculate the hash anymore once we've hit the end of the buffer.
+    // Queries that have a bunch of semicolons at the end are considered to be
+    // the same too, so don't hash them.
+    const int END_OF_BUFFER = 0;
+    if (END_OF_BUFFER != lexCode && SEMI != lexCode)
     {
-        ++pi->tokensHash_.tokensCount;
-        pi->tokensHash_.hash = sdbmHash(lexCode, pi->tokensHash_.hash);
+        ++tokensHash_.tokensCount;
+        tokensHash_.hash = sdbmHash(lexCode, tokensHash_.hash);
+
+        // There's a big difference between, for example,
+        // SELECT * FROM email WHERE address = 'brandon@aol.com' AND active = 1
+        // SELECT * FROM order WHERE description = 'software' AND count = 1
+        // even though the lexeme streams are the same. To differentiate them,
+        // also hash the table and column names.
+        if (lexCode == ID)
+        {
+            const char* id = sql_get_text(scannerPimpl_->scanner_);
+            while ('\0' != *id)
+            {
+                tokensHash_.hash = sdbmHash(*id, tokensHash_.hash);
+                ++id;
+            }
+        }
     }
+
+    // Set the TokenInfo
+    string id(sql_get_text(scannerPimpl_->scanner_));
+    switch (lexCode)
+    {
+        // ID can be a quoted string, which we trim
+        case ID:
+            if ('`' == id.at(0))
+            {
+                ti->scannedString_ = id.substr(1, id.length() - 2);
+                break;
+            }
+        // Everything else (including regular IDs) just get set normally
+        default:
+            ti->scannedString_ = string(sql_get_text(scannerPimpl_->scanner_));;
+            break;
+    }
+    ti->token_ = lexCode;
+
     return lexCode;
 }
 

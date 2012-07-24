@@ -17,18 +17,18 @@
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef SRC_TESTS_TESTPARSER_HPP_
-#define SRC_TESTS_TESTPARSER_HPP_
+#ifndef SRC_TESTS_TESTSCANNER_HPP_
+#define SRC_TESTS_TESTSCANNER_HPP_
 
 /**
- * Tests that some collected, known queries that are stored in files in the
- * /queries directory will successfully parse.
+ * Makes sure that all of the terminal tokens defined in the grammar rules of
+ * the parser will be returned by the scanner.
  */
-void testParseKnownGoodQueries();
+void testAllTokensScan();
 
 /**
- * Test that the type of query is being set.
+ * Test that various number types are correctly identified.
  */
-void testQueryType();
+void testScanNumbers();
 
-#endif  // SRC_TESTS_TESTPARSER_HPP_
+#endif  // SRC_TESTS_TESTSCANNER_HPP_

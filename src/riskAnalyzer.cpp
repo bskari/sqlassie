@@ -26,11 +26,13 @@
 #include "QueryRisk.hpp"
 #include "SensitiveNameChecker.hpp"
 
+#include <boost/math/special_functions/fpclassify.hpp>
 #include <cassert>
 #include <fstream>
 #include <iostream>
 #include <string>
 
+using boost::math::isnan;
 using std::cerr;
 using std::cin;
 using std::cout;
@@ -184,11 +186,11 @@ int main(int argc, char* argv[])
         QueryRisk qr;
         ParserInterface parser(query);
 
-        const int status = parser.parse(&qr);
+        const bool successfullyParsed = parser.parse(&qr);
         ++queryCount;
 
         // If the query was successfully parsed (i.e. was a valid query)
-        if (0 == status && qr.valid)
+        if (successfullyParsed && qr.valid)
         {
             assert(
                 qr.queryType < NUM_QUERY_TYPES
@@ -260,9 +262,7 @@ int main(int argc, char* argv[])
                     }
                     // NANs mean something is wrong with the network or with
                     // the Bayesian library
-                    else if (
-                        probabilities[listNum][i] != probabilities[listNum][i]
-                    )
+                    else if (isnan(probabilities[listNum][i]))
                     {
                         cerr << "Got a NAN for probability of "
                             << names[i]

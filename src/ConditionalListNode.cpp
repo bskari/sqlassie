@@ -24,10 +24,13 @@
 #include "Logger.hpp"
 #include "nullptr.hpp"
 
+#include <boost/cast.hpp>
 #include <string>
 #include <cassert>
-using std::string;
+
+using boost::polymorphic_downcast;
 using std::ostream;
+using std::string;
 
 
 ConditionalListNode::ConditionalListNode(const char logicalOp) :
@@ -55,12 +58,12 @@ bool ConditionalListNode::isAlwaysTrue() const
     assert(2 == children_.size() &&
         "ConditionalList should have 2 children");
 
-    const ConditionalNode* cond1 =
-        dynamic_cast<const ConditionalNode*>(children_.at(0));
-    assert(nullptr != cond1 && "ConditionalList has non-Conditional child");
-    const ConditionalNode* cond2 =
-        dynamic_cast<const ConditionalNode*>(children_.at(1));
-    assert(nullptr != cond2 && "ConditionalList has non-Conditional child");
+    const ConditionalNode* cond1 = polymorphic_downcast<const ConditionalNode*>(
+        children_.at(0)
+    );
+    const ConditionalNode* cond2 = polymorphic_downcast<const ConditionalNode*>(
+        children_.at(1)
+    );
 
     if ('&' == logicalOp_)
     {
@@ -90,12 +93,12 @@ bool ConditionalListNode::anyIsAlwaysTrue() const
     assert(2 == children_.size() &&
         "ConditionalList should have 2 children");
 
-    const ConditionalNode* cond1 =
-        dynamic_cast<const ConditionalNode*>(children_.at(0));
-    assert(nullptr != cond1 && "ConditionalList has non-Conditional child");
-    const ConditionalNode* cond2 =
-        dynamic_cast<const ConditionalNode*>(children_.at(1));
-    assert(nullptr != cond2 && "ConditionalList has non-Conditional child");
+    const ConditionalNode* cond1 = polymorphic_downcast<const ConditionalNode*>(
+        children_.at(0)
+    );
+    const ConditionalNode* cond2 = polymorphic_downcast<const ConditionalNode*>(
+        children_.at(1)
+    );
 
     return cond1->anyIsAlwaysTrue() || cond2->anyIsAlwaysTrue();
 }
@@ -106,12 +109,12 @@ QueryRisk::EmptyPassword ConditionalListNode::emptyPassword() const
     assert(2 == children_.size() &&
         "ConditionalList should have 2 children");
 
-    const ConditionalNode* cond1 =
-        dynamic_cast<const ConditionalNode*>(children_.at(0));
-    assert(nullptr != cond1 && "ConditionalList has non-Conditional child");
-    const ConditionalNode* cond2 =
-        dynamic_cast<const ConditionalNode*>(children_.at(1));
-    assert(nullptr != cond2 && "ConditionalList has non-Conditional child");
+    const ConditionalNode* cond1 = polymorphic_downcast<const ConditionalNode*>(
+        children_.at(0)
+    );
+    const ConditionalNode* cond2 = polymorphic_downcast<const ConditionalNode*>(
+        children_.at(1)
+    );
 
     QueryRisk::EmptyPassword empty1 = cond1->emptyPassword();
     QueryRisk::EmptyPassword empty2 = cond2->emptyPassword();

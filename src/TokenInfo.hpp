@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -17,18 +17,24 @@
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef SRC_TESTS_TESTPARSER_HPP_
-#define SRC_TESTS_TESTPARSER_HPP_
+
+#ifndef SRC_TOKENINFO_HPP_
+#define SRC_TOKENINFO_HPP_
 
 /**
- * Tests that some collected, known queries that are stored in files in the
- * /queries directory will successfully parse.
+ * Stores information about the scanned token.
+ * @author Brandon Skari
+ * @date July 16 2012
  */
-void testParseKnownGoodQueries();
 
-/**
- * Test that the type of query is being set.
- */
-void testQueryType();
+struct TokenInfo
+{
+public:
+    TokenInfo();
+    ~TokenInfo();
 
-#endif  // SRC_TESTS_TESTPARSER_HPP_
+    int token_;
+    std::string scannedString_;
+};
+
+#endif  // SRC_TOKENINFO_HPP_

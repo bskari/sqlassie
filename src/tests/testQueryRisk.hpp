@@ -17,18 +17,33 @@
  * You should have received a copy of the GNU General Public License
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef SRC_TESTS_TESTPARSER_HPP_
-#define SRC_TESTS_TESTPARSER_HPP_
+#ifndef SRC_TESTS_TESTQUERYRISK_HPP_
+#define SRC_TESTS_TESTQUERYRISK_HPP_
 
 /**
- * Tests that some collected, known queries that are stored in files in the
- * /queries directory will successfully parse.
+ * Tests that safe queries don't produce any risks.
  */
-void testParseKnownGoodQueries();
+void testQueryRiskSafe();
 
 /**
- * Test that the type of query is being set.
+ * Tests that the risk of certain comment types is correctly identified.
  */
-void testQueryType();
+void testQueryRiskComments();
 
-#endif  // SRC_TESTS_TESTPARSER_HPP_
+/**
+ * Tests that the risk of always true statements in queries is correctly
+ * identified.
+ */
+void testQueryRiskAlwaysTrue();
+
+/**
+ * Tests that the risk of global variables is correctly counted.
+ */
+void testQueryRiskGlobalVariables();
+
+/**
+ * Tests that the risk of sensitive tables is correctly counted.
+ */
+void testQueryRiskSensitiveTables();
+
+#endif  // SRC_TESTS_TESTQUERYRISK_HPP_

@@ -18,21 +18,26 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "QueryRisk.hpp"
 #include "ScannerContext.hpp"
 
 #include <stack>
 #include <string>
 
-ScannerContext::ScannerContext() :
-    identifiers(),
+ScannerContext::ScannerContext(QueryRisk* const qrToModify) :
     identifier(),
-    quotedStrings(),
     quotedString(),
-    numbers()
+    qrPtr(qrToModify),
+    nodes()
 {
 }
 
 
 ScannerContext::~ScannerContext()
 {
+    while (!nodes.empty())
+    {
+        delete nodes.top();
+        nodes.pop();
+    }
 }

@@ -27,10 +27,12 @@
 #include "QueryRisk.hpp"
 #include "Socket.hpp"
 
+#include <boost/cast.hpp>
 #include <boost/cstdint.hpp>
 #include <cassert>
 #include <vector>
 
+using boost::polymorphic_downcast;
 using std::vector;
 
 MySqlErrorMessageBlocker::MySqlErrorMessageBlocker(
@@ -64,15 +66,7 @@ void MySqlErrorMessageBlocker::handleMessage(vector<uint8_t>& rawMessage) const
     const uint8_t RESULT_ERROR = 0xFF;
 
     MySqlSocket* mySqlSocketPtr;
-    #ifndef NDEBUG
-        mySqlSocketPtr = dynamic_cast<MySqlSocket*>(outgoingConnection_);
-        assert(
-            nullptr != mySqlSocketPtr &&
-            "MySqlErrorMessageBlocker should have MySqlSockets"
-        );
-    #else
-        mySqlSocketPtr = static_cast<MySqlSocket*>(outgoingConnection_);
-    #endif
+    mySqlSocketPtr = polymorphic_downcast<MySqlSocket*>(outgoingConnection_);
 
     assert(
         rawMessage.size() >= 5 &&
@@ -154,6 +148,8 @@ void MySqlErrorMessageBlocker::handleMessage(vector<uint8_t>& rawMessage) const
             case QueryRisk::TYPE_DELETE:
             case QueryRisk::TYPE_SET:
             case QueryRisk::TYPE_TRANSACTION:
+            case QueryRisk::TYPE_LOCK:
+            case QueryRisk::TYPE_USE:
                 mySqlSocketPtr->sendOkPacket(packetNumber);
                 break;
 

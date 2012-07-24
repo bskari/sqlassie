@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -18,8 +18,8 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SRC_COMPARISONNODE_HPP_
-#define SRC_COMPARISONNODE_HPP_
+#ifndef SRC_BOOLEANLOGICNODE_HPP_
+#define SRC_BOOLEANLOGICNODE_HPP_
 
 #include "ConditionalNode.hpp"
 #include "QueryRisk.hpp"
@@ -28,22 +28,21 @@
 #include <iosfwd>
 
 /**
- * Parse tree node that represents a comparison between two expressions. The
- * comparisons can be things like equality, greater than, like, or sounds like.
+ * Parse tree node that represents an expression.
  * @author Brandon Skari
- * @date December 9 2010
+ * @date December 10 2010
  */
 
-class ComparisonNode : public ConditionalNode
+class BooleanLogicNode : public ConditionalNode
 {
 public:
     /**
      * Default constructor.
-     * @param compareType The type of comparison being used.
+     * @param logicalOp The logical binary operator type.
      */
-    explicit ComparisonNode(const int compareType);
+    BooleanLogicNode(const int logicalOperator);
 
-    virtual ~ComparisonNode();
+    virtual ~BooleanLogicNode();
 
     /**
      * Overridden from AstNode.
@@ -51,19 +50,20 @@ public:
     virtual AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the comparison is always true.
-     * Overridden from ComparisonNode.
+     * Determines if the conditionals are always true.
+     * Overridden from ConditionalNode.
      */
     virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the comparison is always true.
-     * Overridden from ComparisonNode.
+     * Determines if the any of this node's children are always true.
+     * Overridden from ConditionalNode.
      */
     virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the password is empty.
+     * Determines if the there is an empty password.
+     * Overridden from ConditionalNode.
      */
     virtual QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
 
@@ -76,11 +76,10 @@ public:
         const char indent
     ) const;
 
-protected:
-    int compareType_;
-
 private:
-    ComparisonNode(const ComparisonNode& rhs);
-    ComparisonNode& operator=(ComparisonNode& rhs);
+    const int logicalOperator_;
+
+    BooleanLogicNode(const BooleanLogicNode& rhs);
+    BooleanLogicNode& operator=(const BooleanLogicNode& rhs);
 };
-#endif  // SRC_COMPARISONNODE_HPP_
+#endif  // SRC_BOOLEANLOGICNODE_HPP_

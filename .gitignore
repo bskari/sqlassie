@@ -32,14 +32,14 @@ sqlassie
 test
 tunnel
 
-# Flex and Bison output
+# Flex, Bison, and Lemon output
 huginParser.output
 huginParser.tab.cpp
 huginParser.tab.hpp
 huginScanner.yy.cpp
 huginScanner.yy.hpp
-parser.output
-parser.tab.cpp
-parser.tab.hpp
+sqlParser.out
+sqlParser.cpp
+sqlParser.h
 scanner.yy.cpp
 scanner.yy.hpp

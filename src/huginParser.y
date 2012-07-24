@@ -107,7 +107,7 @@ static int statesCount;
 %token SEMICOLON
 %token PIPE
 
-%token ERROR
+%token ERROR_TOKEN
 
 %%
 

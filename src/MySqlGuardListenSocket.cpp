@@ -30,15 +30,17 @@
 #include "Socket.hpp"
 #include "SocketException.hpp"
 
+#include <boost/cast.hpp>
 #include <boost/thread.hpp>
 #include <memory>
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
 
+using boost::polymorphic_downcast;
+using boost::thread;
 using std::auto_ptr;
 using std::string;
-using boost::thread;
 
 
 MySqlGuardListenSocket::MySqlGuardListenSocket(
@@ -136,17 +138,9 @@ void MySqlGuardListenSocket::handleConnection(
 
     auto_ptr<Socket> serverConnection(s);
 
-    MySqlSocket* clientPtr;
-    #ifndef NDEBUG
-        clientPtr = dynamic_cast<MySqlSocket*>(clientConnection.get());
-        assert(
-            nullptr != clientPtr
-            && "MySqlGuardListenSocket::handleConnection should be given "
-            && "MySqlSockets"
-        );
-    #else
-        clientPtr = static_cast<MySqlSocket*>(clientConnection.get());
-    #endif
+    MySqlSocket* const clientPtr = polymorphic_downcast<MySqlSocket*>(
+        clientConnection.get()
+    );
 
     string clientAddress(clientPtr->getPeerName());
 

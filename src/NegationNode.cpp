@@ -25,15 +25,17 @@
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
 
+#include <boost/cast.hpp>
 #include <boost/regex.hpp>
 #include <ctype.h>
 #include <ostream>
 #include <string>
 
 using std::string;
+using boost::polymorphic_downcast;
 using boost::regex;
-using boost::regex_replace;
 using boost::regex_match;
+using boost::regex_replace;
 
 
 NegationNode::NegationNode() :
@@ -57,17 +59,12 @@ AstNode* NegationNode::copy() const
 
 bool NegationNode::isAlwaysTrue() const
 {
-    assert(1 == children_.size() && "NegationNode should have 1 child");
+    assert(1 == children_.size() && "NegationNode should have exactly 1 child");
 
-    const ExpressionNode* const expr = dynamic_cast<const ExpressionNode*>(
-        children_.at(0)
-    );
-    assert(
-        nullptr != expr &&
-        "NegationNode should only an ExpressionNode child"
-    );
+    const ConditionalNode* const cond =
+        polymorphic_downcast<const ConditionalNode*>(children_.at(0));
 
-    return !expr->isAlwaysTrue();
+    return !cond->isAlwaysTrue();
 }
 
 

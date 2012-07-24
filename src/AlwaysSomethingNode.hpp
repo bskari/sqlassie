@@ -25,8 +25,6 @@
 #include "ComparisonNode.hpp"
 #include "warnUnusedResult.h"
 
-#include <string>
-
 /**
  * Parse tree node that represents an expression that is always either true or
  * false. This is used for expressions such as:
@@ -43,9 +41,17 @@ public:
     /**
      * Default constructor.
      * @param always If this node is always true or always false.
-     * @param compareType The comparison type used, such as = or >.
+     * @param compareType The comparison type token used, such as EQ or GE.
      */
-    AlwaysSomethingNode(bool always, const std::string& compareType);
+    AlwaysSomethingNode(bool always, const int compareType);
+
+    /**
+     * Occasionally, I just want to insert an alwyas true node without
+     * specifying the comparison type, e.g. expr IN (SELECT ...). I don't care
+     * what the actual comparison is, I just want it to always be something.
+     * @param always If this node is always true or always false.
+     */
+    AlwaysSomethingNode(bool always);
 
     virtual ~AlwaysSomethingNode();
 

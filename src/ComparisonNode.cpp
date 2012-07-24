@@ -20,24 +20,25 @@
 
 #include "ComparisonNode.hpp"
 #include "ExpressionNode.hpp"
-#include "SensitiveNameChecker.hpp"
 #include "Logger.hpp"
 #include "MySqlConstants.hpp"
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
+#include "SensitiveNameChecker.hpp"
+#include "sqlParser.h"
 
+#include <boost/cast.hpp>
 #include <boost/regex.hpp>
 #include <ctype.h>
 #include <ostream>
-#include <string>
 
-using std::string;
+using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_replace;
 using boost::regex_match;
 
 
-ComparisonNode::ComparisonNode(const string& compareType) :
+ComparisonNode::ComparisonNode(const int compareType) :
     ConditionalNode("Comparison"),
     compareType_(compareType)
 {
@@ -59,14 +60,43 @@ AstNode* ComparisonNode::copy() const
 
 bool ComparisonNode::isAlwaysTrue() const
 {
+    if (BETWEEN == compareType_)
+    {
+        assert(3 == children_.size() && "BETWEEN operators should have 3 children");
+        // This is logically equivalent to
+        // (min[child1] <= expr[child0] AND expr[child0] <= max[child2])
+        const ExpressionNode* const expr = polymorphic_downcast<const ExpressionNode*>(
+            children_.at(0)
+        );
+        const ExpressionNode* const minExpr = polymorphic_downcast<const ExpressionNode*>(
+            children_.at(1)
+        );
+        const ExpressionNode* const maxExpr = polymorphic_downcast<const ExpressionNode*>(
+            children_.at(2)
+        );
+
+        // We only care about numbers; anything else (like identifiers) is
+        // assumed to not always be true
+        if (
+            ExpressionNode::isNumber(minExpr->getValue())
+            && ExpressionNode::isNumber(minExpr->getValue())
+            && ExpressionNode::isNumber(minExpr->getValue())
+        )
+        {
+            std::cout << minExpr->getValue() << " <= " << expr->getValue() << " <= " << maxExpr->getValue() << std::endl;
+            return minExpr->getValue() <= expr->getValue()
+                && expr->getValue() <= maxExpr->getValue();
+        }
+    }
+
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 = dynamic_cast<const ExpressionNode*>(
-        children_.at(0));
-    const ExpressionNode* const expr2 = dynamic_cast<const ExpressionNode*>(
-        children_.at(1));
-    assert(nullptr != expr1 && nullptr != expr2 &&
-        "ComparisonNode should only have ExpressionNode children");
+    const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(
+        children_.at(0)
+    );
+    const ExpressionNode* const expr2 = polymorphic_downcast<const ExpressionNode*>(
+        children_.at(1)
+    );
 
     // Fields may or may not compare correctly, so assume it's legitimate
     if (expr1->isIdentifier() || expr2->isIdentifier())
@@ -74,31 +104,31 @@ bool ComparisonNode::isAlwaysTrue() const
         return false;
     }
 
-    if ("=" == compareType_)
+    if (EQ == compareType_)
     {
         return expr1->getValue() == expr2->getValue();
     }
-    else if ("<" == compareType_)
+    else if (LT == compareType_)
     {
         return expr1->getValue() < expr2->getValue();
     }
-    else if (">" == compareType_)
+    else if (GT == compareType_)
     {
         return expr1->getValue() > expr2->getValue();
     }
-    else if ("<=" == compareType_)
+    else if (LE == compareType_)
     {
         return expr1->getValue() <= expr2->getValue();
     }
-    else if (">=" == compareType_)
+    else if (GE == compareType_)
     {
         return expr1->getValue() >= expr2->getValue();
     }
-    else if ("!=" == compareType_)
+    else if (NE == compareType_)
     {
         return expr1->getValue() != expr2->getValue();
     }
-    else if ("like" == compareType_)
+    else if (LIKE_KW == compareType_)
     {
         // Empty compares are always false
         if (expr2->getValue().size() == 0)
@@ -108,17 +138,7 @@ bool ComparisonNode::isAlwaysTrue() const
         regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2->getValue()));
         return regex_match(expr1->getValue(), perl);
     }
-    else if ("not like" == compareType_)
-    {
-        // Empty compares are always true
-        if (expr2->getValue().size() == 0)
-        {
-            return true;
-        }
-        regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2->getValue()));
-        return !regex_match(expr1->getValue(), perl);
-    }
-    else if ("sounds like" == compareType_)
+    else if (SOUNDS == compareType_)
     {
         return MySqlConstants::soundex(expr1->getValue())
             == MySqlConstants::soundex(expr2->getValue());
@@ -142,20 +162,16 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(0)
     );
-    const ExpressionNode* const expr2 = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* const expr2 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(1)
-    );
-    assert(
-        nullptr != expr1 && nullptr != expr2 &&
-        "ComparisonNode should only have ExpressionNode children"
     );
 
     // Only check for equality comparisons to password field
     if (
-        "=" != compareType_
+        EQ != compareType_
         || SensitiveNameChecker::get().isPasswordField(expr1->getValue())
     )
     {

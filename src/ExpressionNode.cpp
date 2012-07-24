@@ -22,7 +22,10 @@
 #include "ExpressionNode.hpp"
 #include "Logger.hpp"
 #include "nullptr.hpp"
+#include "OperatorNode.hpp"
+#include "sqlParser.h"
 
+#include <boost/cast.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
 #include <cassert>
@@ -30,9 +33,10 @@
 #include <ostream>
 #include <string>
 
-using std::string;
-using boost::lexical_cast;
 using boost::bad_lexical_cast;
+using boost::lexical_cast;
+using boost::polymorphic_downcast;
+using std::string;
 
 
 ExpressionNode::ExpressionNode() :
@@ -116,22 +120,17 @@ string ExpressionNode::getValue() const
         && "simple expressions with an operator for children"
     );
 
-    const ExpressionNode* expr1 = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* expr1 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(0)
     );
-    const ExpressionNode* expr2 = dynamic_cast<const ExpressionNode*>(
+    const ExpressionNode* expr2 = polymorphic_downcast<const ExpressionNode*>(
         children_.at(2)
-    );
-    assert(
-        nullptr != expr1
-        && nullptr != expr2
-        && "ExpressionNode should only have ExpressionNode children"
     );
 
     // MySQL lets you use quoted strings as integers... but if someone is
     // computing, say, 1 + 'foo', it returns the only integer. If both are
     // strings, then it returns 0.
-    double child1 = 0, child2 = 0;
+    double child1 = 0.0, child2 = 0.0;
     try
     {
         if (isNumber(expr1->getValue()))
@@ -143,64 +142,56 @@ string ExpressionNode::getValue() const
             child2 = lexical_cast<double>(expr2->getValue());
         }
     }
-    catch (bad_lexical_cast&) {}
+    catch (bad_lexical_cast&)
+    {
+        assert(false && "isNumber disagrees with lexical_cast");
+    }
 
-    const string& oper = children_.at(1)->getName();
-    if ("+" == oper)
+    const OperatorNode* const operatorNode =
+        polymorphic_downcast<const OperatorNode*>(children_.at(1));
+
+    const int oper = operatorNode->getOperator();
+
+    int c1, c2;
+    int64_t llChild1, llChild2;
+    switch (oper)
     {
+    // Mathematical operators
+    case PLUS:
         return lexical_cast<string>(child1 + child2);
-    }
-    else if ("-" == oper)
-    {
+    case MINUS:
         return lexical_cast<string>(child1 - child2);
-    }
-    else if ("*" == oper)
-    {
+    case STAR:
         return lexical_cast<string>(child1 * child2);
-    }
-    else if ("/" == oper)
-    {
+    case SLASH:
         return lexical_cast<string>(child1 / child2);
-    }
-    else if ("DIV" == oper)
-    {
+    case INTEGER_DIVIDE:
         // MySQL rounds the parameters if they're floating point
-        int64_t llChild1 = llround(child1);
-        int64_t llChild2 = llround(child1);
+        llChild1 = llround(child1);
+        llChild2 = llround(child2);
         return lexical_cast<string>(llChild1 / llChild2);
-    }
-    else if ("MOD" == oper)
-    {
+    case REM:
         return lexical_cast<string>(fmod(child1, child2));
-    }
-    else if ("&" == oper)
-    {
+    // Bitwise manipulation operators
+    case BITAND:
         // MySQL rounds floats when used with binary operators
-        int c1 = static_cast<int>(round(child1));
-        int c2 = static_cast<int>(round(child2));
+        c1 = static_cast<int>(round(child1));
+        c2 = static_cast<int>(round(child2));
         return lexical_cast<string>(c1 & c2);
-    }
-    else if ("|" == oper)
-    {
+    case BITOR:
         // MySQL rounds floats when used with binary operators
-        int c1 = static_cast<int>(round(child1));
-        int c2 = static_cast<int>(round(child2));
+        c1 = static_cast<int>(round(child1));
+        c2 = static_cast<int>(round(child2));
         return lexical_cast<string>(c1 | c2);
-    }
-    else if ("<<" == oper)
-    {
-        int c1 = static_cast<int>(round(child1));
-        int c2 = static_cast<int>(round(child2));
+    case LSHIFT:
+        c1 = static_cast<int>(round(child1));
+        c2 = static_cast<int>(round(child2));
         return lexical_cast<string>(c1 << c2);
-    }
-    else if (">>" == oper)
-    {
-        int c1 = static_cast<int>(round(child1));
-        int c2 = static_cast<int>(round(child2));
+    case RSHIFT:
+        c1 = static_cast<int>(round(child1));
+        c2 = static_cast<int>(round(child2));
         return lexical_cast<string>(c1 >> c2);
-    }
-    else
-    {
+    default:
         Logger::log(Logger::ERROR)
             << "Unknown operator in ExpressionNode: '"
             << oper

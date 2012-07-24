@@ -34,12 +34,14 @@
 #include "Socket.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/cast.hpp>
 #include <boost/cstdint.hpp>
 #include <cassert>
 #include <vector>
 
-using std::vector;
 using std::string;
+using std::vector;
+using boost::polymorphic_downcast;
 using boost::replace_all;
 
 
@@ -133,15 +135,7 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
 
 
     MySqlSocket* mySqlSocket;
-    #ifndef NDEBUG
-        mySqlSocket = dynamic_cast<MySqlSocket*>(incomingConnection_);
-        assert(
-            nullptr != mySqlSocket &&
-            "MySqlGuard should have MySqlSockets"
-        );
-    #else
-        mySqlSocket = static_cast<MySqlSocket*>(incomingConnection_);
-    #endif
+    mySqlSocket = polymorphic_downcast<MySqlSocket*>(incomingConnection_);
     const uint8_t messageNumber = rawMessage.at(3);
 
     bool dangerous;
@@ -256,6 +250,8 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
                     case QueryRisk::TYPE_DELETE:
                     case QueryRisk::TYPE_SET:
                     case QueryRisk::TYPE_TRANSACTION:
+                    case QueryRisk::TYPE_LOCK:
+                    case QueryRisk::TYPE_USE:
                         mySqlSocket->sendOkPacket(messageNumber + 1);
                         break;
 
@@ -299,10 +295,9 @@ void MySqlGuard::analyzeQuery(
 ) const
 {
     QueryRisk qr;
-    int status;
 
     ParserInterface interface(query);
-    status = interface.parse(&qr);
+    const bool successfullyParsed = interface.parse(&qr);
 
     // Check for whitelisted queries
     /// @TODO(bskari) should parse whitelisted only be checked if it fails to
@@ -320,7 +315,7 @@ void MySqlGuard::analyzeQuery(
     *queryType = qr.queryType;
 
     // If the query was not successfully parsed (i.e. it's an invalid query)
-    if (0 != status || !qr.valid)
+    if (!successfullyParsed || !qr.valid)
     {
         Logger::log(Logger::WARN)
             << "Blocked invalid query '"
@@ -548,12 +543,8 @@ void MySqlGuard::handleFirstPacket(vector<uint8_t>& rawMessage) const
     }
     if (rawMessage.size() <= i || '\0' != rawMessage.at(i))
     {
-        MySqlSocket* const mss = dynamic_cast<MySqlSocket*>(
+        MySqlSocket* const mss = polymorphic_downcast<MySqlSocket*>(
             incomingConnection_
-        );
-        assert(
-            nullptr != mss &&
-            "MySqlGuard should have MySqlSockets"
         );
         const uint8_t packetNumber = rawMessage.at(3);
         mss->sendErrorPacket(packetNumber + 1);
@@ -572,12 +563,8 @@ void MySqlGuard::handleFirstPacket(vector<uint8_t>& rawMessage) const
         )
     )
     {
-        MySqlSocket* const mss = dynamic_cast<MySqlSocket*>(
+        MySqlSocket* const mss = polymorphic_downcast<MySqlSocket*>(
             incomingConnection_
-        );
-        assert(
-            nullptr != mss &&
-            "MySqlGuard should have MySqlSockets"
         );
         string errorMessage("Access denied for user '");
         errorMessage += username;

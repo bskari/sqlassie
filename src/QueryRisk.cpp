@@ -344,6 +344,12 @@ std::ostream& operator<<(std::ostream& out, const QueryRisk::QueryType qt)
         case QueryRisk::TYPE_DESCRIBE:
             out << "TYPE_DESCRIBE";
             break;
+        case QueryRisk::TYPE_LOCK:
+            out << "TYPE_LOCK";
+            break;
+        case QueryRisk::TYPE_USE:
+            out << "TYPE_USE";
+            break;
         default:
             out << "Unknown QueryType value (" << static_cast<int>(qt) << ')';
             break;

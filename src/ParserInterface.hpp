@@ -25,13 +25,13 @@
 class ParserInterfaceScannerMembers;
 #include "QueryRisk.hpp"
 #include "ScannerContext.hpp"
+class TokenInfo;
 
 #include <boost/cstdint.hpp>
 #include <boost/thread/mutex.hpp>
-#include <vector>
 
 /**
- * Interface to the Bison parser so I don't have to keep allocating
+ * Interface to the Lemon parser so I don't have to keep allocating
  * YY_BUFFER_STATESs and stuff all over in my code.
  * @author Brandon Skari
  * @date January 12 2011
@@ -52,20 +52,25 @@ public:
     /**
      * Parses the provided buffer.
      * @param qr The QueryRisk attributes of the parsed query.
-     * @return The status code from the Bison parser.
+     * @return If the string was successfully parsed.
      */
-    int parse(QueryRisk* const qr) WARN_UNUSED_RESULT;
+    bool parse(QueryRisk* const qr) WARN_UNUSED_RESULT;
 
-    typedef uint64_t hashType;
+    typedef size_t hashType;
     struct QueryHash
     {
         hashType hash;
         int tokensCount;
         QueryHash();
-        friend bool operator==(const QueryHash& q1, const QueryHash& q2);
+        friend bool operator==(const QueryHash& qh1, const QueryHash& qh2);
     };
     QueryHash getHash() const;
 
+private:
+    // The below ScannerContext needs to hold a pointer to this value, so
+    // declare it here so that variable initialization order makes sense
+    QueryRisk qr_;
+public:
     ScannerContext scannerContext_;
 
     /**
@@ -82,10 +87,12 @@ public:
     //@}
 
 private:
+    int getLexValue(TokenInfo* const ti);
+
     bool parsed_;
-    QueryRisk qr_;
-    int parserStatus_;
+    bool successfullyParsed_;
     const int bufferLen_;
+    void* lemonParser_;
 
     static boost::mutex parserMutex_;
 

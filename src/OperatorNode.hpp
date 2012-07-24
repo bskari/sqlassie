@@ -18,32 +18,31 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SRC_COMPARISONNODE_HPP_
-#define SRC_COMPARISONNODE_HPP_
+#ifndef SRC_OPERATORNODE_HPP_
+#define SRC_OPERATOR_HPP_
 
-#include "ConditionalNode.hpp"
-#include "QueryRisk.hpp"
+#include "AstNode.hpp"
 #include "warnUnusedResult.h"
 
-#include <iosfwd>
+#include <string>
 
 /**
- * Parse tree node that represents a comparison between two expressions. The
- * comparisons can be things like equality, greater than, like, or sounds like.
+ * Parse tree node that holds a single operator, like '+' or '/'. Operators
+ * are stored as the tokens as defined by the parser.
  * @author Brandon Skari
- * @date December 9 2010
+ * @date July 4 2012
  */
 
-class ComparisonNode : public ConditionalNode
+class OperatorNode : public AstNode
 {
 public:
     /**
      * Default constructor.
-     * @param compareType The type of comparison being used.
+     * @param operatorToken The operator's token value, as defined by the parser.
      */
-    explicit ComparisonNode(const int compareType);
+    OperatorNode(const int operatorToken);
 
-    virtual ~ComparisonNode();
+    virtual ~OperatorNode();
 
     /**
      * Overridden from AstNode.
@@ -51,21 +50,9 @@ public:
     virtual AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the comparison is always true.
-     * Overridden from ComparisonNode.
+     * Gets the oeprator's token value.
      */
-    virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT;
-
-    /**
-     * Determines if the comparison is always true.
-     * Overridden from ComparisonNode.
-     */
-    virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
-
-    /**
-     * Determines if the password is empty.
-     */
-    virtual QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+    int getOperator() const WARN_UNUSED_RESULT;
 
     /**
      * Overridden from AstNode.
@@ -76,11 +63,10 @@ public:
         const char indent
     ) const;
 
-protected:
-    int compareType_;
-
 private:
-    ComparisonNode(const ComparisonNode& rhs);
-    ComparisonNode& operator=(ComparisonNode& rhs);
+    const int operator_;
+
+    OperatorNode(const OperatorNode& rhs);
+    OperatorNode& operator=(const OperatorNode& rhs);
 };
-#endif  // SRC_COMPARISONNODE_HPP_
+#endif  // SRC_OPERATORNODE_HPP_

@@ -66,7 +66,7 @@ NUMBER        ({FLOAT}|{SCIENTIFIC}|{INTEGER})
 
 "\""    {BEGIN(QUOTED);}
 <QUOTED>[^"]*"\""    {BEGIN(INITIAL); return STRING;}
-<QUOTED>.    {return ERROR;}
+<QUOTED>.    {return ERROR_TOKEN;}
 
 "="        {return EQUAL;}
 "{"        {return LEFT_BRACE;}
@@ -78,7 +78,7 @@ NUMBER        ({FLOAT}|{SCIENTIFIC}|{INTEGER})
 
 {WHITE_SPACE}    {}
 
-.    {return ERROR;}
+.    {return ERROR_TOKEN;}
 
 %%
 

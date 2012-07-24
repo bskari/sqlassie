@@ -105,4 +105,12 @@ private:
     QueryWhitelist(const QueryWhitelist&);
 };
 
+
+/**
+ * Functions needed for Boost::hash.
+ */
+std::size_t hash_value(
+    const std::pair<ParserInterface::QueryHash, QueryRisk> queryProfile
+);
+
 #endif  // SRC_QUERYWHITELIST_HPP_

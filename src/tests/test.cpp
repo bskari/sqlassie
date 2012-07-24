@@ -26,7 +26,9 @@
 #include "testMySqlConstants.hpp"
 #include "testNode.hpp"
 #include "testParser.hpp"
+#include "testQueryRisk.hpp"
 #include "testQueryWhitelist.hpp"
+#include "testScanner.hpp"
 
 #include <boost/test/included/unit_test.hpp>
 #include <string>
@@ -53,10 +55,15 @@ test::test_suite* init_unit_test_suite(int, char*[])
 
     Logger::setLevel(Logger::ALL);
 
-    // Tests from parserTest.cpp
+    // Tests from testParser.cpp
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testParseKnownGoodQueries)
     );
+    test::framework::master_test_suite().add(
+        BOOST_TEST_CASE(testQueryType)
+    );
+
+    // Tests from testQueryRiskParser.cpp
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testQueryRiskSafe)
     );
@@ -67,10 +74,13 @@ test::test_suite* init_unit_test_suite(int, char*[])
         BOOST_TEST_CASE(testQueryRiskAlwaysTrue)
     );
     test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testSelectItems)
+        BOOST_TEST_CASE(testQueryRiskGlobalVariables)
+    );
+    test::framework::master_test_suite().add(
+        BOOST_TEST_CASE(testQueryRiskSensitiveTables)
     );
 
-    // Tests from nodeTest.cpp
+    // Tests from testNode.cpp
     test::framework::master_test_suite().add(BOOST_TEST_CASE(testAstNode));
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testAlwaysSomethingNode)
@@ -91,6 +101,14 @@ test::test_suite* init_unit_test_suite(int, char*[])
     );
     test::framework::master_test_suite().add(
         BOOST_TEST_CASE(testRiskWhitelist)
+    );
+
+    // Tests from testScanner.cpp
+    test::framework::master_test_suite().add(
+        BOOST_TEST_CASE(testAllTokensScan)
+    );
+    test::framework::master_test_suite().add(
+        BOOST_TEST_CASE(testScanNumbers)
     );
 
     return 0;

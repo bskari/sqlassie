@@ -18,10 +18,17 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// This needs to be declared prior to including the scanner header
+#define YY_DECL int sql_lex( \
+    ScannerContext* const context, \
+    yyscan_t yyscanner \
+)
+
 #include "Logger.hpp"
 #include "nullptr.hpp"
-#include "parser.tab.hpp"
 #include "QueryRisk.hpp"
+#include "ReadlineStream.hpp"
+#include "sqlParser.h"
 #include "scanner.yy.hpp"
 #include "ScannerContext.hpp"
 
@@ -35,7 +42,6 @@
 
 using boost::lexical_cast;
 using std::cerr;
-using std::cin;
 using std::cout;
 using std::endl;
 using std::ifstream;
@@ -48,36 +54,31 @@ using std::string;
  * @date November 15 2010
  */
 
-extern int sql_lex(
-    YYSTYPE* llvalp,
-    ScannerContext* context,
-    QueryRisk* qr,
-    yyscan_t scanner
-);
-
 map<int, string> tokenCodes;
 void loadTokensFromFile(const char* fileName);
+extern YY_DECL;
 
 int main()
 {
     Logger::initialize();
-    loadTokensFromFile("parser.tab.hpp");
+    loadTokensFromFile("sqlParser.h");
 
     string x;
-    cout << "Enter MySQL query: ";
-
-    ScannerContext context;
-    while (getline(cin, x))
+    ReadlineStream rs("scanner> ");
+    QueryRisk qr;
+    ScannerContext context(&qr);
+    while (getline(rs, x))
     {
         yyscan_t scanner;
         sql_lex_init(&scanner);
         YY_BUFFER_STATE bufferState = sql__scan_string(x.c_str(), scanner);
-        QueryRisk qr;
-        int lexCode = sql_lex(nullptr, &context, &qr, scanner);
+        int lexCode = sql_lex(&context, scanner);
         do
         {
-            assert(tokenCodes.end() != tokenCodes.find(lexCode) &&
-                "Token code doesn't have an associated name");
+            assert(
+                tokenCodes.end() != tokenCodes.find(lexCode)
+                && "Token code doesn't have an associated name"
+            );
             cout << '"'
                 << sql_get_text(scanner)
                 << "\": "
@@ -85,36 +86,14 @@ int main()
                 << ", "
                 << tokenCodes[lexCode]
                 << endl;
-            lexCode = sql_lex(nullptr, &context, &qr, scanner);
+            lexCode = sql_lex(&context, scanner);
         }
-        while (lexCode > 255);
+        while (lexCode != 0);
 
         sql__delete_buffer(bufferState, scanner);
         sql_lex_destroy(scanner);
 
         cout << "Enter MySQL query: ";
-    }
-    cout << endl;
-
-    cout << "Identifiers found:" << endl;
-    while (!context.identifiers.empty())
-    {
-        cout << context.identifiers.top() << endl;
-        context.identifiers.pop();
-    }
-
-    cout << "Quoted strings found:" << endl;
-    while (!context.quotedStrings.empty())
-    {
-        cout << context.quotedStrings.top() << endl;
-        context.quotedStrings.pop();
-    }
-
-    cout << "Numbers found:" << endl;
-    while (!context.numbers.empty())
-    {
-        cout << context.numbers.top() << endl;
-        context.numbers.pop();
     }
 }
 
@@ -124,59 +103,19 @@ void loadTokensFromFile(const char* const fileName)
     if (!fin)
     {
         cerr << "Unable to load tokens from file " << fileName << endl;
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
-    string line;
-    while (getline(fin, line))
+    string keyword;
+    int lexCode;
+    // Each line has a definition like this:
+    // #define SELECT      1
+    const int defineLength = strlen("#define ");
+    while (fin.ignore(defineLength) && !fin.eof())
     {
-        // Find the definition of the tokens
-        if (string::npos != line.find("yytokentype"))
-        {
-            break;
-        }
-    }
-    // Keep reading lines until we hit the close of the enum
-    while (getline(fin, line), string::npos == line.find("}"))
-    {
-        // Each line is formatted like this:
-        // TOKEN = ###,
-        const size_t tokenBegin = line.find_first_not_of(" \t");
-        const size_t tokenEnd = line.find_first_of(" \t", tokenBegin + 1);
-
-        if (string::npos == tokenBegin || string::npos == tokenEnd)
-        {
-            continue;
-        }
-
-        const size_t numberBegin =
-            line.find_first_of("0123456789", tokenEnd + 1);
-        const size_t numberEnd = line.rfind(',');
-
-        if (string::npos == numberBegin || string::npos == numberEnd)
-        {
-            continue;
-        }
-
-        const string token(line.substr(tokenBegin, tokenEnd - tokenBegin));
-        int lexCode;
-        try
-        {
-            lexCode = lexical_cast<int>(
-                line.substr(numberBegin, numberEnd - numberBegin));
-        }
-        catch (...)
-        {
-            Logger::log(Logger::ERROR) << "Malformatted lex code";
-            assert(false);
-            continue;
-        }
-
-        assert(tokenCodes.end() == tokenCodes.find(lexCode) &&
-            "Token value already has a string associated with it");
-        tokenCodes[lexCode] = token;
-
-        // End of enum, we're done processing the file
+        fin >> keyword;
+        fin >> lexCode;
+        tokenCodes[lexCode] = keyword;
     }
     fin.close();
 }

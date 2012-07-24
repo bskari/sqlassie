@@ -53,7 +53,9 @@ public:
         TYPE_SET,
         TYPE_EXPLAIN,
         TYPE_SHOW,
-        TYPE_DESCRIBE
+        TYPE_DESCRIBE,
+        TYPE_LOCK,
+        TYPE_USE
     };
 
     enum EmptyPassword
@@ -63,49 +65,55 @@ public:
         PASSWORD_NOT_USED = -1
     };
 
+
+    // In general, I try to do as much of this work as possible in the parser
+    // because some keywords can be also be used as identifiers, and the
+    // scanner can't tell the difference. To be consistent, if a rule could be
+    // handled in either place, I do it in the parser.
+
     // Just as a check for myself, lines marked 'done' are being accounted for
-    // and properly increased in either scanner or parser
+    // and properly increased in either scanner or parser.
     /**
      * Risk factors.
      */
     ///@{
-    QueryType queryType; // Done
-    size_t multiLineComments; // Done
-    size_t hashComments; // Done
-    size_t dashDashComments; // Done
-    size_t mySqlComments; // Done
-    size_t mySqlVersionedComments; // Done
-    size_t sensitiveTables; // Done
-    size_t orStatements; // Done
-    size_t unionStatements; // Done
-    size_t unionAllStatements; // Done
-    size_t bruteForceCommands; // Done
-    size_t ifStatements; // Done
-    size_t hexStrings; // Done
-    size_t benchmarkStatements; // Done
-    size_t userStatements; // Done
-    size_t fingerprintingStatements; // Done
-    size_t mySqlStringConcat; // Done
-    size_t stringManipulationStatements; // Done
-    size_t alwaysTrueConditional; // Done
-    size_t commentedConditionals; // Done
-    size_t commentedQuotes; // Done
-    size_t globalVariables; // Done
-    size_t joinStatements; // Done
+    QueryType queryType;  // Done
+    size_t multiLineComments;
+    size_t hashComments;  // Done
+    size_t dashDashComments;  // Done
+    size_t mySqlComments;  // Done
+    size_t mySqlVersionedComments;  // Done
+    size_t sensitiveTables;
+    size_t orStatements;
+    size_t unionStatements;
+    size_t unionAllStatements;
+    size_t bruteForceCommands;  // Done
+    size_t ifStatements;  // Done
+    size_t hexStrings;
+    size_t benchmarkStatements;
+    size_t userStatements;
+    size_t fingerprintingStatements;  // Done
+    size_t mySqlStringConcat;
+    size_t stringManipulationStatements;
+    size_t alwaysTrueConditional;
+    size_t commentedConditionals;  // Done
+    size_t commentedQuotes;  // Done
+    size_t globalVariables;
+    size_t joinStatements;
     size_t crossJoinStatements;
-    size_t regexLength; // Done
-    size_t slowRegexes; // Done
-    EmptyPassword emptyPassword; // Done
-    bool multipleQueries; // Done (not allowed in my parser)
-    bool orderByNumber; // Done
-    bool alwaysTrue; // Done
-    bool informationSchema; // Done
-    bool valid;
-    bool userTable; // Done
+    size_t regexLength;
+    size_t slowRegexes;
+    EmptyPassword emptyPassword;
+    bool multipleQueries;  // Done (not allowed in my parser)
+    bool orderByNumber;
+    bool alwaysTrue;
+    bool informationSchema;
+    bool valid;  // Done
+    bool userTable;  // Done
     ///@}
 
     /**
-     * Checks an identifier for a risky identifier and it it is risky, it
+     * Checks an identifier for a risky identifier and if it is risky, it
      * increments the respective variable.
      */
     ///@{

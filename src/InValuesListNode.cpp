@@ -25,10 +25,13 @@
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
 
+#include <boost/cast.hpp>
 #include <boost/regex.hpp>
 #include <cassert>
 #include <string>
 #include <vector>
+
+using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_match;
 using std::string;
@@ -76,9 +79,7 @@ bool InValuesListNode::isAlwaysTrue() const
         ++i)
     {
         const ExpressionNode* const expr =
-            dynamic_cast<const ExpressionNode*>(*i);
-        assert(nullptr != expr &&
-            "InValuesListNode should only have ExpressionNode* children");
+            polymorphic_downcast<const ExpressionNode*>(*i);
 
         if (firstExpression == expr->getValue())
         {

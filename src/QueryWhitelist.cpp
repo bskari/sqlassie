@@ -37,6 +37,7 @@ using boost::mutex;
 using boost::unordered_set;
 using std::ifstream;
 using std::pair;
+using std::size_t;
 using std::string;
 using std::vector;
 
@@ -117,19 +118,11 @@ bool QueryWhitelist::isBlockWhitelisted(
 {
     assert(nullptr != instance_);
 
-    if (
-        instance_->allowedList_.end() ==
+    return instance_->allowedList_.end() !=
         instance_->allowedList_.find(
             pair<ParserInterface::QueryHash, QueryRisk>(hash, qr)
         )
-    )
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
+    ;
 }
 
 
@@ -141,11 +134,11 @@ void QueryWhitelist::readFailToParseQueriesFile(const string& filename)
     {
         ParserInterface pi(i->first);
         QueryRisk qr;
-        const int status = pi.parse(&qr);
-        if (0 == status)
+        const bool successfullyParsed = pi.parse(&qr);
+        if (successfullyParsed)
         {
             Logger::log(Logger::WARN)
-                << "Query in parse whitelist file "
+                << "Query in fail-to-parse whitelist file "
                 << filename
                 << " on line "
                 << i->second
@@ -164,8 +157,8 @@ void QueryWhitelist::readAllowedQueriesFile(const string& filename)
     {
         ParserInterface pi(i->first);
         QueryRisk qr;
-        const int status = pi.parse(&qr);
-        if (0 != status)
+        const bool successfullyParsed = pi.parse(&qr);
+        if (!successfullyParsed)
         {
             Logger::log(Logger::WARN)
                 << "Query in allowed whitelist file "
@@ -210,4 +203,35 @@ QueryWhitelist::queryList QueryWhitelist::readQueriesFromFile(
     }
     fin.close();
     return queries;
+}
+
+
+std::size_t hash_value(
+    const std::pair<ParserInterface::QueryHash, QueryRisk> queryProfile
+)
+{
+    size_t qrHash = 0;
+    // Chunk qr into size_t pieces
+    for (
+        const size_t* iter = reinterpret_cast<const size_t*>(&queryProfile.second);
+        iter < reinterpret_cast<const size_t*>(&(queryProfile.second)) + 1;
+        ++iter
+    )
+    {
+        // sdbmHash
+        qrHash = *iter + (qrHash << 6) + (qrHash << 16) - qrHash;
+        assert(sizeof(*iter) == sizeof(qrHash));
+    }
+    // If the compiler pads the QueryRisk data structure, then we're done!
+    assert(0 == sizeof(QueryRisk) % sizeof(qrHash));
+    if (0 != sizeof(QueryRisk) % sizeof(qrHash))
+    {
+        Logger::log(Logger::WARN)
+            << "Unable to fully hash QueryRisk because it is not "
+            << sizeof(qrHash)
+            << "-byte aligned";
+    }
+
+    // Addition is probably fine, right?
+    return qrHash + hash_value(queryProfile.first);
 }

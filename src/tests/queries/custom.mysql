@@ -1,0 +1,144 @@
+/* MySQL specific comments */ SELECT 1
+SELECT * FROM ident # MySQL comment
+SELECT * FROM ident /*! MySQL command */
+SELECT * FROM ident /*!50440 MySQL version command */
+
+/* MySQL describe statements */ SELECT 1
+DESCRIBE ident
+DESCRIBE ident ident /* Describe a specific column */
+DESCRIBE ident 'quote' /* Describe a specific column */
+DESCRIBE ident 's%' /* Describe columns that match a regex */
+DESCRIBE ident '___' /* Describe columns that match a regex */
+DESC ident
+DESC ident ident /* Describe a specific column */
+DESC ident 'quote' /* Describe a specific column */
+DESC ident 's%' /* Describe columns that match a regex */
+DESC ident '___' /* Describe columns that match a regex */
+EXPLAIN ident
+EXPLAIN ident ident /* Describe a specific column */
+EXPLAIN ident 'quote' /* Describe a specific column */
+EXPLAIN ident 's%' /* Describe columns that match a regex */
+EXPLAIN ident '___' /* Describe columns that match a regex */
+
+/* MySQL SHOW TABLES statements */ SELECT 1
+SHOW TABLES LIKE 'quote'
+SHOW TABLES WHERE 2 = 1 + 1
+SHOW TABLES FROM ident
+SHOW TABLES FROM ident LIKE 'quote'
+SHOW TABLES FROM ident WHERE MD5('quote') = 'quote'
+SHOW FULL TABLES LIKE 'quote'
+SHOW FULL TABLES WHERE 2 = 1 + 1
+SHOW FULL TABLES FROM ident
+SHOW FULL TABLES FROM ident LIKE 'quote'
+SHOW FULL TABLES FROM ident WHERE MD5('quote') = 'quote'
+
+/* MySQL SHOW COLUMNS statements */ SELECT 1
+SHOW COLUMNS FROM ident
+SHOW COLUMNS IN ident
+SHOW COLUMNS FROM ident FROM ident
+SHOW COLUMNS FROM ident IN ident
+SHOW COLUMNS IN ident FROM ident
+SHOW COLUMNS IN ident IN ident
+SHOW COLUMNS FROM ident LIKE 'quote'
+SHOW COLUMNS IN ident LIKE 'quote'
+SHOW COLUMNS FROM ident FROM ident LIKE 'quote'
+SHOW COLUMNS FROM ident IN ident LIKE 'quote'
+SHOW COLUMNS IN ident FROM ident LIKE 'quote'
+SHOW COLUMNS IN ident IN ident LIKE 'quote'
+SHOW COLUMNS FROM ident WHERE 1 = 1
+SHOW COLUMNS IN ident WHERE 1 = 1
+SHOW COLUMNS FROM ident FROM ident WHERE 1 = 1
+SHOW COLUMNS FROM ident IN ident WHERE 1 = 1
+SHOW COLUMNS IN ident FROM ident WHERE 1 = 1
+SHOW COLUMNS IN ident IN ident WHERE 1 = 1
+SHOW FULL COLUMNS FROM ident
+SHOW FULL COLUMNS IN ident
+SHOW FULL COLUMNS FROM ident FROM ident
+SHOW FULL COLUMNS FROM ident IN ident
+SHOW FULL COLUMNS IN ident FROM ident
+SHOW FULL COLUMNS IN ident IN ident
+SHOW FULL COLUMNS FROM ident LIKE 'quote'
+SHOW FULL COLUMNS IN ident LIKE 'quote'
+SHOW FULL COLUMNS FROM ident FROM ident LIKE 'quote'
+SHOW FULL COLUMNS FROM ident IN ident LIKE 'quote'
+SHOW FULL COLUMNS IN ident FROM ident LIKE 'quote'
+SHOW FULL COLUMNS IN ident IN ident LIKE 'quote'
+SHOW FULL COLUMNS FROM ident WHERE 1 = 1
+SHOW FULL COLUMNS IN ident WHERE 1 = 1
+SHOW FULL COLUMNS FROM ident FROM ident WHERE 1 = 1
+SHOW FULL COLUMNS FROM ident IN ident WHERE 1 = 1
+SHOW FULL COLUMNS IN ident FROM ident WHERE 1 = 1
+SHOW FULL COLUMNS IN ident IN ident WHERE 1 = 1
+SHOW COLUMNS FROM ident . ident
+SHOW COLUMNS FROM ident . ident
+SHOW COLUMNS IN ident . ident
+SHOW COLUMNS IN ident . ident
+SHOW COLUMNS FROM ident . ident LIKE 'quote'
+SHOW COLUMNS FROM ident . ident LIKE 'quote'
+SHOW COLUMNS IN ident . ident LIKE 'quote'
+SHOW COLUMNS IN ident . ident LIKE 'quote'
+SHOW COLUMNS FROM ident . ident WHERE 1 = 1
+SHOW COLUMNS FROM ident . ident WHERE 1 = 1
+SHOW COLUMNS IN ident . ident WHERE 1 = 1
+SHOW COLUMNS IN ident . ident WHERE 1 = 1
+SHOW FULL COLUMNS FROM ident . ident
+SHOW FULL COLUMNS FROM ident . ident
+SHOW FULL COLUMNS IN ident . ident
+SHOW FULL COLUMNS IN ident . ident
+SHOW FULL COLUMNS FROM ident . ident LIKE 'quote'
+SHOW FULL COLUMNS FROM ident . ident LIKE 'quote'
+SHOW FULL COLUMNS IN ident . ident LIKE 'quote'
+SHOW FULL COLUMNS IN ident . ident LIKE 'quote'
+SHOW FULL COLUMNS FROM ident . ident WHERE 1 = 1
+SHOW FULL COLUMNS FROM ident . ident WHERE 1 = 1
+SHOW FULL COLUMNS IN ident . ident WHERE 1 = 1
+SHOW FULL COLUMNS IN ident . ident WHERE 1 = 1
+
+/* MySQL SHOW CREATE DATABASE statements */ SELECT 1
+SHOW CREATE DATABASE ident
+SHOW CREATE SCHEMA ident
+
+/* MySQL SHOW DATABASES statements */ SELECT 1
+SHOW DATABASES LIKE 'quote'
+SHOW SCHEMAS LIKE 'quote'
+SHOW DATABASES WHERE 1 > 0
+SHOW SCHEMAS LIKE 1 * 1 = 1
+
+/* MySQL SHOW CREATE table statements */ SELECT 1
+SHOW CREATE TABLE ident
+
+/* MySQL MATCH statements */ SELECT 1
+SELECT * FROM ident WHERE MATCH (ident) AGAINST ('quote')
+SELECT * FROM ident WHERE MATCH (ident, ident) AGAINST ('quote')
+SELECT * FROM ident WHERE MATCH (ident, ident, ident) AGAINST ('quote')
+SELECT * FROM ident WHERE MATCH (ident) AGAINST (CONCAT('quote', CHAR(5)))
+SELECT * FROM ident WHERE MATCH (ident) AGAINST ('quote' IN BOOLEAN MODE)
+SELECT * FROM ident WHERE MATCH (ident) AGAINST ('quote' WITH QUERY EXPANSION)
+
+/* MySQL SET statements and global variables */ SELECT 1
+SET max_join_size = DEFAULT
+SET @@session.max_join_size = @@global.max_join_size
+SELECT @@global.sql_mode, @@session.sql_mode, @@sql_mode
+SET ONE_SHOT character_set_connections = latin5
+SET ONE_SHOT collation_connection = latin5_turkish_ci
+SHOW VARIABLES LIKE '%_connection'
+SHOW GLOBAL VARIABLES LIKE '%_connection'
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ
+SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+SET GLOBAL TRANSACTION ISOLATION LEVEL READ COMMITTED
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
+SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
+SET TRANSACTION ISOLATION LEVEL REPEATABLE SERIALIZABLE
+SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE SERIALIZABLE
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE SERIALIZABLE
+SELECT @@GLOBAL.tx_isolation, @@tx_isolation
+SET GLOBAL tx_isolation = 'REPEATABLE-READ'
+SET SESSION tx_isolation = 'SERIALIZABLE'
+SET NAMES utf8
+
+/* MySQL lets you do extra stuff if there are duplicate keys */ SELECT 1
+INSERT INTO ident (ident, ident) VALUES (1, 'quote') ON DUPLICATE KEY UPDATE ident = ident + 1

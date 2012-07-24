@@ -22,7 +22,7 @@
 #define SRC_QUERYRISK_HPP_
 
 #include <boost/regex.hpp>
-#include <ostream>
+#include <iosfwd>
 
 /**
  * Stores information about potentionally dangers commands that are found in a

@@ -208,10 +208,6 @@ void testQueryRiskAlwaysTrue()
     // expression IN (expression, expression, expression, ...)
     // ------------------------------------------------------------------------
 
-    // Subselects shouldn't be detectable as always true
-    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (SELECT 1)");
-    BOOST_CHECK(!qr.alwaysTrue);
-
     qr = parseQuery("SELECT * FROM foo WHERE 1 IN (1)");
     BOOST_CHECK(qr.alwaysTrue);
 

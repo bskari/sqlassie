@@ -78,14 +78,12 @@ int main(int argc, char* argv[])
 
     if (file)
     {
-        ifstream fin;
-        fin.open(argv[1]);
-        if (!fin)
+        stream = new ifstream(argv[1]);
+        if (!stream->good())
         {
             cerr << "Unable to open file '" << argv[1] << "', aborting" << endl;
             return 0;
         }
-        stream = &fin;
     }
     else
     {
@@ -133,11 +131,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (!file)
-    {
-        delete stream;
-    }
-
+    delete stream;
     cout << endl;
     return 0;
 }

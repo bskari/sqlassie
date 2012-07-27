@@ -44,7 +44,7 @@ public:
      * @param expression The expression that's being checked to see if it's in
      * the list.
      */
-    InValuesListNode(bool in, const ExpressionNode* expression);
+    InValuesListNode(const ExpressionNode* expression);
 
     virtual ~InValuesListNode();
 
@@ -81,7 +81,6 @@ public:
     ) const;
 
 protected:
-    const bool in_;
     const ExpressionNode* const expression_;
 
 private:

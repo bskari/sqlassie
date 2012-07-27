@@ -36,6 +36,7 @@ using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_replace;
 using boost::regex_match;
+using std::ostream;
 
 
 ComparisonNode::ComparisonNode(const int compareType) :
@@ -187,7 +188,7 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 
 
 void ComparisonNode::print(
-    std::ostream& out,
+    ostream& out,
     const int depth,
     const char indent
 ) const

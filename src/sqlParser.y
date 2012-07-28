@@ -52,6 +52,7 @@
 #include "AstNode.hpp"
 #include "BooleanLogicNode.hpp"
 #include "ExpressionNode.hpp"
+#include "InValuesListNode.hpp"
 #include "NegationNode.hpp"
 #include "nullptr.hpp"
 #include "OperatorNode.hpp"
@@ -691,6 +692,24 @@ limit_opt(A) ::= LIMIT expr(X).       {A;X;}
 limit_opt(A) ::= LIMIT expr(X) OFFSET expr(Y). {A;X;Y;}
 limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {A;X;Y;}
 
+// Subselects have some different semantics.
+// 1) We care about the risks in them, because attackers can use them to
+// access more information. So, we will process them and set the QueryRisk
+// appropriately.
+// 2) They are considered an expression, because they return some values.
+// We can't really determine what that expression is, so we'll default to
+// returning a fummy identifier, so that comparisons won't be mistakenly
+// assumed as true.
+subselect ::= select.
+{
+    while (!sc->nodes.empty())
+    {
+        delete sc->nodes.top();
+        sc->nodes.pop();
+    }
+    sc->nodes.push(new ExpressionNode("subselect_dummy_identifier", true));
+}
+
 /////////////////////////// The DELETE statement /////////////////////////////
 //
 cmd ::= DELETE delete_opt FROM fullname where_opt
@@ -779,7 +798,7 @@ inscollist(A) ::= nm(Y). {A;Y;}
 
 expr ::= term.
 expr ::= LP expr RP.
-expr ::= LP select RP.
+expr ::= LP subselect RP.
 {
     /// @TODO(bskari|2012-07-04) What should I do here?
     sc->nodes.push(new AlwaysSomethingNode(true));
@@ -1012,10 +1031,40 @@ expr ::= expr between_op(N) expr AND expr. [BETWEEN]
     }
 }
 in_op(A) ::= IN(OP).        {A.negation = false; A.inOpType = OP->token_;}
-in_op(A) ::= NOT IN(OP).    {A.negation = false; A.inOpType = OP->token_;}
-expr(A) ::= expr(X) in_op(N) LP exprlist(Y) RP. [IN]    {A;X;Y;N;}
-expr(A) ::= expr(X) in_op(N) LP select(Y) RP. [IN]      {A;X;Y;N;}
-expr(A) ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN]        {A;X;Y;N;Z;}
+in_op(A) ::= NOT IN(OP).    {A.negation = true; A.inOpType = OP->token_;}
+expr ::= expr in_op(N) LP exprlist RP. [IN]
+{
+    // The expression that we're checking if it's in is on the bottom of the
+    // stack, so we hve to dig down to it
+    std::stack<ExpressionNode*> exprList;
+    while (!sc->nodes.empty())
+    {
+        exprList.push(
+            boost::polymorphic_cast<ExpressionNode*>(sc->nodes.top())
+        );
+        sc->nodes.pop();
+    }
+    AstNode* inValuesListNode = new InValuesListNode(exprList.top());
+    exprList.pop();
+    while (!exprList.empty())
+    {
+        inValuesListNode->addChild(exprList.top());
+        exprList.pop();
+    }
+
+    if (N.negation)
+    {
+        AstNode* negationNode = new NegationNode;
+        negationNode->addChild(inValuesListNode);
+        sc->nodes.push(negationNode);
+    }
+    else
+    {
+        sc->nodes.push(inValuesListNode);
+    }
+}
+expr ::= expr(X) in_op(N) LP subselect(Y) RP. [IN]      {X;Y;N;}
+expr ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN]        {X;Y;N;Z;}
 //// MySQL ANY/SOME operators: = > < >= <= <> !=
 //anyOrSome(A) ::= ANY|SOME.
 //expr(A) ::= expr(X) EQ|NE(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN]

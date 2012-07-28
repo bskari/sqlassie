@@ -97,16 +97,16 @@ public:
         const char indent
     ) const;
 
+    /**
+     * Determines if the string represents a decimal number.
+     */
+    static bool isNumber(const std::string& str);
+
 private:
     const std::string expression_;
     const bool number_;
     const bool identifier_;
     const bool quotedString_;
-
-    /**
-     * Determines if the string represents a decimal number.
-     */
-    static bool isNumber(const std::string& str);
 
     ExpressionNode(const ExpressionNode& rhs);
     ExpressionNode& operator=(const ExpressionNode& rhs);

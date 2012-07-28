@@ -38,11 +38,9 @@ using std::string;
 using std::vector;
 
 
-InValuesListNode::InValuesListNode(const bool in,
-    const ExpressionNode* const expression) :
-    ConditionalNode("InValuesList"),
-    in_(in),
-    expression_(expression)
+InValuesListNode::InValuesListNode(const ExpressionNode* const expression)
+    : ConditionalNode("InValuesList")
+    , expression_(expression)
 {
 }
 
@@ -55,7 +53,7 @@ InValuesListNode::~InValuesListNode()
 
 AstNode* InValuesListNode::copy() const
 {
-    InValuesListNode* const temp = new InValuesListNode(in_, expression_);
+    InValuesListNode* const temp = new InValuesListNode(expression_);
     AstNode::addCopyOfChildren(temp);
     return temp;
 }
@@ -88,7 +86,7 @@ bool InValuesListNode::isAlwaysTrue() const
         }
     }
     // The user can either specify "expr IN (...)" or "expr NOT IN (...)"
-    return in_ == in;
+    return in;
 }
 
 
@@ -128,14 +126,7 @@ void InValuesListNode::print(
     {
         out << indent;
     }
-    if (in_)
-    {
-        out << "In\n";
-    }
-    else
-    {
-        out << "Not In\n";
-    }
+    out << "In\n";
 
     printChildren(out, depth + 1, indent);
     for (int i = 0; i < depth; ++i)

@@ -33,9 +33,6 @@ ComparisonNode.o:	ComparisonNode.cpp ComparisonNode.hpp ExpressionNode.hpp \
 	Logger.hpp MySqlConstants.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
 	nullptr.hpp sqlParser.h
 
-ConditionalListNode.o:	ConditionalListNode.cpp AstNode.hpp \
-	ConditionalListNode.hpp ExpressionNode.hpp Logger.hpp nullptr.hpp
-
 DlibProbabilities.o:	DlibProbabilities.cpp AttackProbabilities.hpp \
 	BayesException.hpp DlibProbabilities.hpp Logger.hpp QueryRisk.hpp \
 	clearStack.hpp dlib/dlib/bayes_utils.h dlib/dlib/directed_graph.h \
@@ -178,8 +175,8 @@ tests/testMySqlConstants.o:	tests/testMySqlConstants.cpp MySqlConstants.hpp \
 	tests/testMySqlConstants.hpp
 
 tests/testNode.o:	tests/testNode.cpp AlwaysSomethingNode.hpp AstNode.hpp \
-	BinaryOperatorNode.hpp ComparisonNode.hpp ExpressionNode.hpp \
-	InValuesListNode.hpp NegationNode.hpp sqlParser.h tests/testNode.hpp
+	BinaryOperatorNode.hpp ComparisonNode.hpp InValuesListNode.hpp \
+	NegationNode.hpp TerminalNode.hpp sqlParser.h tests/testNode.hpp
 
 tests/testParser.o:	tests/testParser.cpp ParserInterface.hpp QueryRisk.hpp \
 	tests/testParser.hpp

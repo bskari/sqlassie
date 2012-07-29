@@ -139,7 +139,7 @@ testDependencies = tests/test.o tests/testNode.o tests/testParser.o \
 	MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o huginParser.tab.o \
 	MessageHandler.o Logger.o InSubselectNode.o NegationNode.o QueryWhitelist.o \
 	ScannerContext.o SensitiveNameChecker.o BinaryOperatorNode.o TokenInfo.o \
-	BooleanLogicNode.o
+	BooleanLogicNode.o TerminalNode.o NullNode.o FunctionNode.o
 $(BINARY_DIR)/test: $(testDependencies)
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(testDependencies) \
 		-lboost_regex -lboost_thread -lmysqlclient \

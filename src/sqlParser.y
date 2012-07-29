@@ -80,6 +80,8 @@ struct InOpInfo
     bool negation;
 };
 
+static std::stack<std::stack<ExpressionNode*> > expressionLists;
+
 // Give up parsing as soon as the first error is encountered
 #define YYNOERRORRECOVERY 1
 
@@ -213,7 +215,15 @@ no_opt ::= NO.
 // keywords.  Any non-standard keyword can also be an identifier.
 //
 id(A) ::= ID(X).            {A = X;}
-id(A) ::= ID_FALLBACK(X).   {A = X;}
+id(A) ::= ID_FALLBACK(X).
+{
+    A = X;
+    // I really don't want to include the header file that's generated from
+    // this file just to access the scan token value for ID, because that just
+    // seems like a terrible hack.
+    const int ID_TOKEN = 15;
+    A->token_ = ID_TOKEN;
+}
 
 // The following directive causes tokens ABORT, AFTER, ASC, etc. to
 // fallback to ID if they will not parse as their original value.
@@ -677,7 +687,17 @@ sortorder(A) ::= DESC.          {A;}
 sortorder(A) ::= .              {A;}
 
 groupby_opt(A) ::= .                      {A;}
-groupby_opt(A) ::= GROUP BY nexprlist(X). {A;X;}
+groupby_opt ::= GROUP BY nexprlist.
+{
+    std::stack<ExpressionNode*>& s = expressionLists.top();
+    while (!s.empty())
+    {
+        delete s.top();
+        s.pop();
+    }
+    expressionLists.pop();
+}
+
 
 having_opt(A) ::= .                {A;}
 having_opt(A) ::= HAVING expr(X).  {A;X;}
@@ -788,11 +808,31 @@ insert_cmd(A) ::= REPLACE.  {A;}
 // into a set of SELECT statements without FROM clauses and connected by
 // UNION ALL and the ValueList.pSelect points to the right-most SELECT in
 // that compound.
-valuelist(A) ::= VALUES LP nexprlist(X) RP. {A;X;}
+valuelist ::= VALUES LP nexprlist RP.
+{
+    /// @TODO(bskari|2012-07-29) Do something?
+    std::stack<ExpressionNode*>& s = expressionLists.top();
+    while (!s.empty())
+    {
+        delete s.top();
+        s.pop();
+    }
+    expressionLists.pop();
+}
 
 // Since a list of VALUEs is inplemented as a compound SELECT, we have
 // to disable the value list option if compound SELECTs are disabled.
-valuelist(A) ::= valuelist(X) COMMA LP exprlist(Y) RP. {A;X;Y;}
+valuelist ::= valuelist COMMA LP exprlist RP.
+{
+    /// @TODO(bskari|2012-07-29) Do something?
+    std::stack<ExpressionNode*>& s = expressionLists.top();
+    while (!s.empty())
+    {
+        delete s.top();
+        s.pop();
+    }
+    expressionLists.pop();
+}
 
 inscollist_opt(A) ::= .                      {A;}
 inscollist_opt(A) ::= LP inscollist(X) RP.   {A;X;}
@@ -866,7 +906,17 @@ expr ::= id(X) LP distinct exprlist RP.
 {
     /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
     /// functions here. For example, IF(1, 1, 0) should always be true.
+    FunctionNode* fn = new FunctionNode(X->scannedString_);
+    std::stack<ExpressionNode*>& exprList = expressionLists.top();
+    while (!exprList.empty())
+    {
+        fn->addChild(exprList.top());
+        exprList.pop();
+    }
+    expressionLists.pop();
+
     sc->nodes.push(new FunctionNode(X->scannedString_));
+
     sc->qrPtr->checkFunction(X->scannedString_);
 }
 expr ::= id(X) LP STAR RP.
@@ -1049,23 +1099,18 @@ in_op(A) ::= IN(OP).        {A.negation = false; A.inOpType = OP->token_;}
 in_op(A) ::= NOT IN(OP).    {A.negation = true; A.inOpType = OP->token_;}
 expr ::= expr in_op(N) LP exprlist RP. [IN]
 {
-    // The expression that we're checking if it's in is on the bottom of the
-    // stack, so we hve to dig down to it
-    std::stack<ExpressionNode*> exprList;
-    while (!sc->nodes.empty())
-    {
-        exprList.push(
-            boost::polymorphic_cast<ExpressionNode*>(sc->nodes.top())
-        );
-        sc->nodes.pop();
-    }
-    ExpressionNode* const inValuesListNode = new InValuesListNode(exprList.top());
-    exprList.pop();
+    ExpressionNode* const inValuesListNode = new InValuesListNode(
+        boost::polymorphic_cast<ExpressionNode*>(sc->nodes.top())
+    );
+    sc->nodes.pop();
+
+    std::stack<ExpressionNode*>& exprList = expressionLists.top();
     while (!exprList.empty())
     {
         inValuesListNode->addChild(exprList.top());
         exprList.pop();
     }
+    expressionLists.pop();
 
     if (N.negation)
     {
@@ -1093,9 +1138,29 @@ case_else(A) ::=  .                     {A;}
 case_operand(A) ::= expr(X).            {A;X;}
 case_operand(A) ::= .                   {A;}
 
-exprlist(A) ::= nexprlist(X).                {A;X;}
-exprlist(A) ::= .                            {A;}
-nexprlist(A) ::= nexprlist(X) COMMA expr(Y). {A;X;Y;}
-nexprlist(A) ::= expr(Y). {A;Y;}
+exprlist ::= nexprlist.
+exprlist ::= .
+{
+    // Just push an empty list so that we can pop it later
+    std::stack<ExpressionNode*> s;
+    expressionLists.push(s);
+}
+nexprlist ::= nexprlist COMMA expr.
+{
+    expressionLists.top().push(
+        boost::polymorphic_cast<ExpressionNode*>(sc->nodes.top())
+    );
+    sc->nodes.pop();
+}
+nexprlist ::= expr.
+{
+    std::stack<ExpressionNode*> s;
+    expressionLists.push(s);
+
+    expressionLists.top().push(
+        boost::polymorphic_cast<ExpressionNode*>(sc->nodes.top())
+    );
+    sc->nodes.pop();
+}
 
 expr(A) ::= mysql_match.    {A;}

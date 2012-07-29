@@ -21,24 +21,26 @@
 #include "AstNode.hpp"
 #include "BooleanLogicNode.hpp"
 #include "Logger.hpp"
-#include "OperatorNode.hpp"
 #include "QueryRisk.hpp"
 #include "sqlParser.h"
 
-#include <boost/cast.hpp>
-#include <boost/cstdint.hpp>
-#include <boost/lexical_cast.hpp>
 #include <cassert>
 #include <ostream>
+#include <string>
 
-using boost::bad_lexical_cast;
-using boost::lexical_cast;
-using boost::polymorphic_downcast;
+using std::ostream;
+using std::string;
 
 
-BooleanLogicNode::BooleanLogicNode(const int logicalOperator) :
-    ConditionalNode("BooleanLogic"),
-    logicalOperator_(logicalOperator)
+BooleanLogicNode::BooleanLogicNode(
+    const ExpressionNode* const expr1,
+    const int logicalOperator,
+    const ExpressionNode* const expr2
+)
+    : ExpressionNode("BooleanLogic")
+    , expr1_(expr1)
+    , logicalOperator_(logicalOperator)
+    , expr2_(expr2)
 {
 }
 
@@ -50,7 +52,11 @@ BooleanLogicNode::~BooleanLogicNode()
 
 AstNode* BooleanLogicNode::copy() const
 {
-    BooleanLogicNode* const temp = new BooleanLogicNode(logicalOperator_);
+    BooleanLogicNode* const temp = new BooleanLogicNode(
+        expr1_,
+        logicalOperator_,
+        expr2_
+    );
     AstNode::addCopyOfChildren(temp);
     return temp;
 }
@@ -58,27 +64,21 @@ AstNode* BooleanLogicNode::copy() const
 
 bool BooleanLogicNode::isAlwaysTrue() const
 {
-    assert(2 == children_.size() && "BooleanLogicNode should have 2 children");
-
-    const ConditionalNode* const c1 =
-        polymorphic_downcast<const ConditionalNode*>(children_.at(0));
-    const ConditionalNode* const c2 =
-        polymorphic_downcast<const ConditionalNode*>(children_.at(1));
-
     switch (logicalOperator_)
     {
     case AND:
-        return c1->isAlwaysTrue() && c2->isAlwaysTrue();
+        return expr1_->isAlwaysTrue() && expr2_->isAlwaysTrue();
     case OR:
-        return c1->isAlwaysTrue() || c2->isAlwaysTrue();
+        return expr1_->isAlwaysTrue() || expr2_->isAlwaysTrue();
     case XOR:
         return (
-            (c1->isAlwaysTrue() && !c2->isAlwaysTrue())
-            || (!c1->isAlwaysTrue() && c2->isAlwaysTrue())
+            (expr1_->isAlwaysTrue() && !expr2_->isAlwaysTrue())
+            || (!expr1_->isAlwaysTrue() && expr2_->isAlwaysTrue())
         );
     default:
         Logger::log(Logger::ERROR)
             << "Unknown operator in BooleanLogicNode: '"
+            << logicalOperator_
             << '\'';
         assert(false);
         return false;
@@ -94,28 +94,21 @@ bool BooleanLogicNode::anyIsAlwaysTrue() const
 
 QueryRisk::EmptyPassword BooleanLogicNode::emptyPassword() const
 {
-    assert(2 == children_.size() && "BooleanLogicNode should have 2 children");
-
-    const ConditionalNode* const c1 =
-        polymorphic_downcast<const ConditionalNode*>(children_.at(0));
-    const ConditionalNode* const c2 =
-        polymorphic_downcast<const ConditionalNode*>(children_.at(1));
-
     // Here, we need to examine both nodes to examine the password risk.
     // If one has an empty password, return that, because that's very risky.
     // If one has a nonempty password, return that, because the other is benign.
     // If neither are using passwords, return that.
     if (
-        QueryRisk::PASSWORD_EMPTY == c1->emptyPassword()
-        || QueryRisk::PASSWORD_EMPTY == c2->emptyPassword()
+        QueryRisk::PASSWORD_EMPTY == expr1_->emptyPassword()
+        || QueryRisk::PASSWORD_EMPTY == expr2_->emptyPassword()
     )
     {
         return QueryRisk::PASSWORD_EMPTY;
     }
 
     if (
-        QueryRisk::PASSWORD_NOT_EMPTY == c1->emptyPassword()
-        || QueryRisk::PASSWORD_NOT_EMPTY == c2->emptyPassword()
+        QueryRisk::PASSWORD_NOT_EMPTY == expr1_->emptyPassword()
+        || QueryRisk::PASSWORD_NOT_EMPTY == expr2_->emptyPassword()
     )
     {
         return QueryRisk::PASSWORD_NOT_EMPTY;
@@ -124,8 +117,22 @@ QueryRisk::EmptyPassword BooleanLogicNode::emptyPassword() const
     return QueryRisk::PASSWORD_NOT_USED;
 }
 
+
+bool BooleanLogicNode::resultsInValue() const
+{
+    return true;
+}
+
+
+string BooleanLogicNode::getValue() const
+{
+    /// @TODO(bskari|2012-07-28) Do something!
+    return "";
+}
+
+
 void BooleanLogicNode::print(
-    std::ostream& out,
+    ostream& out,
     const int depth,
     const char indent
 ) const

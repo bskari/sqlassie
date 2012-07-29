@@ -50,13 +50,17 @@
 
 #include "AlwaysSomethingNode.hpp"
 #include "AstNode.hpp"
+#include "BinaryOperatorNode.hpp"
 #include "BooleanLogicNode.hpp"
+#include "ComparisonNode.hpp"
 #include "ExpressionNode.hpp"
+#include "FunctionNode.hpp"
 #include "InValuesListNode.hpp"
 #include "NegationNode.hpp"
+#include "NullNode.hpp"
 #include "nullptr.hpp"
-#include "OperatorNode.hpp"
 #include "ScannerContext.hpp"
+#include "TerminalNode.hpp"
 #include "TokenInfo.hpp"
 
 struct LikeOpInfo
@@ -80,7 +84,7 @@ struct InOpInfo
 #define YYNOERRORRECOVERY 1
 
 /**
- * Pushes a new ExpressionNode with two ExpressionNodes as leaves (taken from
+ * Pushes a new BooleanLogicNode with two ExpressionNodes as leaves (taken from
  * the stack) and the given operator.
  */
 static void addBooleanLogicNode(
@@ -88,38 +92,40 @@ static void addBooleanLogicNode(
     const int operator_
 )
 {
-    AstNode* const e = new BooleanLogicNode(operator_);
-
-    e->addChild(sc->nodes.top());
+    ExpressionNode* const expr2 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
+    sc->nodes.pop();
+    ExpressionNode* const expr1 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
 
-    e->addChild(sc->nodes.top());
-    sc->nodes.pop();
+    AstNode* const e = new BooleanLogicNode(
+        expr1,
+        operator_,
+        expr2
+    );
 
     sc->nodes.push(e);
 }
 
 
 /**
- * Pushes a new ExpressionNode with two ExpressionNodes as leaves (taken from
- * the stack) and the given operator.
+ * Pushes a new BinaryOperatorNode with two ExpressionNodes as leaves (taken
+ * from the stack) and the given operator.
  */
-static void addExpressionNode(
+static void addBinaryOperatorNode(
     ScannerContext* const sc,
     const int operator_
 )
 {
-    AstNode* const e = new ExpressionNode;
-
-    e->addChild(sc->nodes.top());
+    ExpressionNode* const expr2 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
+    sc->nodes.pop();
+    ExpressionNode* const expr1 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
 
-    e->addChild(new OperatorNode(operator_));
-
-    e->addChild(sc->nodes.top());
-    sc->nodes.pop();
-
-    sc->nodes.push(e);
+    sc->nodes.push(new BinaryOperatorNode(expr1, operator_, expr2));
 }
 
 
@@ -129,22 +135,22 @@ static void addExpressionNode(
  */
 static void addComparisonNode(
     ScannerContext* sc,
-    const int comparisonType_,
+    const int comparisonType,
     bool negation = false
 )
 {
-    AstNode* const e = new ComparisonNode(comparisonType_);
-
-    e->addChild(sc->nodes.top());
+    ExpressionNode* const expr2 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
+    sc->nodes.pop();
+    ExpressionNode* const expr1 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
 
-    e->addChild(sc->nodes.top());
-    sc->nodes.pop();
+    ExpressionNode* const e = new ComparisonNode(expr1, comparisonType, expr2);
 
     if (negation)
     {
-        AstNode* const negationNode = new NegationNode;
-        negationNode->addChild(e);
+        AstNode* const negationNode = new NegationNode(e);
         sc->nodes.push(negationNode);
     }
     else
@@ -499,8 +505,8 @@ multiselect_op(A) ::= UNION ALL.             {A;}
 oneselect ::= SELECT distinct selcollist from where_opt
                 groupby_opt having_opt orderby_opt limit_opt.
 {
-    const ConditionalNode* const whereNode =
-        boost::polymorphic_cast<const ConditionalNode*>(sc->nodes.top());
+    const ExpressionNode* const whereNode =
+        boost::polymorphic_cast<const ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
     sc->qrPtr->alwaysTrue = whereNode->isAlwaysTrue();
 }
@@ -707,7 +713,7 @@ subselect ::= select.
         delete sc->nodes.top();
         sc->nodes.pop();
     }
-    sc->nodes.push(new ExpressionNode("subselect_dummy_identifier", true));
+    sc->nodes.push(TerminalNode::createDummyIdentifierTerminalNode());
 }
 
 /////////////////////////// The DELETE statement /////////////////////////////
@@ -729,7 +735,7 @@ ignore_opt ::= .
 ignore_opt ::= IGNORE.
 where_opt ::= .
 {
-    AstNode* const whereNode = new AlwaysSomethingNode(true, 0);
+    AstNode* const whereNode = new AlwaysSomethingNode(true);
     sc->nodes.push(whereNode);
 }
 where_opt ::= WHERE expr.
@@ -803,54 +809,51 @@ expr ::= LP subselect RP.
     /// @TODO(bskari|2012-07-04) What should I do here?
     sc->nodes.push(new AlwaysSomethingNode(true));
 }
-term ::= NULL_KW.   {sc->nodes.push(new ExpressionNode("NULL", false));}
+term ::= NULL_KW.   {sc->nodes.push(new NullNode);}
 expr ::= id(X).
 {
-    ExpressionNode* e = new ExpressionNode(X->scannedString_, true);
+    ExpressionNode* e = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(e);
 }
 expr ::= JOIN_KW.
 expr ::= nm(X) DOT id(Y).
 {
     sc->qrPtr->checkTable(X->scannedString_);
-    ExpressionNode* const e = new ExpressionNode(Y->scannedString_, true);
+    ExpressionNode* const e = new TerminalNode(Y->scannedString_, Y->token_);
     sc->nodes.push(e);
 }
 expr ::= nm DOT table_name DOT id(X).
 {
-    ExpressionNode* const e = new ExpressionNode(X->scannedString_, true);
+    ExpressionNode* const e = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(e);
 }
 term ::= INTEGER|FLOAT(X).
 {
-    ExpressionNode* const ex = new ExpressionNode(X->scannedString_, false);
+    ExpressionNode* const ex = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(ex);
 }
 term ::= HEX_NUMBER(X).
 {
     /// @TODO Translate this to a decimal number?
-    ExpressionNode* const ex = new ExpressionNode(X->scannedString_, false);
+    ExpressionNode* const ex = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(ex);
 }
 term ::= STRING(X).
 {
-    std::string& term = X->scannedString_;
-    ExpressionNode* const ex = new ExpressionNode(term, false);
+    ExpressionNode* const ex = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(ex);
 }
 term ::= GLOBAL_VARIABLE(X).
 {
     /// @TODO(bskari|2012-07-04) Check risky stuff?
-    std::string& global = X->scannedString_;
-    ExpressionNode* const ex = new ExpressionNode(global, false);
+    ExpressionNode* const ex = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(ex);
     ++sc->qrPtr->globalVariables;
 }
 term ::= GLOBAL_VARIABLE DOT id(X).
 {
     /// @TODO(bskari|2012-07-04) Check risky stuff?
-    std::string& identifier = X->scannedString_;
-    ExpressionNode* const ex = new ExpressionNode(identifier, false);
+    ExpressionNode* const ex = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(ex);
     ++sc->qrPtr->globalVariables;
 }
@@ -862,15 +865,15 @@ expr ::= CAST LP expr AS typetoken RP.
 expr ::= id(X) LP distinct exprlist RP.
 {
     /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
-    /// functions here. For example, IF (1, 1, 0) should always be true.
-    sc->nodes.push(new ExpressionNode(" ", false));
+    /// functions here. For example, IF(1, 1, 0) should always be true.
+    sc->nodes.push(new FunctionNode(X->scannedString_));
     sc->qrPtr->checkFunction(X->scannedString_);
 }
 expr ::= id(X) LP STAR RP.
 {
     /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
     /// functions here. For example, IF (1, 1, 0) should always be true.
-    sc->nodes.push(new ExpressionNode(" ", false));
+    sc->nodes.push(new FunctionNode(X->scannedString_));
     sc->qrPtr->checkFunction(X->scannedString_);
 }
 expr ::= expr AND(OP) expr.
@@ -895,19 +898,31 @@ expr ::= expr EQ|NE(OP) expr.
 }
 expr ::= expr BITAND|BITOR|BITXOR|LSHIFT|RSHIFT(OP) expr.
 {
-    addExpressionNode(sc, OP->token_);
+    addBinaryOperatorNode(sc, OP->token_);
 }
 expr ::= expr PLUS|MINUS(OP) expr.
 {
-    addExpressionNode(sc, OP->token_);
+    addBinaryOperatorNode(sc, OP->token_);
 }
 expr ::= expr STAR|SLASH|REM|INTEGER_DIVIDE(OP) expr.
 {
-    addExpressionNode(sc, OP->token_);
+    addBinaryOperatorNode(sc, OP->token_);
 }
-expr ::= expr CONCAT(OP) expr.
+expr ::= expr CONCAT expr.
 {
-    addExpressionNode(sc, OP->token_);
+    // Screw it, let's just handle it here
+    ExpressionNode* const expr2 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
+    sc->nodes.pop();
+    ExpressionNode* const expr1 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
+    sc->nodes.pop();
+
+    sc->nodes.push(
+        TerminalNode::createStringTerminalNode(
+            expr1->getValue() + expr2->getValue()
+        )
+    );
 }
 
 like_op(A) ::= MATCH_KW(OP).
@@ -949,11 +964,11 @@ expr ::= expr IS NULL_KW.
         boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     // NULL IS NULL is always true, everything else is false, or safe enough
     // to always be considered false
-    const bool alwaysTrue = (!ex->isIdentifier() && "NULL" != ex->getValue());
+    const bool alwaysTrue = (!ex->resultsInValue() && "NULL" != ex->getValue());
     AstNode* const asn = new AlwaysSomethingNode(alwaysTrue);
     asn->addChild(sc->nodes.top());
     sc->nodes.pop();
-    asn->addChild(new ExpressionNode("NULL", false));
+    asn->addChild(new NullNode);
     sc->nodes.push(asn);
 }
 expr ::= expr IS NOT NULL_KW.
@@ -962,20 +977,19 @@ expr ::= expr IS NOT NULL_KW.
         boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     // NULL IS NOT NULL is always false, everything else is true, or safe
     // enough to always be considered false
-    const bool alwaysTrue = !(!ex->isIdentifier() && "NULL" != ex->getValue());
+    const bool alwaysTrue = !(!ex->resultsInValue() && "NULL" != ex->getValue());
     AstNode* const asn = new AlwaysSomethingNode(alwaysTrue);
     asn->addChild(sc->nodes.top());
     sc->nodes.pop();
-    asn->addChild(new ExpressionNode("NULL", false));
+    asn->addChild(new NullNode);
     sc->nodes.push(asn);
 }
 expr ::= NOT expr.
 {
-    const ConditionalNode* const cond =
-        boost::polymorphic_downcast<ConditionalNode*>(sc->nodes.top());
+    const ExpressionNode* const expr =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
-    AstNode* const negationNode = new NegationNode;
-    negationNode->addChild(cond);
+    AstNode* const negationNode = new NegationNode(expr);
     sc->nodes.push(negationNode);
 }
 
@@ -983,14 +997,15 @@ expr ::= NOT expr.
 expr ::= BITNOT expr.
 expr ::= MINUS(X) expr. [BITNOT]
 {
-    AstNode* negatedExpr = sc->nodes.top();
+    ExpressionNode* const negatedExpr =
+        boost::polymorphic_cast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
-    AstNode* minus = new ExpressionNode;
 
-    minus->addChild(new ExpressionNode("0", false));
-    minus->addChild(new OperatorNode(X->token_));
-    minus->addChild(negatedExpr);
-
+    AstNode* minus = new BinaryOperatorNode(
+        TerminalNode::createNumberTerminalNode("0"),
+        X->token_,
+        negatedExpr
+    );
     sc->nodes.push(minus);
 }
 expr ::= PLUS expr. [BITNOT]
@@ -1007,22 +1022,22 @@ between_op(A) ::= NOT BETWEEN(X).
 }
 expr ::= expr between_op(N) expr AND expr. [BETWEEN]
 {
-    AstNode* const comparisonNode = new ComparisonNode(N.tokenType);
-
-    AstNode* const maxExpr = sc->nodes.top();
+    ExpressionNode* const expr2 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
-    AstNode* const minExpr = sc->nodes.top();
-    sc->nodes.pop();
-    AstNode* const expr = sc->nodes.top();
+    ExpressionNode* const expr1 =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
 
-    comparisonNode->addChild(expr);
-    comparisonNode->addChild(minExpr);
-    comparisonNode->addChild(maxExpr);
+    ExpressionNode* const comparisonNode = new ComparisonNode(
+        expr1,
+        N.tokenType,
+        expr2
+    );
+
     if (N.negation)
     {
-        AstNode* const negationNode = new NegationNode;
-        negationNode->addChild(comparisonNode);
+        AstNode* const negationNode = new NegationNode(comparisonNode);
         sc->nodes.push(negationNode);
     }
     else
@@ -1044,7 +1059,7 @@ expr ::= expr in_op(N) LP exprlist RP. [IN]
         );
         sc->nodes.pop();
     }
-    AstNode* inValuesListNode = new InValuesListNode(exprList.top());
+    ExpressionNode* const inValuesListNode = new InValuesListNode(exprList.top());
     exprList.pop();
     while (!exprList.empty())
     {
@@ -1054,8 +1069,7 @@ expr ::= expr in_op(N) LP exprlist RP. [IN]
 
     if (N.negation)
     {
-        AstNode* negationNode = new NegationNode;
-        negationNode->addChild(inValuesListNode);
+        ExpressionNode* negationNode = new NegationNode(inValuesListNode);
         sc->nodes.push(negationNode);
     }
     else

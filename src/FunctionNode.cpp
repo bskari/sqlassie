@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -18,62 +18,79 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AlwaysSomethingNode.hpp"
 #include "ComparisonNode.hpp"
-#include "sqlParser.h"
+#include "FunctionNode.hpp"
 #include "QueryRisk.hpp"
+#include "sqlParser.h"
 
+#include <ostream>
 #include <string>
 
+using std::ostream;
 using std::string;
 
 
-AlwaysSomethingNode::AlwaysSomethingNode(const bool always)
-    : ExpressionNode("AlwaysSomething")
-    , always_(always)
+FunctionNode::FunctionNode(const string& functionName)
+    : ExpressionNode("Function")
+    , functionName_(functionName)
 {
 }
 
 
-AlwaysSomethingNode::~AlwaysSomethingNode()
+FunctionNode::~FunctionNode()
 {
 }
 
 
-AstNode* AlwaysSomethingNode::copy() const
+AstNode* FunctionNode::copy() const
 {
-    AlwaysSomethingNode* const temp = new AlwaysSomethingNode(always_);
+    FunctionNode* const temp = new FunctionNode(functionName_);
     AstNode::addCopyOfChildren(temp);
     return temp;
 }
 
 
-bool AlwaysSomethingNode::isAlwaysTrue() const
-{
-    return always_;
-}
-
-
-bool AlwaysSomethingNode::anyIsAlwaysTrue() const
-{
-    return AlwaysSomethingNode::isAlwaysTrue();
-}
-
-
-QueryRisk::EmptyPassword AlwaysSomethingNode::emptyPassword() const
-{
-    return QueryRisk::PASSWORD_NOT_USED;
-}
-
-
-bool AlwaysSomethingNode::resultsInValue() const
+bool FunctionNode::isAlwaysTrue() const
 {
     return false;
 }
 
 
-string AlwaysSomethingNode::getValue() const
+bool FunctionNode::anyIsAlwaysTrue() const
+{
+    return FunctionNode::isAlwaysTrue();
+}
+
+
+QueryRisk::EmptyPassword FunctionNode::emptyPassword() const
+{
+    return QueryRisk::PASSWORD_NOT_USED;
+}
+
+
+bool FunctionNode::resultsInValue() const
+{
+    return false;
+}
+
+
+string FunctionNode::getValue() const
 {
     assert(resultsInValue());
     return "";
+}
+
+
+void FunctionNode::print(
+    ostream& out,
+    const int depth,
+    const char indent
+) const
+{
+    for (int i = 0; i < depth; ++i)
+    {
+        out << indent;
+    }
+    out << functionName_ << '\n';
+    printChildren(out, depth + 1, indent);
 }

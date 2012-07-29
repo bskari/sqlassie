@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -19,35 +19,31 @@
  */
 
 /**
- * Parse tree node that represents MySQL commands like this:
- * someExpression IN (SELECT value FROM table ...).
- * Because determining the truth of this node would require actually accessing
- * the database, it is assumed to always be false.
+ * Parse tree node that represents a function call.
  * @author Brandon Skari
- * @date November 6 2011
+ * @date July 28 2012
  */
 
-#ifndef SRC_INSUBSELECTNODE_HPP_
-#define SRC_INSUBSELECTNODE_HPP_
+#ifndef SRC_FUNCTIONNODE_HPP_
+#define SRC_FUNCTIONNODE_HPP_
 
 #include "AstNode.hpp"
 #include "ExpressionNode.hpp"
-#include "InValuesListNode.hpp"
-#include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
+#include <iosfwd>
 #include <string>
 
 
-class InSubselectNode : public InValuesListNode
+class FunctionNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
      */
-    explicit InSubselectNode(const ExpressionNode* const expression);
+    explicit FunctionNode(const std::string& functionName);
 
-    ~InSubselectNode();
+    ~FunctionNode();
 
     /**
      * Overridden from AstNode.
@@ -56,18 +52,45 @@ public:
 
     /**
      * Determines if the conditionals are always true.
-     * Overridden from InValuesListNode.
+     * Overridden from ExpressionNode.
      */
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if any of this node's children are always true.
-     * Overridden from InValuesListNode.
+     * Determines if any comparison is always true.
+     * Overridden from ExpressionNode.
      */
     bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
 
+    /**
+     * Determines if there is an empty password.
+     */
+    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if this expression is reducible to a value, either a string
+     * or a number.
+     */
+    bool resultsInValue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Returns the value of this node.
+     */
+    std::string getValue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Overridden from AstNode.
+     */
+    void print(
+        std::ostream& out,
+        const int depth,
+        const char indent
+    ) const;
+
 private:
-    InSubselectNode(const InSubselectNode&);
-    InSubselectNode& operator=(const InSubselectNode&);
+    const std::string functionName_;
+
+    FunctionNode(const FunctionNode&);
+    FunctionNode& operator=(const FunctionNode);
 };
-#endif  // SRC_INSUBSELECTNODE_HPP_
+#endif  // SRC_FUNCTIONNODE_HPP_

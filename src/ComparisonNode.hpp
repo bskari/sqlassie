@@ -21,7 +21,7 @@
 #ifndef SRC_COMPARISONNODE_HPP_
 #define SRC_COMPARISONNODE_HPP_
 
-#include "ConditionalNode.hpp"
+#include "ExpressionNode.hpp"
 #include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
@@ -34,52 +34,70 @@
  * @date December 9 2010
  */
 
-class ComparisonNode : public ConditionalNode
+class ComparisonNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
      * @param compareType The type of comparison being used.
      */
-    explicit ComparisonNode(const int compareType);
+    ComparisonNode(
+        const ExpressionNode* const expr1,
+        const int compareType,
+        const ExpressionNode* const expr2
+    );
 
-    virtual ~ComparisonNode();
+    ~ComparisonNode();
 
     /**
      * Overridden from AstNode.
      */
-    virtual AstNode* copy() const WARN_UNUSED_RESULT;
+    AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the comparison is always true.
-     * Overridden from ComparisonNode.
+     * Overridden from ExpressionNode.
      */
-    virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT;
+    bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the comparison is always true.
-     * Overridden from ComparisonNode.
+     * Overridden from ExpressionNode.
      */
-    virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
+    bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the password is empty.
      */
-    virtual QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if this node ultimately results in a value.
+     * Overridden from ExpressionNode.
+     */
+    bool resultsInValue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Returns the value of this node.
+     * Overridden from ExpressionNode.
+     */
+    std::string getValue() const WARN_UNUSED_RESULT;
 
     /**
      * Overridden from AstNode.
      */
-    virtual void print(
+    void print(
         std::ostream& out,
         const int depth,
         const char indent
     ) const;
 
-protected:
-    int compareType_;
 
 private:
+    const ExpressionNode* const expr1_;
+    int compareType_;
+    const ExpressionNode* const expr2_;
+
     ComparisonNode(const ComparisonNode& rhs);
     ComparisonNode& operator=(ComparisonNode& rhs);
 };

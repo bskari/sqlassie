@@ -23,8 +23,8 @@
 #include "QueryRisk.hpp"
 
 
-InSubselectNode::InSubselectNode(const ExpressionNode* const expression) :
-    InValuesListNode(false, expression)
+InSubselectNode::InSubselectNode(const ExpressionNode* const expression)
+    : InValuesListNode(expression)
 {
 }
 

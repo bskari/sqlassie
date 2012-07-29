@@ -18,7 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ConditionalNode.hpp"
 #include "ExpressionNode.hpp"
 #include "SensitiveNameChecker.hpp"
 #include "InValuesListNode.hpp"
@@ -39,7 +38,7 @@ using std::vector;
 
 
 InValuesListNode::InValuesListNode(const ExpressionNode* const expression)
-    : ConditionalNode("InValuesList")
+    : ExpressionNode("InValuesList")
     , expression_(expression)
 {
 }
@@ -64,7 +63,7 @@ bool InValuesListNode::isAlwaysTrue() const
     bool in = false;
 
     // Identifiers may or may not be in a list - it's legitimate
-    if (expression_->isIdentifier())
+    if (!expression_->resultsInValue())
     {
         return false;
     }
@@ -107,6 +106,42 @@ QueryRisk::EmptyPassword InValuesListNode::emptyPassword() const
         return QueryRisk::PASSWORD_EMPTY;
     }
     return QueryRisk::PASSWORD_NOT_USED;
+}
+
+
+bool InValuesListNode::resultsInValue() const
+{
+    return expression_->resultsInValue();
+}
+
+
+string InValuesListNode::getValue() const
+{
+    assert(resultsInValue());
+
+    const string& exprValue = expression_->getValue();
+    vector<const AstNode*>::const_iterator end(children_.end());
+    for (
+        vector<const AstNode*>::const_iterator i(children_.begin());
+        i != end;
+        ++i
+    )
+    {
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(*i);
+
+        if (!expr->resultsInValue())
+        {
+            continue;
+        }
+
+        const string& value = expr->getValue();
+        if (exprValue == value)
+        {
+            return "1";
+        }
+    }
+    return "0";
 }
 
 

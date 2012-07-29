@@ -22,12 +22,10 @@
 #include "../AlwaysSomethingNode.hpp"
 #include "../AstNode.hpp"
 #include "../ComparisonNode.hpp"
-#include "../ConditionalListNode.hpp"
-#include "../ConditionalNode.hpp"
 #include "../ExpressionNode.hpp"
 #include "../InValuesListNode.hpp"
 #include "../NegationNode.hpp"
-#include "../OperatorNode.hpp"
+#include "../BinaryOperatorNode.hpp"
 #include "../sqlParser.h"
 
 #include <boost/test/unit_test.hpp>

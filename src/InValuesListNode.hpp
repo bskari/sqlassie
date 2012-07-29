@@ -22,7 +22,6 @@
 #define SRC_INVALUESLISTNODE_HPP_
 
 #include "AstNode.hpp"
-#include "ConditionalNode.hpp"
 #include "ExpressionNode.hpp"
 #include "warnUnusedResult.h"
 
@@ -35,7 +34,7 @@
  * @date December 9 2010
  */
 
-class InValuesListNode : public ConditionalNode
+class InValuesListNode : public ExpressionNode
 {
 public:
     /**
@@ -44,37 +43,48 @@ public:
      * @param expression The expression that's being checked to see if it's in
      * the list.
      */
-    InValuesListNode(const ExpressionNode* expression);
+    explicit InValuesListNode(const ExpressionNode* expression);
 
-    virtual ~InValuesListNode();
+    ~InValuesListNode();
 
     /**
      * Overridden from AstNode.
      */
-    virtual AstNode* copy() const WARN_UNUSED_RESULT;
+    AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the conditionals are always true.
-     * Overridden from ConditionalNode.
+     * Overridden from ExpressionNode.
      */
-    virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT;
+    bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if any of this node's children are always true.
-     * Overridden from ConditionalNode.
+     * Overridden from ExpressionNode.
      */
-    virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
+    bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the password is empty.
-     * Overridden from ConditionalNode.
+     * Overridden from ExpressionNode.
      */
-    virtual QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if the there is an empty password.
+     * Overridden from ExpressionNode.
+     */
+    bool resultsInValue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Gets the value of this expression.
+     */
+    std::string getValue() const WARN_UNUSED_RESULT;
 
     /**
      * Overridden from AstNode.
      */
-    virtual void print(
+    void print(
         std::ostream& out,
         const int depth,
         const char indent

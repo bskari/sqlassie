@@ -31,29 +31,43 @@
 #include <boost/regex.hpp>
 #include <ctype.h>
 #include <ostream>
+#include <string>
 
 using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_replace;
 using boost::regex_match;
 using std::ostream;
+using std::string;
 
 
-ComparisonNode::ComparisonNode(const int compareType) :
-    ConditionalNode("Comparison"),
-    compareType_(compareType)
+ComparisonNode::ComparisonNode(
+    const ExpressionNode* const expr1,
+    const int compareType,
+    const ExpressionNode* const expr2
+)
+    : ExpressionNode("Comparison")
+    , expr1_(expr1)
+    , compareType_(compareType)
+    , expr2_(expr2)
 {
 }
 
 
 ComparisonNode::~ComparisonNode()
 {
+    delete expr1_;
+    delete expr2_;
 }
 
 
 AstNode* ComparisonNode::copy() const
 {
-    ComparisonNode* const temp = new ComparisonNode(compareType_);
+    ComparisonNode* const temp = new ComparisonNode(
+        expr1_,
+        compareType_,
+        expr2_
+    );
     AstNode::addCopyOfChildren(temp);
     return temp;
 }
@@ -63,83 +77,70 @@ bool ComparisonNode::isAlwaysTrue() const
 {
     if (BETWEEN == compareType_)
     {
+        // BETWEEN is logically equivalent to
+        // (min[expr1_] <= expr[child0] AND expr[child0] <= max[expr2_])
         assert(
-            3 == children_.size()
-            && "BETWEEN operators should have 3 children"
+            1 == children_.size()
+            && "BETWEEN comparisons should have 1 child"
         );
-        // This is logically equivalent to
-        // (min[child1] <= expr[child0] AND expr[child0] <= max[child2])
         const ExpressionNode* const expr =
             polymorphic_downcast<const ExpressionNode*>(children_.at(0));
-        const ExpressionNode* const minExpr =
-            polymorphic_downcast<const ExpressionNode*>(children_.at(1));
-        const ExpressionNode* const maxExpr =
-            polymorphic_downcast<const ExpressionNode*>(children_.at(2));
-
         // We only care about numbers; anything else (like identifiers) is
         // assumed to not always be true
         if (
-            ExpressionNode::isNumber(minExpr->getValue())
-            && ExpressionNode::isNumber(minExpr->getValue())
-            && ExpressionNode::isNumber(minExpr->getValue())
+            expr1_->resultsInValue() && expr2_->resultsInValue()
         )
         {
-            return minExpr->getValue() <= expr->getValue()
-                && expr->getValue() <= maxExpr->getValue();
+            return expr1_->getValue() <= expr->getValue()
+                && expr->getValue() <= expr2_->getValue();
         }
     }
 
-    assert(2 == children_.size() && "ComparisonNode should have 2 children");
+    assert(0 == children_.size() && "ComparisonNode should have no children");
 
-    const ExpressionNode* const expr1 =
-        polymorphic_downcast<const ExpressionNode*>(children_.at(0));
-    const ExpressionNode* const expr2 =
-        polymorphic_downcast<const ExpressionNode*>(children_.at(1));
-
-    // Fields may or may not compare correctly, so assume it's legitimate
-    if (expr1->isIdentifier() || expr2->isIdentifier())
+    if (!expr1_->resultsInValue() || expr2_->resultsInValue())
     {
         return false;
     }
 
     if (EQ == compareType_)
     {
-        return expr1->getValue() == expr2->getValue();
+        return expr1_->getValue() == expr2_->getValue();
     }
     else if (LT == compareType_)
     {
-        return expr1->getValue() < expr2->getValue();
+        return expr1_->getValue() < expr2_->getValue();
     }
     else if (GT == compareType_)
     {
-        return expr1->getValue() > expr2->getValue();
+        return expr1_->getValue() > expr2_->getValue();
     }
     else if (LE == compareType_)
     {
-        return expr1->getValue() <= expr2->getValue();
+        return expr1_->getValue() <= expr2_->getValue();
     }
     else if (GE == compareType_)
     {
-        return expr1->getValue() >= expr2->getValue();
+        return expr1_->getValue() >= expr2_->getValue();
     }
     else if (NE == compareType_)
     {
-        return expr1->getValue() != expr2->getValue();
+        return expr1_->getValue() != expr2_->getValue();
     }
     else if (LIKE_KW == compareType_)
     {
         // Empty compares are always false
-        if (expr2->getValue().size() == 0)
+        if (expr2_->getValue().size() == 0)
         {
             return false;
         }
-        regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2->getValue()));
-        return regex_match(expr1->getValue(), perl);
+        regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2_->getValue()));
+        return regex_match(expr1_->getValue(), perl);
     }
     else if (SOUNDS == compareType_)
     {
-        return MySqlConstants::soundex(expr1->getValue())
-            == MySqlConstants::soundex(expr2->getValue());
+        return MySqlConstants::soundex(expr1_->getValue())
+            == MySqlConstants::soundex(expr2_->getValue());
     }
 
     Logger::log(Logger::ERROR)
@@ -160,25 +161,45 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
     assert(2 == children_.size() && "ComparisonNode should have 2 children");
 
-    const ExpressionNode* const expr1 =
-        polymorphic_downcast<const ExpressionNode*>(children_.at(0));
-    const ExpressionNode* const expr2 =
-        polymorphic_downcast<const ExpressionNode*>(children_.at(1));
-
     // Only check for equality comparisons to password field
     if (
         EQ != compareType_
-        || SensitiveNameChecker::get().isPasswordField(expr1->getValue())
+        || SensitiveNameChecker::get().isPasswordField(expr1_->getValue())
     )
     {
         return QueryRisk::PASSWORD_NOT_USED;
     }
 
-    if (expr2->getValue().empty())
+    if (expr2_->getValue().empty())
     {
         return QueryRisk::PASSWORD_EMPTY;
     }
     return QueryRisk::PASSWORD_NOT_EMPTY;
+}
+
+
+bool ComparisonNode::resultsInValue() const
+{
+    // BETWEEN comparisons have an extra child to check
+    if (BETWEEN == compareType_)
+    {
+        assert(children_.size() == 1);
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(children_.at(0));
+        if (!expr->resultsInValue())
+        {
+            return false;
+        }
+    }
+    return expr1_->resultsInValue() && expr2_->resultsInValue();
+}
+
+
+string ComparisonNode::getValue() const
+{
+    assert(resultsInValue());
+    /// @TODO(bskari|2012-07-28) Implement this
+    return "";
 }
 
 

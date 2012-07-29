@@ -25,33 +25,29 @@
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
 
-#include <boost/cast.hpp>
-#include <boost/regex.hpp>
-#include <ctype.h>
 #include <ostream>
 #include <string>
 
+using std::ostream;
 using std::string;
-using boost::polymorphic_downcast;
-using boost::regex;
-using boost::regex_match;
-using boost::regex_replace;
 
 
-NegationNode::NegationNode() :
-    ConditionalNode("Negation")
+NegationNode::NegationNode(const ExpressionNode* const expression)
+    : ExpressionNode("Negation")
+    , expression_(expression)
 {
 }
 
 
 NegationNode::~NegationNode()
 {
+    delete expression_;
 }
 
 
 AstNode* NegationNode::copy() const
 {
-    NegationNode* const temp = new NegationNode();
+    NegationNode* const temp = new NegationNode(expression_);
     AstNode::addCopyOfChildren(temp);
     return temp;
 }
@@ -59,12 +55,11 @@ AstNode* NegationNode::copy() const
 
 bool NegationNode::isAlwaysTrue() const
 {
-    assert(1 == children_.size() && "NegationNode should have exactly 1 child");
-
-    const ConditionalNode* const cond =
-        polymorphic_downcast<const ConditionalNode*>(children_.at(0));
-
-    return !cond->isAlwaysTrue();
+    // If the expression that's being negated is always true, this should
+    // return false. If the expression that's being negated is not always
+    // true, it could be because it's always false, or because it's just
+    // sometimes false. Either way, we need to return false here.
+    return false;
 }
 
 
@@ -80,8 +75,25 @@ QueryRisk::EmptyPassword NegationNode::emptyPassword() const
 }
 
 
+bool NegationNode::resultsInValue() const
+{
+    return expression_->resultsInValue();
+}
+
+
+string NegationNode::getValue() const
+{
+    assert(resultsInValue());
+    if ("0.0" == expression_->getValue() || "0" == expression_->getValue())
+    {
+        return "1";
+    }
+    return "0";
+}
+
+
 void NegationNode::print(
-    std::ostream& out,
+    ostream& out,
     const int depth,
     const char indent
 ) const
@@ -91,5 +103,5 @@ void NegationNode::print(
         out << indent;
     }
     out << name_ << '\n';
-    printChildren(out, depth + 1, indent);
+    expression_->print(out, depth + 1, indent);
 }

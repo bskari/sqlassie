@@ -18,13 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SRC_ALWAYSSOMETHINGNODE_HPP_
-#define SRC_ALWAYSSOMETHINGNODE_HPP_
-
-#include "AstNode.hpp"
-#include "ComparisonNode.hpp"
-#include "warnUnusedResult.h"
-
 /**
  * Parse tree node that represents an expression that is always either true or
  * false. This is used for expressions such as:
@@ -35,42 +28,59 @@
  * @date December 12 2010
  */
 
-class AlwaysSomethingNode : public ComparisonNode
+#ifndef SRC_ALWAYSSOMETHINGNODE_HPP_
+#define SRC_ALWAYSSOMETHINGNODE_HPP_
+
+#include "AstNode.hpp"
+#include "ExpressionNode.hpp"
+#include "warnUnusedResult.h"
+
+#include <string>
+
+
+class AlwaysSomethingNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
      * @param always If this node is always true or always false.
-     * @param compareType The comparison type token used, such as EQ or GE.
      */
-    AlwaysSomethingNode(bool always, const int compareType);
+    explicit AlwaysSomethingNode(bool always);
 
-    /**
-     * Occasionally, I just want to insert an alwyas true node without
-     * specifying the comparison type, e.g. expr IN (SELECT ...). I don't care
-     * what the actual comparison is, I just want it to always be something.
-     * @param always If this node is always true or always false.
-     */
-    AlwaysSomethingNode(bool always);
-
-    virtual ~AlwaysSomethingNode();
+    ~AlwaysSomethingNode();
 
     /**
      * Overridden from AstNode.
      */
-    virtual AstNode* copy() const WARN_UNUSED_RESULT;
+    AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the conditionals are always true.
-     * Overridden from ConditionalNode.
+     * Overridden from ExpressionNode.
      */
-    virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT;
+    bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if any comparison is always true.
-     * Overridden from ConditionalNode.
+     * Overridden from ExpressionNode.
      */
-    virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
+    bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if there is an empty password.
+     */
+    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if this expression is reducible to a value, either a string
+     * or a number.
+     */
+    bool resultsInValue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Returns the value of this node.
+     */
+    std::string getValue() const WARN_UNUSED_RESULT;
 
 private:
     const bool always_;

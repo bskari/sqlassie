@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -18,40 +18,42 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SRC_BOOLEANLOGICNODE_HPP_
-#define SRC_BOOLEANLOGICNODE_HPP_
+#ifndef SRC_BINARYOPERATORNODE_HPP_
+#define SRC_BINARYOPERATORNODE_HPP_
 
+#include "AstNode.hpp"
 #include "ExpressionNode.hpp"
-#include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
-#include <iosfwd>
+#include <string>
 
 /**
- * Parse tree node that represents an expression.
+ * Parse tree node that holds a binary operator, like '+' or '/', and two
+ * expressions that the operator operatos on. The operator is stored as the
+ * token value as defined by the parser.
  * @author Brandon Skari
- * @date December 10 2010
+ * @date July 4 2012
  */
 
-class BooleanLogicNode : public ExpressionNode
+class BinaryOperatorNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
-     * @param logicalOp The logical binary operator type.
+     * @param operatorToken The operator's token value, as defined by the parser.
      */
-    BooleanLogicNode(
+    BinaryOperatorNode(
         const ExpressionNode* const expr1,
-        const int logicalOperator,
+        const int operatorToken,
         const ExpressionNode* const expr2
     );
 
-    ~BooleanLogicNode();
+    virtual ~BinaryOperatorNode();
 
     /**
      * Overridden from AstNode.
      */
-    AstNode* copy() const WARN_UNUSED_RESULT;
+    virtual AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the conditionals are always true.
@@ -60,16 +62,21 @@ public:
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the any of this node's children are always true.
+     * Determines if any of this node's children are always true.
      * Overridden from ExpressionNode.
      */
     bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the there is an empty password.
+     * Determines if there is an empty password.
      * Overridden from ExpressionNode.
      */
     QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+
+    /**
+     * Gets the operator's token value.
+     */
+    int getBinaryOperator() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the there is an empty password.
@@ -86,7 +93,7 @@ public:
     /**
      * Overridden from AstNode.
      */
-    void print(
+    virtual void print(
         std::ostream& out,
         const int depth,
         const char indent
@@ -94,10 +101,10 @@ public:
 
 private:
     const ExpressionNode* const expr1_;
-    const int logicalOperator_;
+    const int operator_;
     const ExpressionNode* const expr2_;
 
-    BooleanLogicNode(const BooleanLogicNode&);
-    BooleanLogicNode& operator=(const BooleanLogicNode&);
+    BinaryOperatorNode(const BinaryOperatorNode& rhs);
+    BinaryOperatorNode& operator=(const BinaryOperatorNode& rhs);
 };
-#endif  // SRC_BOOLEANLOGICNODE_HPP_
+#endif  // SRC_BINARYOPERATORNODE_HPP_

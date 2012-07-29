@@ -18,40 +18,45 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SRC_BOOLEANLOGICNODE_HPP_
-#define SRC_BOOLEANLOGICNODE_HPP_
-
-#include "ExpressionNode.hpp"
-#include "QueryRisk.hpp"
-#include "warnUnusedResult.h"
-
-#include <iosfwd>
-
 /**
- * Parse tree node that represents an expression.
+ * Parse tree node that represents either a number, a string, or an identiifer.
  * @author Brandon Skari
- * @date December 10 2010
+ * @date July 27 2012
  */
 
-class BooleanLogicNode : public ExpressionNode
+#ifndef SRC_TERMINALNODE_HPP_
+#define SRC_TERMINALNODE_HPP_
+
+#include "AstNode.hpp"
+#include "ExpressionNode.hpp"
+
+#include <string>
+
+
+class TerminalNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
-     * @param logicalOp The logical binary operator type.
+     * @param value The string value of the terminal.
+     * @param type The type of the token as returned by the scanner.
      */
-    BooleanLogicNode(
-        const ExpressionNode* const expr1,
-        const int logicalOperator,
-        const ExpressionNode* const expr2
-    );
-
-    ~BooleanLogicNode();
+    TerminalNode(const std::string& value, const int type);
 
     /**
-     * Overridden from AstNode.
+     * Alternate constructor that defaults the type to something.
+     * I wanted to be able to create a dummy terminal node from Lemon without
+     * having to know the values of the tokens, because otherwise my parser
+     * would have to include the header file that's generated from itself, and
+     * that just rubbed me the wrong way.
      */
-    AstNode* copy() const WARN_UNUSED_RESULT;
+    ///@{
+    static TerminalNode* createDummyIdentifierTerminalNode();
+    static TerminalNode* createStringTerminalNode(const std::string& str);
+    static TerminalNode* createNumberTerminalNode(const std::string& str);
+    ///@}
+
+    ~TerminalNode();
 
     /**
      * Determines if the conditionals are always true.
@@ -84,20 +89,19 @@ public:
     std::string getValue() const WARN_UNUSED_RESULT;
 
     /**
-     * Overridden from AstNode.
+     * Determines type.
      */
-    void print(
-        std::ostream& out,
-        const int depth,
-        const char indent
-    ) const;
+    ///@{
+    bool isNumber() const;
+    bool isIdentifier() const;
+    bool isString() const;
+    ///@}
 
 private:
-    const ExpressionNode* const expr1_;
-    const int logicalOperator_;
-    const ExpressionNode* const expr2_;
+    const std::string value_;
+    const int type_;
 
-    BooleanLogicNode(const BooleanLogicNode&);
-    BooleanLogicNode& operator=(const BooleanLogicNode&);
+    TerminalNode(const TerminalNode& rhs);
+    TerminalNode& operator=(const TerminalNode& rhs);
 };
-#endif  // SRC_BOOLEANLOGICNODE_HPP_
+#endif  // SRC_TERMINALNODE_HPP_

@@ -122,52 +122,52 @@ void testComparisonNode()
     delete cn;
 
     cn = new ComparisonNode(
-        new TerminalNode("skari", false),
+        new TerminalNode("skari", STRING),
         LIKE_KW,
-        new TerminalNode("___r_", false)
+        new TerminalNode("___r_", STRING)
     );
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
     cn = new ComparisonNode(
-        new TerminalNode("skari", false),
+        new TerminalNode("skari", STRING),
         LIKE_KW,
-        new TerminalNode("___", false)
+        new TerminalNode("___", STRING)
     );
     BOOST_CHECK(!cn->isAlwaysTrue());
     delete cn;
 
     cn = new ComparisonNode(
-        new TerminalNode("brandon", false),
+        new TerminalNode("brandon", STRING),
         LIKE_KW,
-        new TerminalNode("skari", false)
+        new TerminalNode("skari", STRING)
     );
     nn = new NegationNode(cn);
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 
     cn = new ComparisonNode(
-        new TerminalNode("brandon", false),
+        new TerminalNode("brandon", STRING),
         LIKE_KW,
-        new TerminalNode("s%", false)
+        new TerminalNode("s%", STRING)
     );
     nn = new NegationNode(cn);
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 
     cn = new ComparisonNode(
-        new TerminalNode("skari", false),
+        new TerminalNode("skari", STRING),
         LIKE_KW,
-        new TerminalNode("__b__", false)
+        new TerminalNode("__b__", STRING)
     );
     nn = new NegationNode(cn);
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 
     cn = new ComparisonNode(
-        new TerminalNode("skari", false),
+        new TerminalNode("skari", STRING),
         LIKE_KW,
-        new TerminalNode("______", false)
+        new TerminalNode("______", STRING)
     );
     nn = new NegationNode(cn);
     BOOST_CHECK(nn->isAlwaysTrue());

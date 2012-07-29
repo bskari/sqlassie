@@ -159,7 +159,10 @@ bool ComparisonNode::anyIsAlwaysTrue() const
 
 QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
-    assert(2 == children_.size() && "ComparisonNode should have 2 children");
+    assert(
+        0 == children_.size()
+        || (1 == children_.size() && BETWEEN == compareType_)
+    );
 
     // Only check for equality comparisons to password field
     if (

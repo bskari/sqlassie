@@ -1084,6 +1084,8 @@ expr ::= expr between_op(N) expr AND expr. [BETWEEN]
         N.tokenType,
         expr2
     );
+    comparisonNode->addChild(sc->nodes.top());
+    sc->nodes.pop();
 
     if (N.negation)
     {

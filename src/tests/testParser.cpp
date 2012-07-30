@@ -44,11 +44,6 @@ using std::ifstream;
 using std::string;
 
 /**
- * Parses a query and returns the risks found.
- * @param query The query to be parsed.
- */
-static QueryRisk parseQuery(const string& query);
-/**
  * Checks that the type of the query is correctly set.
  * @param query The query to be parsed.
  * @param type The expected type of the query.
@@ -191,19 +186,6 @@ void testQueryType()
         QueryRisk::TYPE_UNKNOWN,
         false
     );
-}
-
-
-QueryRisk parseQuery(const string& query)
-{
-    QueryRisk qr;
-    ParserInterface parser(query);
-    const bool successfullyParsed = parser.parse(&qr);
-    BOOST_CHECK_MESSAGE(
-        successfullyParsed,
-        "Query failed to parse: " << query
-    );
-    return qr;
 }
 
 

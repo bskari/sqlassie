@@ -65,6 +65,13 @@ public:
     virtual bool resultsInValue() const WARN_UNUSED_RESULT = 0;
 
     /**
+     * Determines if this expression is reducible to a string.
+     * ExpressionNode defines this as returning false. Most nodes won't need
+     * to override this unless the default of false is inappropriate.
+     */
+    virtual bool resultsInString() const WARN_UNUSED_RESULT;
+
+    /**
      * Returns the value of this node.
      */
     virtual std::string getValue() const WARN_UNUSED_RESULT = 0;

@@ -77,10 +77,16 @@ public:
     QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the there is an empty password.
+     * Determines if the evaluation of this node results in a number.
      * Overridden from ExpressionNode.
      */
     bool resultsInValue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if the evaluation of this node results in a string.
+     * Overridden from ExpressionNode.
+     */
+    bool resultsInString() const WARN_UNUSED_RESULT;
 
     /**
      * Gets the value of this expression.

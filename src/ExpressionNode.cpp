@@ -35,3 +35,9 @@ ExpressionNode::ExpressionNode(const std::string& str) :
 ExpressionNode::~ExpressionNode()
 {
 }
+
+
+bool ExpressionNode::resultsInString() const
+{
+    return false;
+}

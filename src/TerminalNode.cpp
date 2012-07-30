@@ -127,6 +127,10 @@ bool TerminalNode::resultsInValue() const
     return isNumber();
 }
 
+bool TerminalNode::resultsInString() const
+{
+    return isString();
+}
 
 string TerminalNode::getValue() const
 {

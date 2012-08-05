@@ -101,8 +101,8 @@ bool ComparisonNode::isAlwaysTrue() const
     // Both either need to result in values or strings
     /// @TODO(bskari|2012-07-29) Handle things like (0 == '0')
     if (
-        (!expr1_->resultsInValue() && !expr2_->resultsInValue())
-        && (!expr1_->resultsInString() && !expr2_->resultsInString())
+        !(expr1_->resultsInValue() && expr2_->resultsInValue())
+        && !(expr1_->resultsInString() && expr2_->resultsInString())
     )
     {
         return false;

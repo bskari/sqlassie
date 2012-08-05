@@ -48,6 +48,10 @@
 #include <cassert>
 #include <stack>
 
+#ifndef NDEBUG
+#include "sqlParser.h"
+#endif
+
 #include "AlwaysSomethingNode.hpp"
 #include "AstNode.hpp"
 #include "BinaryOperatorNode.hpp"
@@ -141,10 +145,10 @@ static void addComparisonNode(
     bool negation = false
 )
 {
-    ExpressionNode* const expr2 =
+    ExpressionNode* const expr1 =
         boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
-    ExpressionNode* const expr1 =
+    ExpressionNode* const expr2 =
         boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
 
@@ -222,6 +226,7 @@ id(A) ::= ID_FALLBACK(X).
     // this file just to access the scan token value for ID, because that just
     // seems like a terrible hack.
     const int ID_TOKEN = 15;
+    assert(ID_TOKEN == ID);
     A->token_ = ID_TOKEN;
 }
 

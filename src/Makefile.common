@@ -181,7 +181,7 @@ scanner.yy.cpp: scanner.l sqlParser.h
 	$(LEX) --case-insensitive --outfile=scanner.yy.cpp \
 		--header-file=scanner.yy.hpp scanner.l
 
-scanner.yy.o: scanner.yy.cpp scanner.yy.hpp
+scanner.yy.o: scanner.yy.cpp scanner.yy.hpp ScannerContext.hpp
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) scanner.yy.cpp -c -o scanner.yy.o
 
 huginScanner.yy.cpp huginScanner.yy.hpp: huginScanner.l huginParser.tab.hpp

@@ -268,6 +268,11 @@ int ParserInterface::getLexValue(TokenInfo* const ti)
                 ti->scannedString_ = id.substr(1, id.length() - 2);
                 break;
             }
+        // Quoted strings are scanned in pieces, so the actual string needs to
+        // assembled in pieces and saved in scannerContext_.quotedString.
+        case STRING:
+            ti->scannedString_ = scannerContext_.quotedString;
+            break;
         // Everything else (including regular IDs) just get set normally
         default:
             ti->scannedString_ = string(sql_get_text(scannerPimpl_->scanner_));;

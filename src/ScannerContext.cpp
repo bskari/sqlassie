@@ -24,11 +24,10 @@
 #include <stack>
 #include <string>
 
-ScannerContext::ScannerContext(QueryRisk* const qrToModify) :
-    identifier(),
-    quotedString(),
-    qrPtr(qrToModify),
-    nodes()
+ScannerContext::ScannerContext(QueryRisk* const qrToModify)
+    : quotedString()
+    , qrPtr(qrToModify)
+    , nodes()
 {
 }
 

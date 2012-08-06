@@ -29,7 +29,6 @@
 
 struct ScannerContext
 {
-    std::string identifier;
     std::string quotedString;
 
     QueryRisk* const qrPtr;

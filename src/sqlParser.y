@@ -145,10 +145,10 @@ static void addComparisonNode(
     bool negation = false
 )
 {
-    ExpressionNode* const expr1 =
+    ExpressionNode* const expr2 =
         boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
-    ExpressionNode* const expr2 =
+    ExpressionNode* const expr1 =
         boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
 

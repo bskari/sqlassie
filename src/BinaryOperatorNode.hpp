@@ -56,6 +56,12 @@ public:
     virtual AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
+     * Determines if the conditionals are always something.
+     * Overridden from ExpressionNode.
+     */
+    bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT;
+
+    /**
      * Determines if the conditionals are always true.
      * Overridden from ExpressionNode.
      */

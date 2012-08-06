@@ -50,6 +50,12 @@ public:
     AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
+     * Determines if the conditionals result in always true or always false.
+     * Overridden from ExpressionNode.
+     */
+    bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT;
+
+    /**
      * Determines if the comparison is always true.
      * Overridden from ComparisonNode.
      */

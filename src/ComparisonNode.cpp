@@ -75,6 +75,21 @@ AstNode* ComparisonNode::copy() const
 }
 
 
+bool ComparisonNode::isAlwaysTrueOrFalse() const
+{
+    if (BETWEEN == compareType_)
+    {
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(children_.at(0));
+        return expr->resultsInValue()
+            && expr1_->resultsInValue()
+            && expr2_->resultsInValue();
+    }
+    return expr1_->resultsInValue()
+        && expr2_->resultsInValue();
+}
+
+
 bool ComparisonNode::isAlwaysTrue() const
 {
     if (BETWEEN == compareType_)
@@ -90,7 +105,9 @@ bool ComparisonNode::isAlwaysTrue() const
         // We only care about numbers; anything else (like identifiers) is
         // assumed to not always be true
         if (
-            expr1_->resultsInValue() && expr2_->resultsInValue()
+            expr->resultsInValue()
+            && expr1_->resultsInValue()
+            && expr2_->resultsInValue()
         )
         {
             return expr1_->getValue() <= expr->getValue()

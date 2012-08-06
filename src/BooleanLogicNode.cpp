@@ -62,6 +62,12 @@ AstNode* BooleanLogicNode::copy() const
 }
 
 
+bool BooleanLogicNode::isAlwaysTrueOrFalse() const
+{
+    return expr1_->isAlwaysTrueOrFalse() && expr2_->isAlwaysTrueOrFalse();
+}
+
+
 bool BooleanLogicNode::isAlwaysTrue() const
 {
     switch (logicalOperator_)

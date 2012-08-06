@@ -50,6 +50,16 @@ AstNode* FunctionNode::copy() const
 }
 
 
+bool FunctionNode::isAlwaysTrueOrFalse() const
+{
+    // While this is always true or false (because the function results in
+    // an expression that is implicitly convertible to a boolean), actually
+    // evaluating this value would require implementing all functions in
+    // MySQL, and I'm not going to do that.
+    return false;
+}
+
+
 bool FunctionNode::isAlwaysTrue() const
 {
     return false;

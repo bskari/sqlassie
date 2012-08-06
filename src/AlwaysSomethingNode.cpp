@@ -48,6 +48,12 @@ AstNode* AlwaysSomethingNode::copy() const
 }
 
 
+bool AlwaysSomethingNode::isAlwaysTrueOrFalse() const
+{
+    return true;
+}
+
+
 bool AlwaysSomethingNode::isAlwaysTrue() const
 {
     return always_;

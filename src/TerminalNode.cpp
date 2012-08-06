@@ -76,6 +76,25 @@ TerminalNode::~TerminalNode()
 }
 
 
+bool TerminalNode::isAlwaysTrueOrFalse() const
+{
+    switch (type_)
+    {
+        case ID:
+            return false;
+        case INTEGER:
+        case HEX_NUMBER:
+        case STRING:
+            return true;
+        default:
+            Logger::log(Logger::WARN)
+                << "Unexpected case " << type_ << " in TerminalNode::isAlwaysTrueOrFalse";
+            assert(false);
+            return false;
+    }
+}
+
+
 bool TerminalNode::isAlwaysTrue() const
 {
     switch (type_)

@@ -41,9 +41,13 @@ public:
     virtual ~ExpressionNode();
 
     /**
-     * Determines if the conditionals are always true.
+     * Determines if the conditionals always result in a true or false value.
      */
+    ///@{
     virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT = 0;
+    bool isAlwaysFalse() const WARN_UNUSED_RESULT;
+    virtual bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT = 0;
+    ///@}
 
     /**
      * Determines if any of this node's children are always true.

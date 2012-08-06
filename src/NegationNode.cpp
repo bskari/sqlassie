@@ -53,13 +53,18 @@ AstNode* NegationNode::copy() const
 }
 
 
+bool NegationNode::isAlwaysTrueOrFalse() const
+{
+    return expression_->isAlwaysTrueOrFalse();
+}
+
+
 bool NegationNode::isAlwaysTrue() const
 {
-    // If the expression that's being negated is always true, this should
-    // return false. If the expression that's being negated is not always
-    // true, it could be because it's always false, or because it's just
-    // sometimes false. Either way, we need to return false here.
-    return false;
+    if (expression_->isAlwaysTrueOrFalse())
+    {
+        return !expression_->isAlwaysTrue();
+    }
 }
 
 

@@ -51,6 +51,16 @@ bool ExpressionNode::resultsInString() const
 }
 
 
+bool ExpressionNode::isAlwaysFalse() const
+{
+    if (isAlwaysTrueOrFalse())
+    {
+        return !isAlwaysTrue();
+    }
+    return false;
+}
+
+
 ExpressionNode::SQL_FLOAT ExpressionNode::convertFloatOrHexString(
     const string& str
 )

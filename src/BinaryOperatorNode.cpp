@@ -66,10 +66,24 @@ AstNode* BinaryOperatorNode::copy() const
 }
 
 
+bool BinaryOperatorNode::isAlwaysTrueOrFalse() const
+{
+    if (resultsInValue())
+    {
+        return true;
+    }
+    return false;
+}
+
+
 bool BinaryOperatorNode::isAlwaysTrue() const
 {
-    const string value(getValue());
-    return "0" != value && "0.0" != value;
+    if (resultsInValue())
+    {
+        const string value(getValue());
+        return "0" != value && "0.0" != value;
+    }
+    return false;
 }
 
 

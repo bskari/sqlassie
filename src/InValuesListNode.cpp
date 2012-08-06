@@ -58,6 +58,33 @@ AstNode* InValuesListNode::copy() const
 }
 
 
+bool InValuesListNode::isAlwaysTrueOrFalse() const
+{
+    if (!expression_->resultsInValue() || !expression_->resultsInString())
+    {
+        return false;
+    }
+
+    // Everything else needs to result in a value or string
+    vector<const AstNode*>::const_iterator end(children_.end());
+    for (
+        vector<const AstNode*>::const_iterator i(children_.begin());
+        i != end;
+        ++i
+    )
+    {
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(*i);
+
+        if (!expr->resultsInValue() || !expr->resultsInString())
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 bool InValuesListNode::isAlwaysTrue() const
 {
     bool in = false;

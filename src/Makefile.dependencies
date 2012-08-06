@@ -44,9 +44,6 @@ ExpressionNode.o:	ExpressionNode.cpp AstNode.hpp ExpressionNode.hpp
 FunctionNode.o:	FunctionNode.cpp ComparisonNode.hpp FunctionNode.hpp \
 	QueryRisk.hpp sqlParser.h
 
-InSubselectNode.o:	InSubselectNode.cpp InSubselectNode.hpp \
-	InValuesListNode.hpp QueryRisk.hpp
-
 InValuesListNode.o:	InValuesListNode.cpp ExpressionNode.hpp \
 	InValuesListNode.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
 	nullptr.hpp

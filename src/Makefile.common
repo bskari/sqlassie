@@ -56,7 +56,7 @@ demoDependencies = demo.o sqlParser.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
 	ParserInterface.o AttackProbabilities.o sqlParser.h DlibProbabilities.o \
 	huginScanner.yy.o huginParser.tab.o MySqlConstants.o Logger.o \
-	InSubselectNode.o NegationNode.o ScannerContext.o SensitiveNameChecker.o \
+	NegationNode.o ScannerContext.o SensitiveNameChecker.o \
 	initializeSingletons.o MySqlGuardObjectContainer.o BinaryOperatorNode.o \
 	TokenInfo.o BooleanLogicNode.o TerminalNode.o NullNode.o FunctionNode.o
 $(BINARY_DIR)/demo: $(demoDependencies)
@@ -73,7 +73,7 @@ $(BINARY_DIR)/logger: $(loggerDependencies)
 parserDependencies = parser.o sqlParser.o scanner.yy.o QueryRisk.o AstNode.o \
 	ComparisonNode.o TerminalNode.o NullNode.o FunctionNode.o \
 	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
-	ParserInterface.o MySqlConstants.o Logger.o InSubselectNode.o \
+	ParserInterface.o MySqlConstants.o Logger.o \
 	NegationNode.o ScannerContext.o SensitiveNameChecker.o BinaryOperatorNode.o \
 	TokenInfo.o BooleanLogicNode.o ReadlineStream.o
 $(BINARY_DIR)/parser: $(parserDependencies)
@@ -87,7 +87,7 @@ $(BINARY_DIR)/probabilities: $(probabilitiesDependencies)
 queryStatisticsDependencies = queryStatistics.o sqlParser.o scanner.yy.o \
 	AstNode.o ComparisonNode.o ExpressionNode.o InValuesListNode.o \
 	AlwaysSomethingNode.o ParserInterface.o MySqlConstants.o Logger.o \
-	InSubselectNode.o NegationNode.o ScannerContext.o SensitiveNameChecker.o \
+	NegationNode.o ScannerContext.o SensitiveNameChecker.o \
 	BinaryOperatorNode.o TokenInfo.o BooleanLogicNode.o QueryRisk.o NullNode.o \
 	TerminalNode.o FunctionNode.o
 $(BINARY_DIR)/queryStatistics: $(queryStatisticsDependencies)
@@ -98,7 +98,7 @@ riskAnalyzerDependencies = riskAnalyzer.o sqlParser.o scanner.yy.o AstNode.o \
 	ComparisonNode.o ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
 	NegationNode.o ParserInterface.o AttackProbabilities.o sqlParser.h \
 	QueryRisk.o DlibProbabilities.o huginScanner.yy.o huginParser.tab.o \
-	MySqlConstants.o Logger.o InSubselectNode.o ScannerContext.o TerminalNode.o \
+	MySqlConstants.o Logger.o ScannerContext.o TerminalNode.o \
 	SensitiveNameChecker.o BinaryOperatorNode.o TokenInfo.o BooleanLogicNode.o \
 	NullNode.o FunctionNode.o
 $(BINARY_DIR)/riskAnalyzer: $(riskAnalyzerDependencies)
@@ -118,7 +118,7 @@ sqlassieDependencies = sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o \
 	DlibProbabilities.o MySqlGuardObjectContainer.o ParserInterface.o \
 	MySqlErrorMessageBlocker.o AttackProbabilities.o MySqlSocket.o \
 	MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o huginParser.tab.o \
-	MessageHandler.o Logger.o InSubselectNode.o NegationNode.o QueryWhitelist.o \
+	MessageHandler.o Logger.o NegationNode.o QueryWhitelist.o \
 	ScannerContext.o SensitiveNameChecker.o initializeSingletons.o \
 	BinaryOperatorNode.o TokenInfo.o BooleanLogicNode.o ProxyHalf.hpp \
 	TerminalNode.o NullNode.o FunctionNode.o
@@ -137,7 +137,7 @@ testDependencies = tests/test.o tests/testNode.o tests/testParser.o \
 	DlibProbabilities.o MySqlGuardObjectContainer.o ParserInterface.o \
 	MySqlErrorMessageBlocker.o AttackProbabilities.o MySqlSocket.o \
 	MySqlConstants.o MySqlLoginCheck.o huginScanner.yy.o huginParser.tab.o \
-	MessageHandler.o Logger.o InSubselectNode.o NegationNode.o QueryWhitelist.o \
+	MessageHandler.o Logger.o NegationNode.o QueryWhitelist.o \
 	ScannerContext.o SensitiveNameChecker.o BinaryOperatorNode.o TokenInfo.o \
 	BooleanLogicNode.o TerminalNode.o NullNode.o FunctionNode.o
 $(BINARY_DIR)/test: $(testDependencies)
@@ -162,7 +162,7 @@ sqlParser.cpp: sqlParser.y
 
 sqlParser.o: sqlParser.cpp AlwaysSomethingNode.hpp AstNode.hpp \
 	ComparisonNode.hpp ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp \
-	InSubselectNode.hpp BooleanLogicNode.hpp
+	BooleanLogicNode.hpp
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlParser.cpp -c -o sqlParser.o
 
 huginParser.tab.hpp: huginParser.tab.cpp ;

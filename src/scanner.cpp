@@ -92,8 +92,6 @@ int main()
 
         sql__delete_buffer(bufferState, scanner);
         sql_lex_destroy(scanner);
-
-        cout << "Enter MySQL query: ";
     }
 }
 

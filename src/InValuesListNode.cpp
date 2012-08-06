@@ -63,7 +63,9 @@ bool InValuesListNode::isAlwaysTrue() const
     bool in = false;
 
     // Identifiers may or may not be in a list - it's legitimate
-    if (!expression_->resultsInValue())
+    const bool isValue = expression_->resultsInValue();
+    const bool isString = expression_->resultsInString();
+    if (!isValue && !isString)
     {
         return false;
     }
@@ -71,20 +73,27 @@ bool InValuesListNode::isAlwaysTrue() const
     const string firstExpression(expression_->getValue());
 
     vector<const AstNode*>::const_iterator end(children_.end());
-    for (vector<const AstNode*>::const_iterator i(children_.begin());
+    for (
+        vector<const AstNode*>::const_iterator i(children_.begin());
         i != end;
-        ++i)
+        ++i
+    )
     {
         const ExpressionNode* const expr =
             polymorphic_downcast<const ExpressionNode*>(*i);
 
-        if (firstExpression == expr->getValue())
+        if (
+            (
+                isValue == expr->resultsInValue()
+                || expr->resultsInString()
+            )
+            && firstExpression == expr->getValue()
+        )
         {
             in = true;
             break;
         }
     }
-    // The user can either specify "expr IN (...)" or "expr NOT IN (...)"
     return in;
 }
 
@@ -119,27 +128,9 @@ string InValuesListNode::getValue() const
 {
     assert(resultsInValue());
 
-    const string& exprValue = expression_->getValue();
-    vector<const AstNode*>::const_iterator end(children_.end());
-    for (
-        vector<const AstNode*>::const_iterator i(children_.begin());
-        i != end;
-        ++i
-    )
+    if (isAlwaysTrue())
     {
-        const ExpressionNode* const expr =
-            polymorphic_downcast<const ExpressionNode*>(*i);
-
-        if (!expr->resultsInValue())
-        {
-            continue;
-        }
-
-        const string& value = expr->getValue();
-        if (exprValue == value)
-        {
-            return "1";
-        }
+        return "1";
     }
     return "0";
 }

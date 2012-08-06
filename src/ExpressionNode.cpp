@@ -21,9 +21,17 @@
 #include "AstNode.hpp"
 #include "ExpressionNode.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/lexical_cast.hpp>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
+using boost::lexical_cast;
+using boost::starts_with;
+using std::hex;
 using std::string;
+using std::stringstream;
 
 
 ExpressionNode::ExpressionNode(const std::string& str) :
@@ -40,4 +48,23 @@ ExpressionNode::~ExpressionNode()
 bool ExpressionNode::resultsInString() const
 {
     return false;
+}
+
+
+ExpressionNode::SQL_FLOAT ExpressionNode::convertFloatOrHexString(
+    const string& str
+)
+{
+    ExpressionNode::SQL_FLOAT returnValue;
+    if (starts_with(str, "0x"))
+    {
+        stringstream s;
+        s << str;
+        s >> hex >> returnValue;
+        return returnValue;
+    }
+    else
+    {
+        return lexical_cast<ExpressionNode::SQL_FLOAT>(str);
+    }
 }

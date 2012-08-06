@@ -28,11 +28,13 @@
 #include "sqlParser.h"
 
 #include <boost/cast.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <ctype.h>
 #include <ostream>
 #include <string>
 
+using boost::lexical_cast;
 using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_replace;
@@ -108,44 +110,60 @@ bool ComparisonNode::isAlwaysTrue() const
         return false;
     }
 
+    string expr1, expr2;
+    if (expr1_->resultsInValue() && expr2_->resultsInValue())
+    {
+        expr1 = lexical_cast<string>(
+            convertFloatOrHexString(expr1_->getValue())
+        );
+        expr2 = lexical_cast<string>(
+            convertFloatOrHexString(expr2_->getValue())
+        );
+    }
+    else
+    {
+        expr1 = expr1_->getValue();
+        expr2 = expr2_->getValue();
+    }
+
     if (EQ == compareType_)
     {
-        return expr1_->getValue() == expr2_->getValue();
+        return expr1 == expr2;
     }
     else if (LT == compareType_)
     {
-        return expr1_->getValue() < expr2_->getValue();
+        return expr1 < expr2;
     }
     else if (GT == compareType_)
     {
-        return expr1_->getValue() > expr2_->getValue();
+        return expr1 > expr2;
     }
     else if (LE == compareType_)
     {
-        return expr1_->getValue() <= expr2_->getValue();
+        return expr1 <= expr2;
     }
     else if (GE == compareType_)
     {
-        return expr1_->getValue() >= expr2_->getValue();
+        return expr1 >= expr2;
     }
     else if (NE == compareType_)
     {
-        return expr1_->getValue() != expr2_->getValue();
+        return expr1 != expr2;
     }
     else if (LIKE_KW == compareType_)
     {
         // Empty compares are always false
-        if (expr2_->getValue().size() == 0)
+        if (expr2.size() == 0)
         {
             return false;
         }
-        regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2_->getValue()));
-        return regex_match(expr1_->getValue(), perl);
+        regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2));
+        return regex_match(expr1, perl);
     }
     else if (SOUNDS == compareType_)
     {
-        return MySqlConstants::soundex(expr1_->getValue())
-            == MySqlConstants::soundex(expr2_->getValue());
+        return MySqlConstants::soundex(expr1)
+            == MySqlConstants::soundex(expr2);
     }
 
     Logger::log(Logger::ERROR)

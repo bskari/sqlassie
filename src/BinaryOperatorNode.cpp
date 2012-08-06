@@ -24,28 +24,16 @@
 #include "Logger.hpp"
 #include "sqlParser.h"
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/lexical_cast.hpp>
 #include <cassert>
-#include <iomanip>
 #include <ostream>
-#include <sstream>
 #include <string>
 
 using boost::lexical_cast;
-using boost::starts_with;
-using std::hex;
 using std::string;
-using std::stringstream;
 using std::ostream;
 
-typedef double SQL_FLOAT;
 typedef int64_t SQL_INT;
-
-/**
- * Converts a hex or floating point string to SQL_FLOAT.
- */
-static SQL_FLOAT convertFloatOrHexString(const string& str);
 
 
 BinaryOperatorNode::BinaryOperatorNode(
@@ -180,21 +168,4 @@ void BinaryOperatorNode::print(
     out << name_ << ": op(" << operator_ << ")\n";
     expr1_->print(out, depth + 1, indent);
     expr2_->print(out, depth + 1, indent);
-}
-
-
-SQL_FLOAT convertFloatOrHexString(const string& str)
-{
-    SQL_FLOAT returnValue;
-    if (starts_with(str, "0x"))
-    {
-        stringstream s;
-        s << str;
-        s >> hex >> returnValue;
-        return returnValue;
-    }
-    else
-    {
-        return lexical_cast<SQL_FLOAT>(str);
-    }
 }

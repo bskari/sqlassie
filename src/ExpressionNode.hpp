@@ -76,6 +76,13 @@ public:
      */
     virtual std::string getValue() const WARN_UNUSED_RESULT = 0;
 
+protected:
+    typedef double SQL_FLOAT;
+    /**
+     * Converts a hex or floating point string to SQL_FLOAT.
+     */
+    static SQL_FLOAT convertFloatOrHexString(const std::string& str);
+
 private:
     ExpressionNode(const ExpressionNode& rhs);
     ExpressionNode& operator=(const ExpressionNode& rhs);

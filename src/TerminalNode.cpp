@@ -33,8 +33,10 @@ using boost::bad_lexical_cast;
 using boost::lexical_cast;
 using std::string;
 
+static bool stringIsNumber(const string& s);
 
-TerminalNode::TerminalNode(const std::string& value, const int type)
+
+TerminalNode::TerminalNode(const string& value, const int type)
     : ExpressionNode("Terminal")
     , value_(value)
     , type_(type)
@@ -63,7 +65,7 @@ TerminalNode* TerminalNode::createStringTerminalNode(const string& str)
 }
 
 
-TerminalNode* TerminalNode::createNumberTerminalNode(const std::string& str)
+TerminalNode* TerminalNode::createNumberTerminalNode(const string& str)
 {
     return new TerminalNode(str, FLOAT);
 }
@@ -124,7 +126,16 @@ QueryRisk::EmptyPassword TerminalNode::emptyPassword() const
 
 bool TerminalNode::resultsInValue() const
 {
-    return isNumber();
+    if (isNumber())
+    {
+        return true;
+    }
+    // MySQL interprets strings as numbers if it can
+    if (isString() && stringIsNumber(getValue()))
+    {
+        return true;
+    }
+    return false;
 }
 
 bool TerminalNode::resultsInString() const
@@ -153,4 +164,71 @@ bool TerminalNode::isIdentifier() const
 bool TerminalNode::isString() const
 {
     return STRING == type_;
+}
+
+
+static bool stringIsNumber(const string& s)
+{
+    // I used to do this with a regex, but it was very slow... rewriting it by
+    // hand increased total performance by around 8%
+
+    const string::const_iterator end(s.end());
+
+    string::const_iterator i(s.begin());
+    while (i != end && (' ' == *i || '\t' == *i))
+    {
+        ++i;
+    }
+    if (end == i)
+    {
+        return false;
+    }
+
+    // Check for hex
+    if ('0' == *i && end != (i + 1) && ('x' == *(i + 1) || 'X' == *(i + 1)))
+    {
+        i += 2;
+        size_t hexDigits = 0;
+        // Parse the hex digits
+        while (
+            end != i &&
+            ((*i >= '0' && *i <= '9')
+            || (*i >= 'a' && *i <= 'f')
+            || (*i >= 'A' && *i <= 'F'))
+        )
+        {
+            ++hexDigits;
+            ++i;
+        }
+
+        if (hexDigits < 1)
+        {
+            return false;
+        }
+    }
+    // Check for integers/floating point
+    else
+    {
+        while (end != i && (*i >= '0' && *i <= '9'))
+        {
+            ++i;
+        }
+        // Floating point part
+        if (end != i && '.' == *i)
+        {
+            ++i;
+            while (end != i && (*i >= '0' && *i <= '9'))
+            {
+                ++i;
+            }
+        }
+    }
+
+    // Skip trailing white space
+    while (end != i && (' ' == *i || '\t' == *i))
+    {
+        ++i;
+    }
+
+    return end == i;
 }

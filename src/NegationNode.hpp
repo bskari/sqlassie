@@ -62,12 +62,6 @@ public:
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the comparison is always true.
-     * Overridden from ComparisonNode.
-     */
-    bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
-
-    /**
      * Determines if the password is empty.
      */
     QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;

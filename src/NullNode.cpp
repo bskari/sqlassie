@@ -61,12 +61,6 @@ bool NullNode::isAlwaysTrue() const
 }
 
 
-bool NullNode::anyIsAlwaysTrue() const
-{
-    return NullNode::isAlwaysTrue();
-}
-
-
 QueryRisk::EmptyPassword NullNode::emptyPassword() const
 {
     return QueryRisk::PASSWORD_NOT_USED;

@@ -191,12 +191,6 @@ bool ComparisonNode::isAlwaysTrue() const
 }
 
 
-bool ComparisonNode::anyIsAlwaysTrue() const
-{
-    return ComparisonNode::isAlwaysTrue();
-}
-
-
 QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
     assert(

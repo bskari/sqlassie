@@ -92,12 +92,6 @@ bool BooleanLogicNode::isAlwaysTrue() const
 }
 
 
-bool BooleanLogicNode::anyIsAlwaysTrue() const
-{
-    return isAlwaysTrue();
-}
-
-
 QueryRisk::EmptyPassword BooleanLogicNode::emptyPassword() const
 {
     // Here, we need to examine both nodes to examine the password risk.

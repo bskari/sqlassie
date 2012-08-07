@@ -125,12 +125,6 @@ bool InValuesListNode::isAlwaysTrue() const
 }
 
 
-bool InValuesListNode::anyIsAlwaysTrue() const
-{
-    return isAlwaysTrue();
-}
-
-
 QueryRisk::EmptyPassword InValuesListNode::emptyPassword() const
 {
     // If we're checking something like "password IN (...)", something is fishy

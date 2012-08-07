@@ -68,12 +68,6 @@ bool NegationNode::isAlwaysTrue() const
 }
 
 
-bool NegationNode::anyIsAlwaysTrue() const
-{
-    return NegationNode::isAlwaysTrue();
-}
-
-
 QueryRisk::EmptyPassword NegationNode::emptyPassword() const
 {
     return QueryRisk::PASSWORD_NOT_USED;

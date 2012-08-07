@@ -66,12 +66,6 @@ bool FunctionNode::isAlwaysTrue() const
 }
 
 
-bool FunctionNode::anyIsAlwaysTrue() const
-{
-    return FunctionNode::isAlwaysTrue();
-}
-
-
 QueryRisk::EmptyPassword FunctionNode::emptyPassword() const
 {
     return QueryRisk::PASSWORD_NOT_USED;

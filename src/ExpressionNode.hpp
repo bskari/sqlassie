@@ -47,12 +47,6 @@ public:
     virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT = 0;
     bool isAlwaysFalse() const WARN_UNUSED_RESULT;
     virtual bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT = 0;
-    ///@}
-
-    /**
-     * Determines if any of this node's children are always true.
-     */
-    virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT = 0;
 
     /**
      * Determines if there is an empty password.

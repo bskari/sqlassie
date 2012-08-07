@@ -87,12 +87,6 @@ bool BinaryOperatorNode::isAlwaysTrue() const
 }
 
 
-bool BinaryOperatorNode::anyIsAlwaysTrue() const
-{
-    return isAlwaysTrue();
-}
-
-
 QueryRisk::EmptyPassword BinaryOperatorNode::emptyPassword() const
 {
     /// @TODO(bskari|2012-07-28) Do I need to do something else here?

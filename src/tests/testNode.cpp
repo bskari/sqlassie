@@ -49,7 +49,6 @@ void testAlwaysSomethingNode()
         const bool value = values[i];
         AlwaysSomethingNode asn(value);
         BOOST_CHECK_EQUAL(value, asn.isAlwaysTrue());
-        BOOST_CHECK_EQUAL(value, asn.anyIsAlwaysTrue());
     }
 }
 

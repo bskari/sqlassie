@@ -66,12 +66,6 @@ public:
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the any of this node's children are always true.
-     * Overridden from ExpressionNode.
-     */
-    bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
-
-    /**
      * Determines if the there is an empty password.
      * Overridden from ExpressionNode.
      */

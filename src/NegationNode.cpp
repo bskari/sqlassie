@@ -65,6 +65,7 @@ bool NegationNode::isAlwaysTrue() const
     {
         return !expression_->isAlwaysTrue();
     }
+    return false;
 }
 
 

@@ -95,6 +95,10 @@ bool TerminalNode::isAlwaysTrueOrFalse() const
 }
 
 
+#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 6
+#pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wfloat-equal"
 bool TerminalNode::isAlwaysTrue() const
 {
     switch (type_)
@@ -102,7 +106,7 @@ bool TerminalNode::isAlwaysTrue() const
     case INTEGER:
         /// @TODO(bskari|2012-07-27) Doing a full conversion here seems
         /// unnecessary when all we care about is if it's 0
-        return lexical_cast<int64_t>(value_) != 0ll;
+        return lexical_cast<int64_t>(value_) != static_cast<int64_t>(0);
     case HEX_NUMBER:
         /// @TODO(bskari|2012-07-27) Convert the hex value to an integer and
         /// see if it's 0
@@ -129,6 +133,9 @@ bool TerminalNode::isAlwaysTrue() const
         return false;
     }
 }
+#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 6
+#pragma GCC diagnostic pop
+#endif
 
 
 bool TerminalNode::anyIsAlwaysTrue() const

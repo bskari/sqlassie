@@ -410,10 +410,10 @@ void testQueryRiskAlwaysTrue()
     BOOST_CHECK(qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE 'bRaNdOn' != 'not brandon'");
-    BOOST_CHECK(!qr.alwaysTrue);
+    BOOST_CHECK(qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE 'brandon' != 'not brandon'");
-    BOOST_CHECK(!qr.alwaysTrue);
+    BOOST_CHECK(qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
     // and/or/xor statements

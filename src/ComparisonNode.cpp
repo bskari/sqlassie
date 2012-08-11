@@ -27,6 +27,7 @@
 #include "SensitiveNameChecker.hpp"
 #include "sqlParser.h"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/cast.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
@@ -35,12 +36,25 @@
 #include <string>
 
 using boost::lexical_cast;
+using boost::iequals;
+using boost::ilexicographical_compare;
 using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_replace;
 using boost::regex_match;
 using std::ostream;
 using std::string;
+
+static bool compareStrings(
+    const int compareType,
+    const string& s1,
+    const string& s2
+);
+static bool compareValues(
+    const int compareType,
+    const string& s1,
+    const string& s2
+);
 
 
 ComparisonNode::ComparisonNode(
@@ -113,6 +127,10 @@ bool ComparisonNode::isAlwaysTrue() const
             return expr1_->getValue() <= expr->getValue()
                 && expr->getValue() <= expr2_->getValue();
         }
+        else
+        {
+            return false;
+        }
     }
 
     assert(0 == children_.size() && "ComparisonNode should have no children");
@@ -130,64 +148,20 @@ bool ComparisonNode::isAlwaysTrue() const
     string expr1, expr2;
     if (expr1_->resultsInValue() && expr2_->resultsInValue())
     {
-        expr1 = lexical_cast<string>(
-            convertFloatOrHexString(expr1_->getValue())
-        );
-        expr2 = lexical_cast<string>(
-            convertFloatOrHexString(expr2_->getValue())
+        return compareValues(
+            compareType_,
+            lexical_cast<string>(convertFloatOrHexString(expr1_->getValue())),
+            lexical_cast<string>(convertFloatOrHexString(expr2_->getValue()))
         );
     }
     else
     {
-        expr1 = expr1_->getValue();
-        expr2 = expr2_->getValue();
+        return compareStrings(
+            compareType_,
+            expr1_->getValue(),
+            expr2_->getValue()
+        );
     }
-
-    if (EQ == compareType_)
-    {
-        return expr1 == expr2;
-    }
-    else if (LT == compareType_)
-    {
-        return expr1 < expr2;
-    }
-    else if (GT == compareType_)
-    {
-        return expr1 > expr2;
-    }
-    else if (LE == compareType_)
-    {
-        return expr1 <= expr2;
-    }
-    else if (GE == compareType_)
-    {
-        return expr1 >= expr2;
-    }
-    else if (NE == compareType_)
-    {
-        return expr1 != expr2;
-    }
-    else if (LIKE_KW == compareType_)
-    {
-        // Empty compares are always false
-        if (expr2.size() == 0)
-        {
-            return false;
-        }
-        regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2));
-        return regex_match(expr1, perl);
-    }
-    else if (SOUNDS == compareType_)
-    {
-        return MySqlConstants::soundex(expr1)
-            == MySqlConstants::soundex(expr2);
-    }
-
-    Logger::log(Logger::ERROR)
-        << "Unknown comparison operator in ComparisonNode "
-        << compareType_;
-    assert(false);
-    return true;
 }
 
 
@@ -252,4 +226,79 @@ void ComparisonNode::print(
     }
     out << name_ << ':' << compareType_ << '\n';
     printChildren(out, depth + 1, indent);
+}
+
+
+bool compareStrings(
+    const int compareType,
+    const string& s1,
+    const string& s2
+)
+{
+    switch (compareType)
+    {
+        // MySQL does case insensitive comparisons by default
+        case EQ:
+            return iequals(s1, s2);
+        case NE:
+            return !iequals(s1, s2);
+        case LT:
+            return ilexicographical_compare(s1, s2);
+        case GT:
+            return !ilexicographical_compare(s1, s2) && !iequals(s1, s2);
+        case LE:
+            return ilexicographical_compare(s1, s2) || iequals(s1, s2);
+        case GE:
+            return !ilexicographical_compare(s1, s2);
+        case LIKE_KW:
+            // Empty compares are always false
+            if (s2.size() == 0)
+            {
+                return false;
+            }
+            else
+            {
+                regex perl(MySqlConstants::mySqlRegexToPerlRegex(s2));
+                return regex_match(s1, perl);
+            }
+        case SOUNDS:
+            return MySqlConstants::soundex(s1) == MySqlConstants::soundex(s2);
+        default:
+            Logger::log(Logger::WARN) << "Unknown comparison operator "
+                << compareType
+                << " in ComparisonNode.cpp::compareStrings";
+            assert(false);
+            return false;
+    }
+}
+
+
+bool compareValues(
+    const int compareType,
+    const string& s1,
+    const string& s2
+)
+{
+    switch (compareType)
+    {
+        case EQ:
+            return s1 == s2;
+        case LT:
+            return s1 < s2;
+        case GT:
+            return s1 > s2;
+        case LE:
+            return s1 <= s2;
+        case GE:
+            return s1 >= s2;
+        case NE:
+            return s1 != s2;
+        default:
+            Logger::log(Logger::ERROR)
+                << "Unknown comparison operator "
+                << compareType
+                << " in ComparisonNode.cpp::compareValues";
+            assert(false);
+            return false;
+    }
 }

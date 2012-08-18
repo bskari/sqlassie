@@ -266,8 +266,12 @@ int ParserInterface::getLexValue(TokenInfo* const ti)
             if ('`' == id.at(0))
             {
                 ti->scannedString_ = id.substr(1, id.length() - 2);
-                break;
             }
+            else
+            {
+                ti->scannedString_ = id;
+            }
+            break;
         // Quoted strings are scanned in pieces, so the actual string needs to
         // assembled in pieces and saved in scannerContext_.quotedString.
         case STRING:

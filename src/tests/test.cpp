@@ -29,12 +29,17 @@
 #include "testQueryRisk.hpp"
 #include "testQueryWhitelist.hpp"
 #include "testScanner.hpp"
+#include "testSqlassie.hpp"
 
 #include <boost/test/included/unit_test.hpp>
 #include <string>
 
 namespace test = boost::unit_test;
 using std::string;
+
+#define STR_EXPAND(tok) #tok
+#define STR(tok) STR_EXPAND(tok)
+#define FD( function) FunctionDescription(function, STR(function))
 
 
 test::test_suite* init_unit_test_suite(int, char*[])
@@ -55,61 +60,56 @@ test::test_suite* init_unit_test_suite(int, char*[])
 
     Logger::setLevel(Logger::ALL);
 
-    // Tests from testParser.cpp
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testParseKnownGoodQueries)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testQueryType)
-    );
+    typedef void(*testFunction)(void);
+    struct FunctionDescription
+    {
+        FunctionDescription(testFunction function, const char* name)
+            : function_(function)
+            , name_(name)
+        {
+        }
+        testFunction function_;
+        const string name_;
+    };
 
-    // Tests from testQueryRiskParser.cpp
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testQueryRiskSafe)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testQueryRiskComments)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testQueryRiskAlwaysTrue)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testQueryRiskGlobalVariables)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testQueryRiskSensitiveTables)
-    );
+    FunctionDescription functions[] = {
+        // Tests from testParser.cpp
+        FD(testParseKnownGoodQueries),
+        FD(testQueryType),
+        // Tests from testQueryRiskParser.cpp
+        FD(testQueryRiskSafe),
+        FD(testQueryRiskComments),
+        FD(testQueryRiskAlwaysTrue),
+        FD(testQueryRiskGlobalVariables),
+        FD(testQueryRiskSensitiveTables),
+        // Tests from testNode.cpp
+        FD(testAstNode),
+        FD(testAlwaysSomethingNode),
+        FD(testComparisonNode),
+        // Tests from testMySqlConstants.cpp
+        FD(testSoundex),
+        FD(testConvertRegex),
+        // Tests from testQueryWhitelist.cpp
+        FD(testParseWhitelist),
+        FD(testRiskWhitelist),
+        // Tests from testScanner.cpp
+        FD(testAllTokensScan),
+        FD(testScanNumbers)
+        // Tests from testSqlassie.cpp
+    };
 
-    // Tests from testNode.cpp
-    test::framework::master_test_suite().add(BOOST_TEST_CASE(testAstNode));
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testAlwaysSomethingNode)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testComparisonNode)
-    );
-
-    // Tests from testMySqlConstants.cpp
-    test::framework::master_test_suite().add(BOOST_TEST_CASE(testSoundex));
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testConvertRegex)
-    );
-
-    // Tests from testQueryWhitelist.cpp
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testParseWhitelist)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testRiskWhitelist)
-    );
-
-    // Tests from testScanner.cpp
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testAllTokensScan)
-    );
-    test::framework::master_test_suite().add(
-        BOOST_TEST_CASE(testScanNumbers)
-    );
+    for (size_t i = 0; i < sizeof(functions) / sizeof(functions[0]); ++i)
+    {
+        test::framework::master_test_suite().add(
+            test::make_test_case(
+                test::callback0<>(functions[i].function_),
+                test::literal_string(
+                    functions[i].name_.c_str(),
+                    functions[i].name_.length()
+                )
+            )
+        );
+    }
 
     return 0;
 }

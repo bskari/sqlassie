@@ -130,7 +130,8 @@ $(BINARY_DIR)/sqlassie: $(sqlassieDependencies)
 
 testDependencies = tests/test.o tests/testNode.o tests/testParser.o \
 	tests/testMySqlConstants.o tests/testQueryWhitelist.o tests/testScanner.o \
-	tests/testQueryRisk.o Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
+	tests/testQueryRisk.o tests/testSqlassie.o \
+	Socket.hpp Socket.o Proxy.hpp Proxy.o ProxyHalf.hpp \
 	ProxyHalf.o ListenSocket.o MySqlGuard.o MySqlGuardListenSocket.o sqlParser.o \
 	scanner.yy.hpp scanner.yy.o QueryRisk.o AstNode.o ComparisonNode.o \
 	ExpressionNode.o InValuesListNode.o AlwaysSomethingNode.o \
@@ -140,7 +141,7 @@ testDependencies = tests/test.o tests/testNode.o tests/testParser.o \
 	MessageHandler.o Logger.o NegationNode.o QueryWhitelist.o \
 	ScannerContext.o SensitiveNameChecker.o BinaryOperatorNode.o TokenInfo.o \
 	BooleanLogicNode.o TerminalNode.o NullNode.o FunctionNode.o
-$(BINARY_DIR)/test: $(testDependencies)
+$(BINARY_DIR)/test: $(testDependencies) $(BINARY_DIR)/sqlassie
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(testDependencies) \
 		-lboost_regex -lboost_thread -lmysqlclient \
 		-lboost_unit_test_framework -lboost_filesystem -lboost_system \

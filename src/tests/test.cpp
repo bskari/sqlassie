@@ -94,8 +94,13 @@ test::test_suite* init_unit_test_suite(int, char*[])
         FD(testRiskWhitelist),
         // Tests from testScanner.cpp
         FD(testAllTokensScan),
-        FD(testScanNumbers)
+        FD(testScanNumbers),
         // Tests from testSqlassie.cpp
+        FD(testSafeQueriesForwarded),
+        FD(testDangerousSelectsAreBlocked),
+        FD(testDangerousCommandsAreBlocked),
+        FD(testSemanticallyInvalidCommandsAreBlocked),
+        FD(testSyntacticallyInvalidCommandsAreBlocked)
     };
 
     for (size_t i = 0; i < sizeof(functions) / sizeof(functions[0]); ++i)

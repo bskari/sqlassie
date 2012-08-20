@@ -375,7 +375,7 @@ options::options_description getConfigurationOptions()
         )
         (
             "quiet,q",
-            options::value<bool>()->default_value(false),
+            options::bool_switch()->default_value(false),
             "Suppress warnings."
         )
         (

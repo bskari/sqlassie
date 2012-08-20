@@ -749,7 +749,7 @@ void setupOptions(
     if (!host.empty())
     {
         const uint16_t port(
-            getOption("connect-port", commandLineVm, fileVm).as<uint16_t>()
+            getOption("connect-port", commandLineVm, fileVm).as<int>()
         );
         MySqlLoginCheck::initialize(user, password, host, port);
     }

@@ -542,8 +542,8 @@ bool optionsAreValid(
     }
 
     // Host is only valid if connecting to a port
-    const bool clHost = (commandLineVm["host"].as<string>() != "");
-    const bool fHost = (fileVm["host"].as<string>() != "");
+    const bool clHost = !commandLineVm["host"].empty();
+    const bool fHost = !fileVm["host"].empty();
     const bool host = clHost || fHost;
     if (host && !connectPort)
     {
@@ -552,11 +552,11 @@ bool optionsAreValid(
     }
 
     // Password is only valid if a user is specified
-    const bool clUser = (commandLineVm["user"].as<string>() != "");
-    const bool fUser = (fileVm["user"].as<string>() != "");
+    const bool clUser = !commandLineVm["user"].empty();
+    const bool fUser = !fileVm["user"].empty();
     const bool user = clUser || fUser;
-    const bool clPassword = (commandLineVm["password"].as<string>() != "");
-    const bool fPassword = (fileVm["password"].as<string>() != "");
+    const bool clPassword = !commandLineVm["password"].empty();
+    const bool fPassword = !fileVm["password"].empty();
     const bool password = clPassword || fPassword;
     if (password && !user)
     {

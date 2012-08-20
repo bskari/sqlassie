@@ -169,14 +169,6 @@ int main(int argc, char* argv[])
     // Use the parameters
     setupOptions(commandLineVm, fileVm);
 
-    // Override logging level in debug builds
-    #ifndef NDEBUG
-        Logger::setLevel(Logger::ALL);
-        Logger::log(Logger::INFO)
-            << "This is a testing/debug build of SQLassie";
-        Logger::log(Logger::INFO) << "Log level is being set to ALL";
-    #endif
-
     // Register signal handler
     signal(SIGINT, handleSignal);
     signal(SIGCHLD, handleSignal);
@@ -311,7 +303,7 @@ void handleSignal(int signal)
     // children anyway, so if it gets raised, just exit.
     if (SIGINT == signal || SIGCHLD == signal)
     {
-        cout << "Caught signal, quitting" << endl;
+        Logger::log(Logger::WARN) << "Caught signal, quitting";
         quit();
     }
 }

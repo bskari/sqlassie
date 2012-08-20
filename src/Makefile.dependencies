@@ -151,7 +151,7 @@ queryStatistics.o:	queryStatistics.cpp Logger.hpp ParserInterface.hpp \
 
 riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
 	DlibProbabilities.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp nullptr.hpp
+	ReadlineStream.hpp SensitiveNameChecker.hpp nullptr.hpp
 
 scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ReadlineStream.hpp \
 	ScannerContext.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
@@ -189,5 +189,5 @@ tests/testScanner.o:	tests/testScanner.cpp QueryRisk.hpp ScannerContext.hpp \
 	nullptr.hpp scanner.yy.hpp sqlParser.h tests/testScanner.hpp
 
 tests/testSqlassie.o:	tests/testSqlassie.cpp DescribedException.hpp \
-	nullptr.hpp tests/testSqlassie.hpp
+	nullptr.hpp tests/testSqlassie.hpp warnUnusedResult.h
 

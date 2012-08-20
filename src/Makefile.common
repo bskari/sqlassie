@@ -100,10 +100,10 @@ riskAnalyzerDependencies = riskAnalyzer.o sqlParser.o scanner.yy.o AstNode.o \
 	QueryRisk.o DlibProbabilities.o huginScanner.yy.o huginParser.tab.o \
 	MySqlConstants.o Logger.o ScannerContext.o TerminalNode.o \
 	SensitiveNameChecker.o BinaryOperatorNode.o TokenInfo.o BooleanLogicNode.o \
-	NullNode.o FunctionNode.o
+	NullNode.o FunctionNode.o ReadlineStream.o
 $(BINARY_DIR)/riskAnalyzer: $(riskAnalyzerDependencies)
 	$(CXX) $(CXXFLAGS) $(riskAnalyzerDependencies) \
-		-lboost_regex -lboost_thread -o $(BINARY_DIR)/riskAnalyzer
+		-lboost_regex -lboost_thread -lreadline -o $(BINARY_DIR)/riskAnalyzer
 
 scannerDependencies = scanner.o scanner.yy.o QueryRisk.o sqlParser.h Logger.o \
 	ScannerContext.o ReadlineStream.o

@@ -85,8 +85,6 @@ private:
 };
 
 
-#include <iostream>
-#include <unistd.h>
 void testSafeQueriesForwarded()
 {
     SqlassieTestConnection connection;
@@ -133,7 +131,29 @@ void testSafeQueriesForwarded()
 
 void testDangerousSelectsAreBlocked()
 {
+    SqlassieTestConnection connection;
+
+    vector<vector<string> > results;
+
+    const char* dangerousSelects[] = {
+        "SELECT a1.* FROM alphabet a1 CROSS JOIN alphabet a2;",
+        "SELECT * FROM alphabet WHERE letter = ''"
+            " UNION SELECT * FROM alphabet; -- ';",
+        "SELECT number FROM alphabet WHERE letter LIKE 'B%'"
+            " OR IF((SELECT letter FROM alphabet WHERE id = 1) > 'F',"
+            " BENCHMARK(5000000, MD5('')), 0); -- ';",
+    };
+    for (
+        size_t i = 0;
+        i < sizeof(dangerousSelects) / sizeof(dangerousSelects[0]);
+        ++i
+    )
+    {
+        connection.runQuery(dangerousSelects[0], &results);
+        BOOST_CHECK(0 == results.size());
+    }
 }
+
 
 void testDangerousCommandsAreBlocked()
 {

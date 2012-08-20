@@ -26,6 +26,7 @@
 #include "../nullptr.hpp"
 #include "../DescribedException.hpp"
 #include "testSqlassie.hpp"
+#include "../warnUnusedResult.h"
 
 // Newer versions of the Boost filesystem (1.44+) changed the interface; to
 // keep compatibility, default to the old version
@@ -62,7 +63,7 @@ public:
      * Runs a non-SELECT MySQL command.
      * @return The success status of the command.
      */
-    bool runCommand(const char* const command);
+    void runCommand(const char* const command);
 
     /**
      * Runs a SELECT MySQL query.
@@ -70,12 +71,12 @@ public:
      * @param rows A vector to append rows returned from the query.
      * @return The success status of the query.
      */
-    bool runQuery(const char* const query, vector<vector<string> >* const rows);
+    void runQuery(const char* const query, vector<vector<string> >* const rows);
 private:
     pid_t sqlassiePid_;
     MYSQL* connection_;
 
-    void createTestData();
+    bool createTestData() WARN_UNUSED_RESULT;
     void deleteTestData();
 
     // Hidden methods
@@ -84,6 +85,8 @@ private:
 };
 
 
+#include <iostream>
+#include <unistd.h>
 void testSafeQueriesForwarded()
 {
     SqlassieTestConnection connection;
@@ -103,7 +106,9 @@ void testSafeQueriesForwarded()
         BOOST_CHECK(results.size() > 0);
     }
 
-    connection.runCommand("INSERT INTO alphabet VALUES ('C', 3), ('C', 3);");
+    connection.runCommand(
+        "INSERT INTO alphabet (letter, number) VALUES ('C', 3), ('C', 3);"
+    );
     connection.runQuery("SELECT * FROM alphabet WHERE letter = 'C';", &results);
     BOOST_CHECK(2 == results.size());
 
@@ -113,11 +118,14 @@ void testSafeQueriesForwarded()
     connection.runQuery("SELECT * FROM alphabet WHERE letter = 'C';", &results);
     BOOST_CHECK(1 == results.size());
 
-    connection.runCommand("INSERT INTO alphabet VALUES ('E', 5)");
+    connection.runCommand(
+        "INSERT INTO alphabet (letter, number) VALUES ('E', 5)"
+    );
     connection.runQuery("SELECT * FROM alphabet WHERE number = 5;", &results);
     BOOST_CHECK(1 == results.size());
 
-    connection.runCommand("DELETE FROM alphabet WHERE id BETWEEN 4 AND 6;");
+    // 5 <= id <= 6, should match only id = 5
+    connection.runCommand("DELETE FROM alphabet WHERE id BETWEEN 5 AND 6;");
     connection.runQuery("SELECT * FROM alphabet;", &results);
     BOOST_CHECK(4 == results.size());
 }
@@ -146,7 +154,11 @@ SqlassieTestConnection::SqlassieTestConnection()
     : sqlassiePid_()
     , connection_(mysql_init(nullptr))
 {
-    createTestData();
+    if(!createTestData())
+    {
+        deleteTestData();
+        throw DescribedException("Unable to create test data");
+    }
 
     sqlassiePid_ = fork();
     // Failed to fork
@@ -245,11 +257,11 @@ SqlassieTestConnection::~SqlassieTestConnection()
 }
 
 
-bool SqlassieTestConnection::runCommand(const char* const command)
+void SqlassieTestConnection::runCommand(const char* const command)
 {
     if (0 != mysql_query(connection_, command))
     {
-        return false;
+        BOOST_FAIL("Unable to run command \"" << command << "\"");
     }
 
     MYSQL_RES* result = mysql_store_result(connection_);
@@ -261,7 +273,7 @@ bool SqlassieTestConnection::runCommand(const char* const command)
         const char* const message = mysql_error(connection_);
         if ('\0' != message[0])
         {
-            return false;
+            BOOST_FAIL("Unable to run command \"" << command << "\"");
         }
         mysql_free_result(result);
     }
@@ -272,19 +284,17 @@ bool SqlassieTestConnection::runCommand(const char* const command)
         // nicer, but because this is just a test, I'll just fail.
         BOOST_FAIL("runCommand called with non-command");
     }
-
-    return true;
 }
 
 
-bool SqlassieTestConnection::runQuery(
+void SqlassieTestConnection::runQuery(
     const char* const query,
     vector<vector<string> >* const rows
 )
 {
     if (0 != mysql_query(connection_, query))
     {
-        return false;
+        BOOST_FAIL("Unable to run query \"" << query << "\"");
     }
 
     MYSQL_RES* result = mysql_store_result(connection_);
@@ -302,7 +312,7 @@ bool SqlassieTestConnection::runQuery(
     if (nullptr == row)
     {
         mysql_free_result(result);
-        return false;
+        BOOST_FAIL("Unable to run query \"" << query << "\"");
     }
 
     const size_t numFields = mysql_num_fields(result);
@@ -338,11 +348,10 @@ bool SqlassieTestConnection::runQuery(
     }
 
     mysql_free_result(result);
-    return true;
 }
 
 
-void SqlassieTestConnection::createTestData()
+bool SqlassieTestConnection::createTestData()
 {
     // This can't use the connection through SQLassie because SQLassie doesn't
     // allow schema changing commands
@@ -361,7 +370,7 @@ void SqlassieTestConnection::createTestData()
     const char* const unixSocket = nullptr;
     const unsigned long clientFlag = 0;
 
-    const MYSQL* const success = mysql_real_connect(
+    const MYSQL* const connectionSuccess = mysql_real_connect(
         connection,
         host,
         username,
@@ -372,7 +381,7 @@ void SqlassieTestConnection::createTestData()
         clientFlag
     );
 
-    if (nullptr == success)
+    if (nullptr == connectionSuccess)
     {
         DescribedException de(mysql_error(connection));
         mysql_close(connection);
@@ -382,6 +391,7 @@ void SqlassieTestConnection::createTestData()
     // Use a one-time loop so that we can clean up easily on the first error
     // I prefer this method over gotos because I can guarantee that jumps only
     // come from here
+    bool dataCreationSuccess = false;
     do
     {
         if (0 != mysql_query(connection, "DROP TABLE IF EXISTS alphabet;")) break;
@@ -392,15 +402,17 @@ void SqlassieTestConnection::createTestData()
             " number INT NOT NULL);"
         )) break;
         if (0 != mysql_query(connection,
-            "INSERT INTO alphabet VALUES ('A', 1);"
+            "INSERT INTO alphabet (letter, number) VALUES ('A', 1);"
         )) break;
         if (0 != mysql_query(connection,
-            "INSERT INTO alphabet VALUES ('B', 2);"
+            "INSERT INTO alphabet (letter, number) VALUES ('B', 2);"
         )) break;
+        dataCreationSuccess = true;
     }
     while (false);
 
     mysql_close(connection);
+    return dataCreationSuccess;
 }
 
 

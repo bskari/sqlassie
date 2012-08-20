@@ -179,6 +179,7 @@ int main(int argc, char* argv[])
 
     // Register signal handler
     signal(SIGINT, handleSignal);
+    signal(SIGCHLD, handleSignal);
 
     #ifdef NDEBUG
         // Let debuggers catch exceptions so we can get backtraces
@@ -305,7 +306,10 @@ int main(int argc, char* argv[])
  */
 void handleSignal(int signal)
 {
-    if (SIGINT == signal)
+    // Boost test catches all signals except for SIGCHLD. I want to be able to
+    // run this and kill it from a test, and SQLassie shouldn't be forking any
+    // children anyway, so if it gets raised, just exit.
+    if (SIGINT == signal || SIGCHLD == signal)
     {
         cout << "Caught signal, quitting" << endl;
         quit();

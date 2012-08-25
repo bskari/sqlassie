@@ -258,13 +258,47 @@ void testQueryRiskOrStatements()
 
 void testQueryRiskUnionStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0");
+    BOOST_CHECK(0 == qr.unionStatements);
+
+    qr = parseQuery("SELECT * FROM user WHERE id = 5 UNION SELECT 1, 'admin'");
+    BOOST_CHECK(1 == qr.unionStatements);
+
+    // UNION ALL statements also count as UNIONs
+    qr = parseQuery("SELECT * FROM user WHERE id = 5 UNION ALL SELECT 1, 'a'");
+    BOOST_CHECK(1 == qr.unionStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN email e ON e.user_id = u.id"
+        " UNION SELECT 1, (SELECT MAX(age) FROM user) AS max_age, 'admin'"
+        " UNION SELECT 2, (SELECT MIN(age) FROM user) AS min_age, 'admin'"
+    );
+    BOOST_CHECK(2 == qr.unionStatements);
 }
 
 
 void testQueryRiskUnionAllStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0");
+    BOOST_CHECK(0 == qr.unionAllStatements);
+
+    // UNION statements shouldn't be counted as UNION ALL statements
+    qr = parseQuery("SELECT * FROM user WHERE id = 5 UNION SELECT 1, 'admin'");
+    BOOST_CHECK(0 == qr.unionAllStatements);
+
+    qr = parseQuery("SELECT * FROM user WHERE id = 5 UNION ALL SELECT 1, 'a'");
+    BOOST_CHECK(1 == qr.unionStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN email e ON e.user_id = u.id"
+        " UNION ALL SELECT 1, (SELECT MAX(age) FROM user) AS max_age, 'admin'"
+        " UNION ALL SELECT 2, (SELECT MIN(age) FROM user) AS min_age, 'admin'"
+    );
+    BOOST_CHECK(2 == qr.unionStatements);
 }
 
 

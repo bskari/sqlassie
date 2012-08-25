@@ -513,8 +513,12 @@ select_statement ::= select_opt select(X) outfile_opt lock_read_opt.   {X;}
 
 select(A) ::= oneselect(X).                  {A;X;}
 select(A) ::= select(X) multiselect_op(Y) oneselect(Z).  {A;X;Y;Z;}
-multiselect_op(A) ::= UNION(OP).             {A;OP;}
-multiselect_op(A) ::= UNION ALL.             {A;}
+multiselect_op ::= UNION.       {++sc->qrPtr->unionStatements;}
+multiselect_op ::= UNION ALL.
+{
+    ++sc->qrPtr->unionStatements;
+    ++sc->qrPtr->unionAllStatements;
+}
 // EXCEPT and INTERSECT are not supported in MySQL
 //multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
 oneselect ::= SELECT distinct selcollist from where_opt

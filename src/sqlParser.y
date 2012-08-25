@@ -938,6 +938,7 @@ expr ::= expr AND(OP) expr.
 expr ::= expr OR(OP) expr.
 {
     addBooleanLogicNode(sc, OP->token_);
+    ++sc->qrPtr->orStatements;
 }
 expr ::= expr XOR(OP) expr.
 {

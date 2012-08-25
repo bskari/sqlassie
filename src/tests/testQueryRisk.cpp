@@ -200,7 +200,123 @@ void testQueryRiskComments()
 }
 
 
-void testQueryRiskAlwaysTrue()
+void testQueryRiskSensitiveTables()
+{
+    QueryRisk qr;
+
+    // Sensitive tables as of July 15 2012 (taken from QueryRisk.cpp)
+    // customer member admin user permission session
+
+    qr = parseQuery("SELECT * FROM customer");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery("SELECT name, password FROM user WHERE name = 'quote'");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM benign_table "
+        "UNION SELECT password FROM user"
+    );
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery(
+        "SELECT u.name, u.password, s.csrf, s.token "
+        "FROM user u JOIN session s ON u.id = s.user_id"
+    );
+    BOOST_CHECK(2 == qr.sensitiveTables);
+
+    qr = parseQuery("DELETE FROM admin WHERE id = 1");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery("INSERT INTO permission (user_id, flags) VALUES (1, 2)");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+}
+
+
+void testQueryRiskOrStatements()
+{
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0");
+    BOOST_CHECK(0 == qr.orStatements);
+
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0 OR age > 21");
+    BOOST_CHECK(1 == qr.orStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN email e ON e.user_id = u.id"
+        " WHERE flags & 0x01 = 0 OR age > 21 OR"
+        " (SELECT COUNT(*) FROM email WHERE flags & 0x01 = 0 OR time > NOW()"
+        " GROUP BY user_id);"
+    );
+    BOOST_CHECK(3 == qr.orStatements);
+
+    qr = parseQuery("SELECT * FROM user WHERE 1 = 1 OR 1 OR 1 OR 1 OR 1 OR 1");
+    BOOST_CHECK(5 == qr.orStatements);
+}
+
+
+void testQueryRiskUnionStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskUnionAllStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskBruteForceCommands()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskIfStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskHexStrings()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskBenchmarkStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskUserStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskFingerprintingStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskMySqlStringConcat()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskStringManipulationStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskAlwaysTrueConditional()
 {
     QueryRisk qr;
 
@@ -444,6 +560,18 @@ void testQueryRiskAlwaysTrue()
 }
 
 
+void testQueryRiskCommentedConditionals()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskCommentedQuotes()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
 void testQueryRiskGlobalVariables()
 {
     QueryRisk qr;
@@ -471,36 +599,69 @@ void testQueryRiskGlobalVariables()
 }
 
 
-void testQueryRiskSensitiveTables()
+void testQueryRiskJoinStatements()
 {
-    QueryRisk qr;
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
 
-    // Sensitive tables as of July 15 2012 (taken from QueryRisk.cpp)
-    // customer member admin user permission session
 
-    qr = parseQuery("SELECT * FROM customer");
-    BOOST_CHECK(1 == qr.sensitiveTables);
+void testQueryRiskCrossJoinStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
 
-    qr = parseQuery("SELECT name, password FROM user WHERE name = 'quote'");
-    BOOST_CHECK(1 == qr.sensitiveTables);
 
-    qr = parseQuery(
-        "SELECT COUNT(*) FROM benign_table "
-        "UNION SELECT password FROM user"
-    );
-    BOOST_CHECK(1 == qr.sensitiveTables);
+void testQueryRiskRegexLength()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
 
-    qr = parseQuery(
-        "SELECT u.name, u.password, s.csrf, s.token "
-        "FROM user u JOIN session s ON u.id = s.user_id"
-    );
-    BOOST_CHECK(2 == qr.sensitiveTables);
 
-    qr = parseQuery("DELETE FROM admin WHERE id = 1");
-    BOOST_CHECK(1 == qr.sensitiveTables);
+void testQueryRiskSlowRegexes()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
 
-    qr = parseQuery("INSERT INTO permission (user_id, flags) VALUES (1, 2)");
-    BOOST_CHECK(1 == qr.sensitiveTables);
+
+void testQueryRiskEmptyPassword()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskMultipleQueries()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskOrderByNumber()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskAlwaysTrue()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskInformationSchema()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskValid()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskUserTable()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
 }
 
 

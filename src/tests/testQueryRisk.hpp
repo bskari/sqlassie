@@ -31,19 +31,37 @@ void testQueryRiskSafe();
 void testQueryRiskComments();
 
 /**
- * Tests that the risk of always true statements in queries is correctly
- * identified.
+ * Tests that various query risks are being correctly determined and accounted
+ * for by the parser.
  */
-void testQueryRiskAlwaysTrue();
-
-/**
- * Tests that the risk of global variables is correctly counted.
- */
-void testQueryRiskGlobalVariables();
-
-/**
- * Tests that the risk of sensitive tables is correctly counted.
- */
+///@{
 void testQueryRiskSensitiveTables();
+void testQueryRiskOrStatements();
+void testQueryRiskUnionStatements();
+void testQueryRiskUnionAllStatements();
+void testQueryRiskBruteForceCommands();
+void testQueryRiskIfStatements();
+void testQueryRiskHexStrings();
+void testQueryRiskBenchmarkStatements();
+void testQueryRiskUserStatements();
+void testQueryRiskFingerprintingStatements();
+void testQueryRiskMySqlStringConcat();
+void testQueryRiskStringManipulationStatements();
+void testQueryRiskAlwaysTrueConditional();
+void testQueryRiskCommentedConditionals();
+void testQueryRiskCommentedQuotes();
+void testQueryRiskGlobalVariables();
+void testQueryRiskJoinStatements();
+void testQueryRiskCrossJoinStatements();
+void testQueryRiskRegexLength();
+void testQueryRiskSlowRegexes();
+void testQueryRiskEmptyPassword();
+void testQueryRiskMultipleQueries();
+void testQueryRiskOrderByNumber();
+void testQueryRiskAlwaysTrue();
+void testQueryRiskInformationSchema();
+void testQueryRiskValid();
+void testQueryRiskUserTable();
+///@}
 
 #endif  // SRC_TESTS_TESTQUERYRISK_HPP_

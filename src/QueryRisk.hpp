@@ -71,45 +71,46 @@ public:
     // scanner can't tell the difference. To be consistent, if a rule could be
     // handled in either place, I do it in the parser.
 
-    // Just as a check for myself, lines marked 'done' are being accounted for
-    // and properly increased in either scanner or parser.
+    // Each risk has a corresponding test in testQueryRisk.hpp, so as long as
+    // the tests pass, these should be properly accounted for by the parser.
+
     /**
      * Risk factors.
      */
     ///@{
-    QueryType queryType;  // Done
+    QueryType queryType;
     size_t multiLineComments;
-    size_t hashComments;  // Done
-    size_t dashDashComments;  // Done
-    size_t mySqlComments;  // Done
-    size_t mySqlVersionedComments;  // Done
+    size_t hashComments;
+    size_t dashDashComments;
+    size_t mySqlComments;
+    size_t mySqlVersionedComments;
     size_t sensitiveTables;
     size_t orStatements;
     size_t unionStatements;
     size_t unionAllStatements;
-    size_t bruteForceCommands;  // Done
-    size_t ifStatements;  // Done
+    size_t bruteForceCommands;
+    size_t ifStatements;
     size_t hexStrings;
     size_t benchmarkStatements;
     size_t userStatements;
-    size_t fingerprintingStatements;  // Done
+    size_t fingerprintingStatements;
     size_t mySqlStringConcat;
     size_t stringManipulationStatements;
     size_t alwaysTrueConditional;
-    size_t commentedConditionals;  // Done
-    size_t commentedQuotes;  // Done
+    size_t commentedConditionals;
+    size_t commentedQuotes;
     size_t globalVariables;
     size_t joinStatements;
     size_t crossJoinStatements;
     size_t regexLength;
     size_t slowRegexes;
     EmptyPassword emptyPassword;
-    bool multipleQueries;  // Done (not allowed in my parser)
+    bool multipleQueries;
     bool orderByNumber;
     bool alwaysTrue;
     bool informationSchema;
-    bool valid;  // Done
-    bool userTable;  // Done
+    bool valid;
+    bool userTable;
     ///@}
 
     /**

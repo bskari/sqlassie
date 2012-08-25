@@ -304,7 +304,72 @@ void testQueryRiskUnionAllStatements()
 
 void testQueryRiskBruteForceCommands()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    // Current list of brute force commands
+    // mid substr substring load_file char
+
+    // Check for mid (upper and lowercase)
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT MID(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT mid(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+
+    // Check for substr and substring (upper and lowercase)
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT SUBSTR(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT substr(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT SUBSTRING(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT substring(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+
+    // Check for load_file (upper and lowercase)
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " UNION SELECT LOAD_FILE('/etc/passwd')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " UNION SELECT load_file('/etc/passwd')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+
+    // Check for char (upper and lowercase)
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM post WHERE id = 729"
+        " UNION SELECT * FROM user "
+        " WHERE name LIKE CHAR(34, 37, 97, 100, 109, 105, 110, 37, 34)"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM post WHERE id = 729"
+        " UNION SELECT * FROM user "
+        " WHERE name LIKE char(34, 37, 97, 100, 109, 105, 110, 37, 34)"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
 }
 
 

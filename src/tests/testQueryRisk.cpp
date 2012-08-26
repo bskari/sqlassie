@@ -375,37 +375,141 @@ void testQueryRiskBruteForceCommands()
 
 void testQueryRiskIfStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery(
+        "INSERT INTO USER (name, password, age) VALUES ('B', 'p', IF("
+        " (SELECT SUBSTR(password, 1, 1) FROM user WHERE name = 'admin') < 'f',"
+        " BENCHMARK(1000000, MD5('f')),"
+        " 1"
+        "))"
+    );
+    BOOST_CHECK(1 == qr.ifStatements);
 }
 
 
 void testQueryRiskHexStrings()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    // --------------------------------------------------------
+    // Situations where hex digits are used as numbers are okay
+    // --------------------------------------------------------
+
+    // Binary operators should imply that it's a number
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0");
+    BOOST_CHECK(0 == qr.hexStrings);
+
+    // This should be determinable as a number because it's being compared to
+    // an integer
+    qr = parseQuery("SELECT * FROM user WHERE flags + 0x01 = 0");
+    BOOST_CHECK(0 == qr.hexStrings);
+
+    // ----------------------------------------------------
+    // Situations where hex digits are strings are not okay
+    // ----------------------------------------------------
+
+    // Like statements always use strings
+    qr = parseQuery("SELECT * FROM user WHERE name LIKE 0x61646d696e");
+    BOOST_CHECK(1 == qr.hexStrings);
+
+    // Comparing strings should imply that it's a string
+    qr = parseQuery("SELECT * FROM user WHERE 'admin' = 0x61646D696E");
+    BOOST_CHECK(1 == qr.hexStrings);
+
+    // -----------------------------------------------------------------------
+    // Some cases depend on the schema and are indeterminate from SQLassie, so
+    // they shouldn't be counted
+    // -----------------------------------------------------------------------
+
+    qr = parseQuery("SELECT * FROM user WHERE name = 0x61646D696E");
+    BOOST_CHECK(0 == qr.hexStrings);
 }
 
 
 void testQueryRiskBenchmarkStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery(
+        "INSERT INTO USER (name, password, age) VALUES ('B', 'p', IF("
+        " (SELECT SUBSTR(password, 1, 1) FROM user WHERE name = 'admin') < 'f',"
+        " BENCHMARK(1000000, MD5('f')),"
+        " 1"
+        "))"
+    );
+    BOOST_CHECK(1 == qr.benchmarkStatements);
 }
 
 
 void testQueryRiskUserStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    // User tables are OK - MySQL user functions are not
+    qr = parseQuery("SELECT * FROM user WHERE username = 'f'");
+    BOOST_CHECK(0 == qr.userStatements);
+
+    qr = parseQuery("SELECT user()");
+    BOOST_CHECK(1 == qr.userStatements);
+    qr = parseQuery("SELECT USER()");
+    BOOST_CHECK(1 == qr.userStatements);
+    qr = parseQuery("SELECT current_user()");
+    BOOST_CHECK(1 == qr.userStatements);
+    // current_user is both a function and a reserved word that returns the
+    // value of the function call
+    qr = parseQuery("SELECT current_user");
+    BOOST_CHECK(1 == qr.userStatements);
+    qr = parseQuery("SELECT session_user()");
+    BOOST_CHECK(1 == qr.userStatements);
+    qr = parseQuery("SELECT system_user()");
+    BOOST_CHECK(1 == qr.userStatements);
+
+    qr = parseQuery("SELECT * FROM permission UNION SELECT user(), host()");
+    BOOST_CHECK(1 == qr.userStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM email WHERE SUBSTR(current_user(), 1, 1) < 'f'"
+    );
+    BOOST_CHECK(1 == qr.userStatements);
 }
 
 
 void testQueryRiskFingerprintingStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT id FROM user UNION SELECT schema()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT SCHEMA()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT database()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT version()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT connection_id()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT last_insert_id()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT row_count()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
 }
 
 
 void testQueryRiskMySqlStringConcat()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    // MySQL implicitly concatenates adjacent strings, just like C++
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT 'a' 'b'");
+    BOOST_CHECK(1 == qr.mySqlStringConcat);
+    qr = parseQuery("SELECT 'a' 'b' 'c'");
+    BOOST_CHECK(2 == qr.mySqlStringConcat);
+    qr = parseQuery("SELECT 'a' 'b' 'c' 'd'");
+    BOOST_CHECK(3 == qr.mySqlStringConcat);
+
+    qr = parseQuery("SELECT * FROM user WHERE 'a' 'bc' = 'a' 'bc'");
+    BOOST_CHECK(2 == qr.mySqlStringConcat);
 }
 
 

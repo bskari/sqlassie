@@ -263,6 +263,7 @@ id(A) ::= ID_FALLBACK(X).
 // the sqlite3ExprIfFalse() routine for additional information on this
 // constraint.
 //
+%right STRING.
 %left OR.
 %left XOR.
 %left AND.
@@ -280,13 +281,22 @@ id(A) ::= ID_FALLBACK(X).
 // And "ids" is an identifer-or-string.
 //
 ids(A) ::= ID(X).       {A = X;}
-ids(A) ::= STRING(X).   {A = X;}
+ids(A) ::= string(X).   {A = X;}
 
 // The name of a column or table can be any of the following:
 //
 nm(A) ::= id(X).         {A = X;}
-nm(A) ::= STRING(X).     {A = X;}
+nm(A) ::= string(X).     {A = X;}
 nm(A) ::= JOIN_KW(X).    {A = X;}
+
+// MySQL implicitly concatenates adjacent strings.
+string(A) ::= STRING(X) string(Y).
+{
+    A = X;
+    A->scannedString_ += Y->scannedString_;
+    ++sc->qrPtr->mySqlStringConcat;
+}
+string(A) ::= STRING(X).    {A = X;}
 
 // A typetoken is really one or more tokens that form a type name such
 // as can be found after the column name in a CREATE TABLE statement.
@@ -313,7 +323,7 @@ cmd ::= SHOW DATABASES where_opt.
     sc->nodes.pop();
 }
 // MySQL doesn't allow NOT LIKE statements here, so don't use like_op
-cmd ::= SHOW DATABASES LIKE_KW STRING.
+cmd ::= SHOW DATABASES LIKE_KW string.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
@@ -325,7 +335,7 @@ cmd ::= SHOW global_opt VARIABLES where_opt.
     // Pop the where_opt node
     sc->nodes.pop();
 }
-cmd ::= SHOW global_opt VARIABLES LIKE_KW STRING.
+cmd ::= SHOW global_opt VARIABLES LIKE_KW string.
 {
     /// @TODO(bskari|2012-07-08) Are any global variables risky?
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
@@ -377,11 +387,11 @@ cmd ::= SHOW FULL TABLES show_from_in_id_opt where_opt.
     // Pop the where_opt node
     sc->nodes.pop();
 }
-cmd ::= SHOW TABLES show_from_in_id_opt LIKE_KW STRING.
+cmd ::= SHOW TABLES show_from_in_id_opt LIKE_KW string.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
-cmd ::= SHOW FULL TABLES show_from_in_id_opt LIKE_KW STRING.
+cmd ::= SHOW FULL TABLES show_from_in_id_opt LIKE_KW string.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
@@ -392,7 +402,7 @@ cmd ::= SHOW full_opt COLUMNS where_opt.
     // Pop the where_opt node
     sc->nodes.pop();
 }
-cmd ::= SHOW full_opt COLUMNS LIKE_KW STRING.
+cmd ::= SHOW full_opt COLUMNS LIKE_KW string.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
@@ -404,7 +414,7 @@ cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt
     sc->nodes.pop();
 }
 cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt
-    LIKE_KW STRING.
+    LIKE_KW string.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
 }
@@ -436,7 +446,7 @@ cmd ::= describe_kw id id.
 }
 // You can specify an individual column, or give a regex and show all columns
 // that match it.
-cmd ::= describe_kw id STRING.
+cmd ::= describe_kw id string.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_DESCRIBE;
 }
@@ -517,7 +527,7 @@ multiselect_op ::= UNION.       {++sc->qrPtr->unionStatements;}
 multiselect_op ::= UNION ALL.
 {
     ++sc->qrPtr->unionStatements;
-    ++sc->qrPtr->unionAllStatements;
+    ++sc->qrPtr->unionStatements;
 }
 // EXCEPT and INTERSECT are not supported in MySQL
 //multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
@@ -581,9 +591,12 @@ selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y) as. {A;X;Y;P;}
 // An option "AS <id>" phrase that can follow one of the expressions that
 // define the result set, or one of the tables in the FROM clause.
 //
-as(X) ::= AS nm(Y).    {X;Y;}
-as(X) ::= ids(Y).      {X;Y;}
-as(X) ::= .            {X;}
+as ::= AS nm.
+as ::= ID.
+// MySQL allows you to use a string for an as clause, but does not allow
+// implicitly concatenated strings
+as ::= STRING.
+as ::= .
 
 
 // A complete FROM clause.
@@ -628,7 +641,7 @@ table_name ::= id(X).
 {
     sc->qrPtr->checkTable(X->scannedString_);
 }
-table_name ::= STRING(X).
+table_name ::= string(X).
 {
     sc->qrPtr->checkTable(X->scannedString_);
 }
@@ -648,8 +661,8 @@ fullname ::= nm DOT nm(X).
     sc->qrPtr->checkTable(X->scannedString_);
 }
 
-joinop(X) ::= COMMA.                 {X;}
-joinop(X) ::= join_opt JOIN_KW.         {X;}
+joinop(X) ::= COMMA.            {X;}
+joinop(X) ::= join_opt JOIN_KW. {X;}
 
 join_opt ::= INNER.
 join_opt ::= CROSS.
@@ -887,7 +900,7 @@ term ::= HEX_NUMBER(X).
     ExpressionNode* const ex = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(ex);
 }
-term ::= STRING(X).
+term ::= string(X).
 {
     ExpressionNode* const ex = new TerminalNode(X->scannedString_, X->token_);
     sc->nodes.push(ex);

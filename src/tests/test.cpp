@@ -119,6 +119,7 @@ test::test_suite* init_unit_test_suite(int, char*[])
         // Tests from testScanner.cpp
         FD(testAllTokensScan),
         FD(testScanNumbers),
+        FD(testScanComments),
         // Tests from testSqlassie.cpp
         FD(testSafeQueriesForwarded),
         FD(testDangerousSelectsAreBlocked),

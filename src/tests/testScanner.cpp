@@ -62,6 +62,7 @@ static void checkScanTokens(
     const int numTokens,
     const char* const tokenStream
 );
+static void checkFailure(const char* const tokenStream);
 // Methods from the scanner
 extern YY_DECL;
 
@@ -155,6 +156,53 @@ void testScanNumbers()
 }
 
 
+void testScanComments()
+{
+    const int INT = INTEGER;
+
+    // Dash dash comments need whitespace
+    const int dashDashNoWhiteSpaceTokens[] = {ID, MINUS, MINUS, INT};
+    const char* dashDashNoWhiteSpaceString = "x   --1";
+    checkScanTokens(
+        dashDashNoWhiteSpaceTokens,
+        sizeof(dashDashNoWhiteSpaceTokens) / sizeof(dashDashNoWhiteSpaceTokens[0]),
+        dashDashNoWhiteSpaceString
+    );
+
+    // Dash dash comments can end a query
+    const int dashDashEndTokens[] = {ID};
+    const char* dashDashEndString = "x --";
+    checkScanTokens(
+        dashDashEndTokens,
+        sizeof(dashDashEndTokens) / sizeof(dashDashEndTokens[0]),
+        dashDashEndString
+    );
+
+    // Hash comments can end a query
+    const int HashEndTokens[] = {ID};
+    const char* HashEndString = "x #";
+    checkScanTokens(
+        HashEndTokens,
+        sizeof(HashEndTokens) / sizeof(HashEndTokens[0]),
+        HashEndString
+    );
+
+    // Short comments
+    const int shortCommentsTokens[] = {ID};
+    const char* shortCommentsString = "x /**/ /*!*/ /*!12345*/ /*/ x */";
+    checkScanTokens(
+        shortCommentsTokens,
+        sizeof(shortCommentsTokens) / sizeof(shortCommentsTokens[0]),
+        shortCommentsString
+    );
+
+    // There are invalid comments too
+    checkFailure("SELECT * FROM foo /* ");
+    checkFailure("SELECT * FROM foo /*! ");
+    checkFailure("SELECT * FROM foo /*!12345 ");
+}
+
+
 set<string> loadScannerTokens(const char* const filename)
 {
     ifstream fin(filename);
@@ -219,6 +267,33 @@ void checkScanTokens(
     const int lastLexCode = sql_lex(&sc, scanner);
     const int endOfTokensLexCode = 0;
     BOOST_CHECK(endOfTokensLexCode == lastLexCode);
+
+    sql__delete_buffer(bufferState, scanner);
+    sql_lex_destroy(scanner);
+}
+
+
+void checkFailure(const char* const tokenStream)
+{
+    yyscan_t scanner;
+    BOOST_REQUIRE(0 == sql_lex_init(&scanner));
+    YY_BUFFER_STATE bufferState = sql__scan_string(tokenStream, scanner);
+    BOOST_REQUIRE(nullptr != bufferState);
+
+    QueryRisk qr;
+    ScannerContext sc(&qr);
+    const int endOfTokensLexCode = 0;
+    int lexCode;
+    do
+    {
+        lexCode = sql_lex(&sc, scanner);
+    }
+    while (endOfTokensLexCode != lexCode);
+
+    BOOST_CHECK_MESSAGE(
+        !qr.valid,
+        '"' << tokenStream << "\" should not have parsed"
+    );
 
     sql__delete_buffer(bufferState, scanner);
     sql_lex_destroy(scanner);

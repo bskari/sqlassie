@@ -941,6 +941,25 @@ expr ::= id(X) LP distinct exprlist RP.
 
     sc->qrPtr->checkFunction(X->scannedString_);
 }
+// INSERT is a reserved word in MySQL, but it's also the name of a built-in
+// string manipulation function
+expr ::= INSERT(X) LP distinct exprlist RP.
+{
+    /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
+    /// functions here. For example, IF(1, 1, 0) should always be true.
+    FunctionNode* fn = new FunctionNode(X->scannedString_);
+    std::stack<ExpressionNode*>& exprList = expressionLists.top();
+    while (!exprList.empty())
+    {
+        fn->addChild(exprList.top());
+        exprList.pop();
+    }
+    expressionLists.pop();
+
+    sc->nodes.push(new FunctionNode(X->scannedString_));
+
+    sc->qrPtr->checkFunction(X->scannedString_);
+}
 expr ::= id(X) LP STAR RP.
 {
     /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible

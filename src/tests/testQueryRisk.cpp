@@ -515,7 +515,56 @@ void testQueryRiskMySqlStringConcat()
 
 void testQueryRiskStringManipulationStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery(
+        "SELECT id FROM user UNION SELECT concat(name, password) FROM user"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id FROM user UNION SELECT CONCAT(name, password) FROM user"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id FROM user WHERE name = 'Brandon'"
+        " OR name LIKE CHAR(34, 37, 97, 100, 109, 105, 110, 37, 34) -- ' "
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name LIKE INSERT('admn', 4, 0, 'i') -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR HEX(name) = '61646D696E' -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = MID('zzzadminzzz', 4, 5) -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = REPLACE('zzzadminzzz', 'zzz', '') -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = REVERSE('nimda') -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = SUBSTR('zzzadminzzz', 4, 5) -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = SUBSTRING('zzzadminzzz', 4, 5) -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
 }
 
 
@@ -765,7 +814,63 @@ void testQueryRiskAlwaysTrueConditional()
 
 void testQueryRiskCommentedConditionals()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    // Plain old commented conditionals
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " -- AND password = SHA256('password')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " # AND password = SHA256('password')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " /* AND password = SHA256('password */ -- ')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name LIKE 'Brandon%'"
+        " -- OR age > 25"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name LIKE 'Brandon%'"
+        " -- XOR age > 25"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    // Test some commented conditionals with no intervening space
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " #AND password = SHA256('password')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " /*AND password = SHA256('password */ -- ')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " /*!AND password = SHA256('password */ -- ')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " /*!12345AND password = SHA256('password */ -- ')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
 }
 
 

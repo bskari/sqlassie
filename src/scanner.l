@@ -99,19 +99,42 @@ VARIABLE            "@"{ID}
 
 HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 
+ /* Conditionals that are suspicious if they're find in a comment */
+CONDITIONAL    ("AND"|"OR"|"XOR"|"WHERE")
+
 %%
  /* Multi-line comments */
 "/*!"[0-9]{5} {
     BEGIN(MULTI_LINE_COMMENT);
     ++context->qrPtr->mySqlVersionedComments;
 }
+"/*!"[0-9]{5}{CONDITIONAL}{WORD_BOUNDARY} {
+    BEGIN(MULTI_LINE_COMMENT);
+    ++context->qrPtr->mySqlVersionedComments;
+    ++context->qrPtr->commentedConditionals;
+}
 "/*!" {
     BEGIN(MULTI_LINE_COMMENT);
     ++context->qrPtr->mySqlComments;
 }
+"/*!"{CONDITIONAL}{WORD_BOUNDARY} {
+    BEGIN(MULTI_LINE_COMMENT);
+    ++context->qrPtr->mySqlComments;
+    ++context->qrPtr->commentedConditionals;
+}
 "/*"[^!] {
     BEGIN(MULTI_LINE_COMMENT);
     ++context->qrPtr->multiLineComments;
+}
+"/*"[^!]{CONDITIONAL}{WORD_BOUNDARY} {
+    BEGIN(MULTI_LINE_COMMENT);
+    ++context->qrPtr->multiLineComments;
+    ++context->qrPtr->commentedConditionals;
+}
+"/*"{CONDITIONAL}{WORD_BOUNDARY} {
+    BEGIN(MULTI_LINE_COMMENT);
+    ++context->qrPtr->multiLineComments;
+    ++context->qrPtr->commentedConditionals;
 }
 "/*!*/"     {++context->qrPtr->mySqlComments;}
 "/**/"      {++context->qrPtr->multiLineComments;}
@@ -129,9 +152,19 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
     BEGIN(SINGLE_LINE_COMMENT);
     ++context->qrPtr->dashDashComments;
 }
+"--"{WHITE_SPACE}{CONDITIONAL}{WORD_BOUNDARY} {
+    BEGIN(SINGLE_LINE_COMMENT);
+    ++context->qrPtr->dashDashComments;
+    ++context->qrPtr->commentedConditionals;
+}
 "#" {
     BEGIN(SINGLE_LINE_COMMENT);
     ++context->qrPtr->hashComments;
+}
+"#"{CONDITIONAL}{WORD_BOUNDARY} {
+    BEGIN(SINGLE_LINE_COMMENT);
+    ++context->qrPtr->hashComments;
+    ++context->qrPtr->commentedConditionals;
 }
 <SINGLE_LINE_COMMENT>[^\n']   {}
 <SINGLE_LINE_COMMENT>[\n]     {BEGIN(INITIAL);}
@@ -140,16 +173,7 @@ HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 
  /* Rules in any comment state */
 <MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>"'" {++context->qrPtr->commentedQuotes;}
-<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}"AND"{WORD_BOUNDARY} {
-    ++context->qrPtr->commentedConditionals;
-}
-<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}"OR"{WORD_BOUNDARY} {
-    ++context->qrPtr->commentedConditionals;
-}
-<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}"XOR"{WORD_BOUNDARY} {
-    ++context->qrPtr->commentedConditionals;
-}
-<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}"WHERE"{WORD_BOUNDARY} {
+<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}{CONDITIONAL}{WORD_BOUNDARY} {
     ++context->qrPtr->commentedConditionals;
 }
 

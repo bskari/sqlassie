@@ -82,15 +82,13 @@
 %option prefix="sql_"
 %option reentrant
 
-%x GENERIC_MULTI_LINE_COMMENT
-%x MYSQL_MULTI_LINE_COMMENT
-%x MYSQL_VERSION_MULTI_LINE_COMMENT
-%x DASH_DASH_COMMENT
-%x HASH_COMMENT
+%x MULTI_LINE_COMMENT
+%x SINGLE_LINE_COMMENT
 %x QUOTED
 %x DOUBLE_QUOTED
 
 WHITE_SPACE [ \t\n\r\v\f]
+WORD_BOUNDARY [^A-Za-z]
 
 ID  ([a-zA-Z_][a-zA-Z0-9_]*)|("{"[a-zA-Z_][a-zA-Z0-9_]*"}")
 QUOTED_IDENTIFIER    "`"[a-zA-Z_][a-zA-Z0-9_]*"`"
@@ -102,64 +100,58 @@ VARIABLE            "@"{ID}
 HEX_NUMBER  0(x|X)[0-9A-Fa-f]+
 
 %%
- /* Comments */
-"/*!"[0-9]{5}    BEGIN(MYSQL_VERSION_MULTI_LINE_COMMENT); {}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>"AND"{WHITE_SPACE}    {++context->qrPtr->commentedConditionals;}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>"OR"{WHITE_SPACE}     {++context->qrPtr->commentedConditionals;}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>"XOR"{WHITE_SPACE}    {++context->qrPtr->commentedConditionals;}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>"WHERE"{WHITE_SPACE}  {++context->qrPtr->commentedConditionals;}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>"*"+[^*/]             {}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>"*"                   {}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>"'"                   {++context->qrPtr->commentedQuotes;}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>[^*']                 {}
-<MYSQL_VERSION_MULTI_LINE_COMMENT>"*/" BEGIN(INITIAL);  {++context->qrPtr->mySqlVersionedComments;}
-<MYSQL_VERSION_MULTI_LINE_COMMENT><<EOF>>               {context->qrPtr->valid = false; BEGIN(INITIAL);}
-
+ /* Multi-line comments */
+"/*!"[0-9]{5} {
+    BEGIN(MULTI_LINE_COMMENT);
+    ++context->qrPtr->mySqlVersionedComments;
+}
+"/*!" {
+    BEGIN(MULTI_LINE_COMMENT);
+    ++context->qrPtr->mySqlComments;
+}
+"/*"[^!] {
+    BEGIN(MULTI_LINE_COMMENT);
+    ++context->qrPtr->multiLineComments;
+}
 "/*!*/"     {++context->qrPtr->mySqlComments;}
-"/*!"                                           {BEGIN(MYSQL_MULTI_LINE_COMMENT);}
-<MYSQL_MULTI_LINE_COMMENT>"AND"{WHITE_SPACE}    {++context->qrPtr->commentedConditionals;}
-<MYSQL_MULTI_LINE_COMMENT>"OR"{WHITE_SPACE}     {++context->qrPtr->commentedConditionals;}
-<MYSQL_MULTI_LINE_COMMENT>"XOR"{WHITE_SPACE}    {++context->qrPtr->commentedConditionals;}
-<MYSQL_MULTI_LINE_COMMENT>"WHERE"{WHITE_SPACE}  {++context->qrPtr->commentedConditionals;}
-<MYSQL_MULTI_LINE_COMMENT>"*"+[^*/]             {}
-<MYSQL_MULTI_LINE_COMMENT>"*"                   {}
-<MYSQL_MULTI_LINE_COMMENT>"'"                   {++context->qrPtr->commentedQuotes;}
-<MYSQL_MULTI_LINE_COMMENT>[^*]                  {}
-<MYSQL_MULTI_LINE_COMMENT>"*/"  BEGIN(INITIAL); {++context->qrPtr->mySqlComments;}
-<MYSQL_MULTI_LINE_COMMENT><<EOF>>               {context->qrPtr->valid = false; BEGIN(INITIAL);}
+"/**/"      {++context->qrPtr->multiLineComments;}
+<MULTI_LINE_COMMENT>"*"+[^*/]   {}
+<MULTI_LINE_COMMENT>"*"         {}
+<MULTI_LINE_COMMENT>[^*']       {}
+<MULTI_LINE_COMMENT>"*/"        {BEGIN(INITIAL);}
+<MULTI_LINE_COMMENT><<EOF>> {
+    BEGIN(INITIAL);
+    context->qrPtr->valid =false;
+}
 
-"/**/"        {++context->qrPtr->multiLineComments;}
-"/*"[^!]                                            {BEGIN(GENERIC_MULTI_LINE_COMMENT);}
-<GENERIC_MULTI_LINE_COMMENT>"AND"{WHITE_SPACE}      {++context->qrPtr->commentedConditionals;}
-<GENERIC_MULTI_LINE_COMMENT>"OR"{WHITE_SPACE}       {++context->qrPtr->commentedConditionals;}
-<GENERIC_MULTI_LINE_COMMENT>"XOR"{WHITE_SPACE}      {++context->qrPtr->commentedConditionals;}
-<GENERIC_MULTI_LINE_COMMENT>"WHERE"{WHITE_SPACE}    {++context->qrPtr->commentedConditionals;}
-<GENERIC_MULTI_LINE_COMMENT>"*"+[^*/]               {}
-<GENERIC_MULTI_LINE_COMMENT>"*"                     {}
-<GENERIC_MULTI_LINE_COMMENT>"'"                     {++context->qrPtr->commentedQuotes;}
-<GENERIC_MULTI_LINE_COMMENT>[^*']                   {}
-<GENERIC_MULTI_LINE_COMMENT>"*/"    BEGIN(INITIAL); {++context->qrPtr->multiLineComments;}
-<GENERIC_MULTI_LINE_COMMENT><<EOF>>                 {context->qrPtr->valid = false; BEGIN(INITIAL);}
+ /* Single line comments */
+"--"{WHITE_SPACE} {
+    BEGIN(SINGLE_LINE_COMMENT);
+    ++context->qrPtr->dashDashComments;
+}
+"#" {
+    BEGIN(SINGLE_LINE_COMMENT);
+    ++context->qrPtr->hashComments;
+}
+<SINGLE_LINE_COMMENT>[^\n']   {}
+<SINGLE_LINE_COMMENT>[\n]     {BEGIN(INITIAL);}
+<SINGLE_LINE_COMMENT><<EOF>>  {BEGIN(INITIAL);}
 
-"--"{WHITE_SPACE}           {BEGIN(DASH_DASH_COMMENT); ++context->qrPtr->dashDashComments;}
-<DASH_DASH_COMMENT>"AND"    {++context->qrPtr->commentedConditionals;}
-<DASH_DASH_COMMENT>"OR"     {++context->qrPtr->commentedConditionals;}
-<DASH_DASH_COMMENT>"XOR"    {++context->qrPtr->commentedConditionals;}
-<DASH_DASH_COMMENT>"WHERE"  {++context->qrPtr->commentedConditionals;}
-<DASH_DASH_COMMENT>"'"      {++context->qrPtr->commentedQuotes;}
-<DASH_DASH_COMMENT>[^\n']   {}
-<DASH_DASH_COMMENT>[\n]     {BEGIN(INITIAL);}
-<DASH_DASH_COMMENT><<EOF>>  {BEGIN(INITIAL);}
 
-"#"                     {BEGIN(HASH_COMMENT); ++context->qrPtr->hashComments;}
-<HASH_COMMENT>"AND"     {++context->qrPtr->commentedConditionals;}
-<HASH_COMMENT>"OR"      {++context->qrPtr->commentedConditionals;}
-<HASH_COMMENT>"XOR"     {++context->qrPtr->commentedConditionals;}
-<HASH_COMMENT>"WHERE"   {++context->qrPtr->commentedConditionals;}
-<HASH_COMMENT>"'"       {++context->qrPtr->commentedQuotes;}
-<HASH_COMMENT>[^\n']    {}
-<HASH_COMMENT>[\n]      {BEGIN(INITIAL);}
-<HASH_COMMENT><<EOF>>   {BEGIN(INITIAL);}
+ /* Rules in any comment state */
+<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>"'" {++context->qrPtr->commentedQuotes;}
+<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}"AND"{WORD_BOUNDARY} {
+    ++context->qrPtr->commentedConditionals;
+}
+<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}"OR"{WORD_BOUNDARY} {
+    ++context->qrPtr->commentedConditionals;
+}
+<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}"XOR"{WORD_BOUNDARY} {
+    ++context->qrPtr->commentedConditionals;
+}
+<MULTI_LINE_COMMENT,SINGLE_LINE_COMMENT>{WORD_BOUNDARY}"WHERE"{WORD_BOUNDARY} {
+    ++context->qrPtr->commentedConditionals;
+}
 
 {WHITE_SPACE}        {}
 

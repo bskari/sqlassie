@@ -37,20 +37,23 @@
 #include "testScanner.hpp"
 #include "../QueryRisk.hpp"
 
-// Newer versions of the Boost filesystem (1.44+) changed the interface; to
-// keep compatibility, default to the old version
-#define BOOST_FILESYSTEM_VERSION 2
+#include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <limits>
+#include <map>
 #include <set>
 #include <string>
+#include <utility>
 
+using boost::lexical_cast;
 using boost::smatch;
 using boost::regex;
 using std::ifstream;
+using std::map;
 using std::numeric_limits;
+using std::pair;
 using std::set;
 using std::streamsize;
 using std::string;
@@ -67,16 +70,17 @@ static void checkScanTokens(
     sizeof((TOKENS)) / sizeof((TOKENS)[0]), \
     (STRING) \
 );
-
+static string getTokenName(const int tokenNumber);
 static void checkFailure(const char* const tokenStream);
 // Methods from the scanner
 extern YY_DECL;
 
 
+
 void testAllTokensScan()
 {
-    set<string> scannerTokens = loadScannerTokens("../src/scanner.l");
-    set<string> parserTokens = loadParserTokens("../src/sqlParser.h");
+    set<string> scannerTokens(loadScannerTokens("../src/scanner.l"));
+    set<string> parserTokens(loadParserTokens("../src/sqlParser.h"));
 
     const set<string>::const_iterator end(parserTokens.end());
     for (
@@ -182,6 +186,7 @@ set<string> loadScannerTokens(const char* const filename)
         }
         tokens.insert(m[1]);
     }
+    fin.close();
     return tokens;
 }
 
@@ -195,7 +200,7 @@ set<string> loadParserTokens(const char* const filename)
     string token, _;
     while (fin.ignore(numeric_limits<streamsize>::max(), ' '), fin >> token)
     {
-        // The ID_FALLBACK token is a dummy token that;s used for keywords
+        // The ID_FALLBACK token is a dummy token that's used for keywords
         // that can also be used as identifiers, e.g. 'MATCH'. The scanner
         // should never return this keyword, so don't check for it.
         if (token != "ID_FALLBACK")
@@ -204,6 +209,7 @@ set<string> loadParserTokens(const char* const filename)
         }
         fin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
+    fin.close();
     return tokens;
 }
 
@@ -231,7 +237,14 @@ void checkScanTokens(
     }
     const int lastLexCode = sql_lex(&sc, scanner);
     const int endOfTokensLexCode = 0;
-    BOOST_CHECK(endOfTokensLexCode == lastLexCode);
+    BOOST_CHECK_MESSAGE(
+        endOfTokensLexCode == lastLexCode,
+        "Expected end of lexeme stream but found token "
+            << getTokenName(lastLexCode)
+            << " in stream \""
+            << tokenStream
+            << '"'
+    );
 
     sql__delete_buffer(bufferState, scanner);
     sql_lex_destroy(scanner);
@@ -262,4 +275,36 @@ void checkFailure(const char* const tokenStream)
 
     sql__delete_buffer(bufferState, scanner);
     sql_lex_destroy(scanner);
+}
+
+
+static string getTokenName(const int lexCode)
+{
+    static bool initialized = false;
+    static map<int, string> lexCodeToTokenName;
+    if (!initialized)
+    {
+        ifstream fin("../src/sqlParser.h");
+        BOOST_REQUIRE_MESSAGE(fin, "Unable to open parser");
+
+        regex tokenDefinitionRegex("#define (\\w+)\\s+(\\d+)");
+        string line;
+        while (getline(fin, line))
+        {
+            smatch m;
+            if (!regex_search(line, m, tokenDefinitionRegex))
+            {
+                continue;
+            }
+            lexCodeToTokenName.insert(
+                pair<int, string>(lexical_cast<int>(m[2]), m[1])
+            );
+        }
+        fin.close();
+
+        // The EOF token isn't explicitly defined in the header, it's Lemon built in
+        lexCodeToTokenName.insert(pair<int, string>(0, "<<EOF>>"));
+    }
+
+    return lexCodeToTokenName.at(lexCode);
 }

@@ -122,7 +122,12 @@ CONDITIONAL    ("AND"|"OR"|"XOR"|"WHERE")
     ++context->qrPtr->mySqlComments;
     ++context->qrPtr->commentedConditionals;
 }
-"/*"[^!] {
+"/*'" {
+    BEGIN(MULTI_LINE_COMMENT);
+    ++context->qrPtr->mySqlComments;
+    ++context->qrPtr->commentedQuotes;
+}
+"/*"[^!'] {
     BEGIN(MULTI_LINE_COMMENT);
     ++context->qrPtr->multiLineComments;
 }

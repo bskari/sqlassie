@@ -876,7 +876,44 @@ void testQueryRiskCommentedConditionals()
 
 void testQueryRiskCommentedQuotes()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    // Plain old commented quotes
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon' -- ' AND age > 21"
+    );
+    BOOST_CHECK(1 == qr.commentedQuotes);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon' # ' AND age > 21"
+    );
+    BOOST_CHECK(1 == qr.commentedQuotes);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon' /* ' AND age > 21 */"
+    );
+    BOOST_CHECK(1 == qr.commentedQuotes);
+
+    // Test commented quotes with no intervening space
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon' #' AND age > 21"
+    );
+    BOOST_CHECK(1 == qr.commentedQuotes);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'B' /*' AND age > 21 */"
+    );
+    BOOST_CHECK(1 == qr.commentedQuotes);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'B' /*!' AND age > 21 */"
+    );
+    BOOST_CHECK(1 == qr.commentedQuotes);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'B' /*!12345' AND age > 21 */"
+    );
+    BOOST_CHECK(1 == qr.commentedQuotes);
 }
 
 
@@ -909,7 +946,65 @@ void testQueryRiskGlobalVariables()
 
 void testQueryRiskJoinStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN user_email ue ON ue.user_id = u.id"
+    );
+    BOOST_CHECK(1 == qr.joinStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN user_email ue "
+        " ON ue.user_id = u.id"
+        " AND ue.something = u.something"
+        " AND ue.something & 0x40 = 0x40"
+    );
+    BOOST_CHECK(1 == qr.joinStatements);
+
+    qr = parseQuery(
+        "SELECT u.name, ue.email, b.name, bp.asset_id FROM review r"
+        " JOIN user u ON ue.user_id = u.id"
+        " JOIN user_email ue ON ue.user_id = u.id"
+        " JOIN business b ON b.id = r.business_id"
+        " JOIN business_picture bp ON bp.business_id = b.id"
+        " WHERE review.active = 'y'"
+        " AND ue.primary = 'y'"
+        " AND b.id = 193"
+        " AND bp.primary = 'y'"
+    );
+    BOOST_CHECK(4 == qr.joinStatements);
+
+    qr = parseQuery(
+        "SELECT u.name, ue.email, b.name, bp.asset_id FROM review r"
+        " INNER JOIN user u ON ue.user_id = u.id"
+        " CROSS JOIN user_email ue ON ue.user_id = u.id"
+        " STRAIGHT_JOIN business"
+        " STRAIGHT_JOIN business b ON b.id = r.business_id"
+        " LEFT JOIN business_picture bp ON bp.business_id = b.id"
+        " RIGHT JOIN something ON 1 = 1"
+        " LEFT OUTER JOIN something ON 1 = 1"
+        " RIGHT OUTER JOIN something ON 1 = 1"
+        " NATURAL LEFT JOIN something ON 1 = 1"
+        " NATURAL RIGHT JOIN something ON 1 = 1"
+        " NATURAL LEFT OUTER JOIN something ON 1 = 1"
+        " NATURAL RIGHT OUTER JOIN something ON 1 = 1"
+        " WHERE review.active = 'y'"
+        " AND ue.primary = 'y'"
+        " AND b.id = 193"
+        " AND bp.primary = 'y'"
+    );
+    BOOST_CHECK(12 == qr.joinStatements);
+
+    // Multiple tables should be counted as joins too
+    qr = parseQuery(
+        "SELECT u.name, ue.email, b.name, bp.asset_id "
+        " FROM user u, review r, user_email ue, business b, business_photo bp"
+        " WHERE r.user_id = u.id"
+        " AND u.id = ue.user_id"
+        " AND r.business_id = b.id"
+        " AND b.id = bp.business_id"
+    );
+    BOOST_CHECK(4 == qr.joinStatements);
 }
 
 

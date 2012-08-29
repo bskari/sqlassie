@@ -18,96 +18,70 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SRC_EXPRESSIONNODE_HPP_
-#define SRC_EXPRESSIONNODE_HPP_
-
-#include "ConditionalNode.hpp"
-#include "QueryRisk.hpp"
-#include "warnUnusedResult.h"
-
-#include <string>
-
 /**
  * Parse tree node that represents an expression.
  * @author Brandon Skari
  * @date December 10 2010
  */
 
-class ExpressionNode : public ConditionalNode
+#ifndef SRC_EXPRESSIONNODE_HPP_
+#define SRC_EXPRESSIONNODE_HPP_
+
+#include "AstNode.hpp"
+#include "QueryRisk.hpp"
+#include "warnUnusedResult.h"
+
+#include <string>
+
+
+class ExpressionNode : public AstNode
 {
 public:
-    /**
-     * Default constructor that uses its children to handle getValue().
-     */
-    ExpressionNode();
-
-    /**
-     * Constructor for terminal nodes, such as strings, numbers, or identifiers.
-     * @param expression The string or number.
-     * @param isIdentifier If this string is an identifier.
-     */
-    ExpressionNode(const std::string& expression, bool isIdentifier);
-
+    explicit ExpressionNode(const std::string& name);
     virtual ~ExpressionNode();
 
     /**
-     * Overridden from AstNode.
+     * Determines if the conditionals always result in a true or false value.
      */
-    virtual AstNode* copy() const WARN_UNUSED_RESULT;
+    ///@{
+    virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT = 0;
+    bool isAlwaysFalse() const WARN_UNUSED_RESULT;
+    virtual bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT = 0;
 
     /**
-     * Determines if the conditionals are always true.
-     * Overridden from ConditionalNode.
+     * Determines if there is an empty password.
      */
-    virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT;
+    virtual QueryRisk::EmptyPassword emptyPassword()
+        const WARN_UNUSED_RESULT = 0;
 
     /**
-     * Determines if the any of this node's children are always true.
-     * Overridden from ConditionalNode.
+     * Determines if this expression is reducible to a number.
+     * Example:
+     * 1 + 1 => true
+     * age + 1 => false
      */
-    virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
+    virtual bool resultsInValue() const WARN_UNUSED_RESULT = 0;
 
     /**
-     * Determines if the there is an empty password.
-     * Overridden from ConditionalNode.
+     * Determines if this expression is reducible to a string.
+     * ExpressionNode defines this as returning false. Most nodes won't need
+     * to override this unless the default of false is inappropriate.
      */
-    virtual QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+    virtual bool resultsInString() const WARN_UNUSED_RESULT;
 
     /**
-     * Gets the value of this expression.
+     * Returns the value of this node.
      */
-    std::string getValue() const WARN_UNUSED_RESULT;
+    virtual std::string getValue() const WARN_UNUSED_RESULT = 0;
 
+protected:
+    typedef double SQL_FLOAT;
     /**
-     * Returns true if this is an identifier.
+     * Converts a hex or floating point string to SQL_FLOAT.
      */
-    bool isIdentifier() const WARN_UNUSED_RESULT;
-
-    /**
-     * Returns true if this is a number literal.
-     */
-    bool isNumber() const WARN_UNUSED_RESULT;
-
-    /**
-     * Overridden from AstNode.
-     */
-    virtual void print(
-        std::ostream& out,
-        const int depth,
-        const char indent
-    ) const;
+    static SQL_FLOAT convertFloatOrHexString(const std::string& str);
 
 private:
-    const std::string expression_;
-    const bool number_;
-    const bool identifier_;
-    const bool quotedString_;
-
-    /**
-     * Determines if the string represents a decimal number.
-     */
-    static bool isNumber(const std::string& str);
-
     ExpressionNode(const ExpressionNode& rhs);
     ExpressionNode& operator=(const ExpressionNode& rhs);
 };

@@ -37,20 +37,23 @@
 #include "testScanner.hpp"
 #include "../QueryRisk.hpp"
 
-// Newer versions of the Boost filesystem (1.44+) changed the interface; to
-// keep compatibility, default to the old version
-#define BOOST_FILESYSTEM_VERSION 2
+#include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <limits>
+#include <map>
 #include <set>
 #include <string>
+#include <utility>
 
+using boost::lexical_cast;
 using boost::smatch;
 using boost::regex;
 using std::ifstream;
+using std::map;
 using std::numeric_limits;
+using std::pair;
 using std::set;
 using std::streamsize;
 using std::string;
@@ -62,14 +65,22 @@ static void checkScanTokens(
     const int numTokens,
     const char* const tokenStream
 );
+#define CHECK_SCAN_TOKENS(TOKENS, STRING) checkScanTokens( \
+    (TOKENS), \
+    sizeof((TOKENS)) / sizeof((TOKENS)[0]), \
+    (STRING) \
+);
+static string getTokenName(const int tokenNumber);
+static void checkFailure(const char* const tokenStream);
 // Methods from the scanner
 extern YY_DECL;
 
 
+
 void testAllTokensScan()
 {
-    set<string> scannerTokens = loadScannerTokens("../src/scanner.l");
-    set<string> parserTokens = loadParserTokens("../src/sqlParser.h");
+    set<string> scannerTokens(loadScannerTokens("../src/scanner.l"));
+    set<string> parserTokens(loadParserTokens("../src/sqlParser.h"));
 
     const set<string>::const_iterator end(parserTokens.end());
     for (
@@ -95,63 +106,66 @@ void testScanNumbers()
     const int INT = INTEGER;
     const int intTokens[] = {INT, INT, INT, INT};
     const char* intString = "0    1    000  001";
-    checkScanTokens(
-        intTokens,
-        sizeof(intTokens) / sizeof(intTokens[0]),
-        intString
-    );
+    CHECK_SCAN_TOKENS(intTokens, intString);
 
     const int FLT = FLOAT;
     const int floatTokens[] = {FLT, FLT, FLT, FLT};
     const char* floatString = "0.0  1.0  .1   1.";
-    checkScanTokens(
-        floatTokens,
-        sizeof(floatTokens) / sizeof(floatTokens[0]),
-        floatString
-    );
+    CHECK_SCAN_TOKENS(floatTokens, floatString);
 
     const int HEX = HEX_NUMBER;
     const int hexDecimalTokens[] = {HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX};
     const char* hexDecimalString = "0x0  0x1  0x2  0x3  0x4  0x5  0x6  0x7  0x8  0x9";
-    checkScanTokens(
-        hexDecimalTokens,
-        sizeof(hexDecimalTokens) / sizeof(hexDecimalTokens[0]),
-        hexDecimalString
-    );
+    CHECK_SCAN_TOKENS(hexDecimalTokens, hexDecimalString);
 
     const int hexLetterTokens[] = {HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX, HEX};
     const char* hexLetterString = "0xA  0xB  0xC  0xD  0xE  0xF  0xa  0xb  0xc  0xd  0xe  0xf";
-    checkScanTokens(
-        hexLetterTokens,
-        sizeof(hexLetterTokens) / sizeof(hexLetterTokens[0]),
-        hexLetterString
-    );
+    CHECK_SCAN_TOKENS(hexLetterTokens, hexLetterString);
 
     const int hexUpperTokens[] = {HEX, HEX, HEX, HEX};
     const char* hexUpperString = "0X0  0XA9 0XFF 0xC0";
-    checkScanTokens(
-        hexUpperTokens,
-        sizeof(hexUpperTokens) / sizeof(hexUpperTokens[0]),
-        hexUpperString
-    );
+    CHECK_SCAN_TOKENS(hexUpperTokens, hexUpperString);
 
     const int hexMixedCaseTokens[] = {HEX, HEX, HEX, HEX, HEX};
     const char* hexMixedCaseString = "0xaF 0xAf 0xaA 0xAa 0xaAbBcCdDeEfF";
-    checkScanTokens(
-        hexMixedCaseTokens,
-        sizeof(hexMixedCaseTokens) / sizeof(hexMixedCaseTokens[0]),
-        hexMixedCaseString
-    );
+    CHECK_SCAN_TOKENS(hexMixedCaseTokens, hexMixedCaseString);
 
     // Make sure we don't scan partial hex strings as hex
     const int nonHexTokens[] = {INT, ID, INT, ID, ID, ID, ID, ID};
     const char* nonHexString = "0x       0X       X0  x0  x   X";
-    checkScanTokens(
-        nonHexTokens,
-        sizeof(nonHexTokens) / sizeof(nonHexTokens[0]),
-        nonHexString
-    );
+    CHECK_SCAN_TOKENS(nonHexTokens, nonHexString);
 
+}
+
+
+void testScanComments()
+{
+    const int INT = INTEGER;
+
+    // Dash dash comments need whitespace
+    const int dashDashNoWhiteSpaceTokens[] = {ID, MINUS, MINUS, INT};
+    const char* dashDashNoWhiteSpaceString = "x   --1";
+    CHECK_SCAN_TOKENS(dashDashNoWhiteSpaceTokens, dashDashNoWhiteSpaceString);
+
+    // Dash dash comments can end a query
+    const int dashDashEndTokens[] = {ID};
+    const char* dashDashEndString = "x --";
+    CHECK_SCAN_TOKENS(dashDashEndTokens, dashDashEndString);
+
+    // Hash comments can end a query
+    const int HashEndTokens[] = {ID};
+    const char* HashEndString = "x #";
+    CHECK_SCAN_TOKENS(HashEndTokens, HashEndString);
+
+    // Short comments
+    const int shortCommentsTokens[] = {ID};
+    const char* shortCommentsString = "x /**/ /*!*/ /*!12345*/ /*/ x */";
+    CHECK_SCAN_TOKENS(shortCommentsTokens, shortCommentsString);
+
+    // There are invalid comments too
+    checkFailure("SELECT * FROM foo /* ");
+    checkFailure("SELECT * FROM foo /*! ");
+    checkFailure("SELECT * FROM foo /*!12345 ");
 }
 
 
@@ -172,6 +186,7 @@ set<string> loadScannerTokens(const char* const filename)
         }
         tokens.insert(m[1]);
     }
+    fin.close();
     return tokens;
 }
 
@@ -185,7 +200,7 @@ set<string> loadParserTokens(const char* const filename)
     string token, _;
     while (fin.ignore(numeric_limits<streamsize>::max(), ' '), fin >> token)
     {
-        // The ID_FALLBACK token is a dummy token that;s used for keywords
+        // The ID_FALLBACK token is a dummy token that's used for keywords
         // that can also be used as identifiers, e.g. 'MATCH'. The scanner
         // should never return this keyword, so don't check for it.
         if (token != "ID_FALLBACK")
@@ -194,6 +209,7 @@ set<string> loadParserTokens(const char* const filename)
         }
         fin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
+    fin.close();
     return tokens;
 }
 
@@ -214,12 +230,81 @@ void checkScanTokens(
     for (int i = 0; i < numTokens; ++i)
     {
         const int lexCode = sql_lex(&sc, scanner);
-        BOOST_CHECK(lexCode == expectedTokens[i]);
+        BOOST_CHECK_MESSAGE(
+            lexCode == expectedTokens[i],
+            "Unexpected token " << lexCode << " in \"" << tokenStream << '"'
+        );
     }
     const int lastLexCode = sql_lex(&sc, scanner);
     const int endOfTokensLexCode = 0;
-    BOOST_CHECK(endOfTokensLexCode == lastLexCode);
+    BOOST_CHECK_MESSAGE(
+        endOfTokensLexCode == lastLexCode,
+        "Expected end of lexeme stream but found token "
+            << getTokenName(lastLexCode)
+            << " in stream \""
+            << tokenStream
+            << '"'
+    );
 
     sql__delete_buffer(bufferState, scanner);
     sql_lex_destroy(scanner);
+}
+
+
+void checkFailure(const char* const tokenStream)
+{
+    yyscan_t scanner;
+    BOOST_REQUIRE(0 == sql_lex_init(&scanner));
+    YY_BUFFER_STATE bufferState = sql__scan_string(tokenStream, scanner);
+    BOOST_REQUIRE(nullptr != bufferState);
+
+    QueryRisk qr;
+    ScannerContext sc(&qr);
+    const int endOfTokensLexCode = 0;
+    int lexCode;
+    do
+    {
+        lexCode = sql_lex(&sc, scanner);
+    }
+    while (endOfTokensLexCode != lexCode);
+
+    BOOST_CHECK_MESSAGE(
+        !qr.valid,
+        '"' << tokenStream << "\" should not have parsed"
+    );
+
+    sql__delete_buffer(bufferState, scanner);
+    sql_lex_destroy(scanner);
+}
+
+
+static string getTokenName(const int lexCode)
+{
+    static bool initialized = false;
+    static map<int, string> lexCodeToTokenName;
+    if (!initialized)
+    {
+        ifstream fin("../src/sqlParser.h");
+        BOOST_REQUIRE_MESSAGE(fin, "Unable to open parser");
+
+        regex tokenDefinitionRegex("#define (\\w+)\\s+(\\d+)");
+        string line;
+        while (getline(fin, line))
+        {
+            smatch m;
+            if (!regex_search(line, m, tokenDefinitionRegex))
+            {
+                continue;
+            }
+            lexCodeToTokenName.insert(
+                pair<int, string>(lexical_cast<int>(m[2]), m[1])
+            );
+        }
+        fin.close();
+
+        // The EOF token isn't explicitly defined in the header, it's Lemon built in
+        lexCodeToTokenName.insert(pair<int, string>(0, "<<EOF>>"));
+    }
+
+    return lexCodeToTokenName.at(lexCode);
 }

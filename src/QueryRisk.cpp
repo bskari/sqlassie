@@ -34,108 +34,118 @@ using boost::regex_search;
 // This list taken from GreenSQL
 regex QueryRisk::sensitiveTablesRegex(
     ".*(customer|member|order|admin|user|permission|session).*",
-    regex::perl | regex::icase);
+    regex::perl | regex::icase
+);
 // This list taken from GreenSQL and appended by me
 regex QueryRisk::bruteForceCommandsRegex(
     "^(mid|substr|substring|load_file|char)$",
-    regex::perl | regex::icase);
+    regex::perl | regex::icase
+);
 // This list taken from the MySQL manual; all the functions are synonymous
 regex QueryRisk::userStatementsRegex(
     "^(current_user|session_user|system_user|user)$",
-    regex::perl | regex::icase);
+    regex::perl | regex::icase
+);
 // Fingerprinting functions for MySQL, taken from
 // "SQL Injection Attacks and Defense" by Justin Clarke
 regex QueryRisk::fingerprintingRegex(
     "^(schema|database|version|connection_id|last_insert_id|row_count)$",
-    regex::perl | regex::icase);
+    regex::perl | regex::icase
+);
 // String manipulation functions that can be used for detection evasion
 regex QueryRisk::stringManipulationRegex(
     "^(concat|concatws|char|insert|hex|mid|replace|reverse|substr|substring)$",
-    regex::perl | regex::icase);
+    regex::perl | regex::icase
+);
 // Information schema is a special table that contains information about the
 // database and tables in the database
 regex QueryRisk::informationSchemaRegex(
-    "^(information_schema|mysql)$", regex::perl | regex::icase);
+    "^(information_schema|mysql)$",
+    regex::perl | regex::icase
+);
 // Anything concerning the users table
 const regex QueryRisk::userTableRegex(
-    "(user|customer|member)", regex::perl | regex::icase);
+    "(user|customer|member)",
+    regex::perl | regex::icase
+);
 
 // These are just useful for doing case-insensitive compares
 regex QueryRisk::ifRegex("^if$", regex::perl | regex::icase);
 regex QueryRisk::benchmarkRegex("^benchmark$", regex::perl | regex::icase);
 
-QueryRisk::QueryRisk() :
-    queryType(TYPE_UNKNOWN),
-    multiLineComments(0),
-    hashComments(0),
-    dashDashComments(0),
-    mySqlComments(0),
-    mySqlVersionedComments(0),
-    sensitiveTables(0),
-    orStatements(0),
-    unionStatements(0),
-    unionAllStatements(0),
-    bruteForceCommands(0),
-    ifStatements(0),
-    hexStrings(0),
-    benchmarkStatements(0),
-    userStatements(0),
-    fingerprintingStatements(0),
-    mySqlStringConcat(0),
-    stringManipulationStatements(0),
-    alwaysTrueConditional(0),
-    commentedConditionals(0),
-    commentedQuotes(0),
-    globalVariables(0),
-    joinStatements(0),
-    crossJoinStatements(0),
-    regexLength(0),
-    slowRegexes(0),
-    emptyPassword(PASSWORD_NOT_USED),
-    multipleQueries(false),
-    orderByNumber(false),
-    alwaysTrue(true),
-    informationSchema(false),
-    valid(true),
-    userTable(false)
+
+QueryRisk::QueryRisk()
+    : queryType(TYPE_UNKNOWN)
+    , multiLineComments(0)
+    , hashComments(0)
+    , dashDashComments(0)
+    , mySqlComments(0)
+    , mySqlVersionedComments(0)
+    , sensitiveTables(0)
+    , orStatements(0)
+    , unionStatements(0)
+    , unionAllStatements(0)
+    , bruteForceCommands(0)
+    , ifStatements(0)
+    , hexStrings(0)
+    , benchmarkStatements(0)
+    , userStatements(0)
+    , fingerprintingStatements(0)
+    , mySqlStringConcat(0)
+    , stringManipulationStatements(0)
+    , alwaysTrueConditional(0)
+    , commentedConditionals(0)
+    , commentedQuotes(0)
+    , globalVariables(0)
+    , joinStatements(0)
+    , crossJoinStatements(0)
+    , regexLength(0)
+    , slowRegexes(0)
+    , emptyPassword(PASSWORD_NOT_USED)
+    , multipleQueries(false)
+    , orderByNumber(false)
+    , alwaysTrue(true)
+    , informationSchema(false)
+    , valid(true)
+    , userTable(false)
 {
 }
 
 
-QueryRisk::QueryRisk(const QueryRisk& rhs) :
-    queryType(rhs.queryType),
-    multiLineComments(rhs.multiLineComments),
-    hashComments(rhs.hashComments),
-    dashDashComments(rhs.dashDashComments),
-    mySqlComments(rhs.mySqlComments),
-    mySqlVersionedComments(rhs.mySqlVersionedComments),
-    sensitiveTables(rhs.sensitiveTables),
-    orStatements(rhs.orStatements),
-    unionStatements(rhs.unionStatements),
-    unionAllStatements(rhs.unionAllStatements),
-    bruteForceCommands(rhs.bruteForceCommands),
-    ifStatements(rhs.ifStatements),
-    hexStrings(rhs.hexStrings),
-    benchmarkStatements(rhs.benchmarkStatements),
-    userStatements(rhs.userStatements),
-    fingerprintingStatements(rhs.fingerprintingStatements),
-    mySqlStringConcat(rhs.mySqlStringConcat),
-    stringManipulationStatements(rhs.stringManipulationStatements),
-    alwaysTrueConditional(rhs.alwaysTrueConditional),
-    commentedConditionals(rhs.commentedConditionals),
-    commentedQuotes(rhs.commentedQuotes),
-    globalVariables(rhs.globalVariables),
-    joinStatements(rhs.joinStatements),
-    crossJoinStatements(rhs.crossJoinStatements),
-    regexLength(rhs.regexLength),
-    slowRegexes(rhs.slowRegexes),
-    emptyPassword(rhs.emptyPassword),
-    multipleQueries(rhs.multipleQueries),
-    orderByNumber(rhs.orderByNumber),
-    alwaysTrue(rhs.alwaysTrue),
-    informationSchema(rhs.informationSchema),
-    valid(rhs.valid),
-    userTable(rhs.userTable)
+QueryRisk::QueryRisk(const QueryRisk& rhs)
+    : queryType(rhs.queryType)
+    , multiLineComments(rhs.multiLineComments)
+    , hashComments(rhs.hashComments)
+    , dashDashComments(rhs.dashDashComments)
+    , mySqlComments(rhs.mySqlComments)
+    , mySqlVersionedComments(rhs.mySqlVersionedComments)
+    , sensitiveTables(rhs.sensitiveTables)
+    , orStatements(rhs.orStatements)
+    , unionStatements(rhs.unionStatements)
+    , unionAllStatements(rhs.unionAllStatements)
+    , bruteForceCommands(rhs.bruteForceCommands)
+    , ifStatements(rhs.ifStatements)
+    , hexStrings(rhs.hexStrings)
+    , benchmarkStatements(rhs.benchmarkStatements)
+    , userStatements(rhs.userStatements)
+    , fingerprintingStatements(rhs.fingerprintingStatements)
+    , mySqlStringConcat(rhs.mySqlStringConcat)
+    , stringManipulationStatements(rhs.stringManipulationStatements)
+    , alwaysTrueConditional(rhs.alwaysTrueConditional)
+    , commentedConditionals(rhs.commentedConditionals)
+    , commentedQuotes(rhs.commentedQuotes)
+    , globalVariables(rhs.globalVariables)
+    , joinStatements(rhs.joinStatements)
+    , crossJoinStatements(rhs.crossJoinStatements)
+    , regexLength(rhs.regexLength)
+    , slowRegexes(rhs.slowRegexes)
+    , emptyPassword(rhs.emptyPassword)
+    , multipleQueries(rhs.multipleQueries)
+    , orderByNumber(rhs.orderByNumber)
+    , alwaysTrue(rhs.alwaysTrue)
+    , informationSchema(rhs.informationSchema)
+    , valid(rhs.valid)
+    , userTable(rhs.userTable)
 {
 }
 
@@ -143,16 +153,22 @@ QueryRisk::QueryRisk(const QueryRisk& rhs) :
 void QueryRisk::checkTable(const string& table)
 {
     if (regex_search(table, sensitiveTablesRegex))
+    {
         ++sensitiveTables;
+    }
     if (regex_search(table, userTableRegex))
+    {
         userTable = true;
+    }
 }
 
 
 void QueryRisk::checkDatabase(const string& table)
 {
     if (regex_search(table, informationSchemaRegex))
+    {
         informationSchema = true;
+    }
 }
 
 
@@ -173,17 +189,30 @@ void QueryRisk::checkRegex(const string& regexStr)
 void QueryRisk::checkFunction(const string& function)
 {
     if (regex_search(function, bruteForceCommandsRegex))
+    {
         ++bruteForceCommands;
+    }
+
     if (regex_search(function, stringManipulationRegex))
+    {
         ++stringManipulationStatements;
+    }
     else if (regex_search(function, userStatementsRegex))
+    {
         ++userStatements;
+    }
     else if (regex_search(function, fingerprintingRegex))
+    {
         ++fingerprintingStatements;
+    }
     else if (regex_search(function, benchmarkRegex))
+    {
         ++benchmarkStatements;
+    }
     else if (regex_search(function, ifRegex))
+    {
         ++ifStatements;
+    }
 }
 
 std::ostream& operator<<(std::ostream& out, const QueryRisk& rhs)
@@ -360,39 +389,40 @@ std::ostream& operator<<(std::ostream& out, const QueryRisk::QueryType qt)
 
 bool operator==(const QueryRisk& qr1, const QueryRisk& qr2)
 {
-    return qr1.queryType == qr2.queryType &&
-    qr1.multiLineComments == qr2.multiLineComments &&
-    qr1.hashComments == qr2.hashComments &&
-    qr1.dashDashComments == qr2.dashDashComments &&
-    qr1.mySqlComments == qr2.mySqlComments &&
-    qr1.mySqlVersionedComments == qr2.mySqlVersionedComments &&
-    qr1.sensitiveTables == qr2.sensitiveTables &&
-    qr1.orStatements == qr2.orStatements &&
-    qr1.unionStatements == qr2.unionStatements &&
-    qr1.unionAllStatements == qr2.unionAllStatements &&
-    qr1.bruteForceCommands == qr2.bruteForceCommands &&
-    qr1.ifStatements == qr2.ifStatements &&
-    qr1.hexStrings == qr2.hexStrings &&
-    qr1.benchmarkStatements == qr2.benchmarkStatements &&
-    qr1.userStatements == qr2.userStatements &&
-    qr1.fingerprintingStatements == qr2.fingerprintingStatements &&
-    qr1.mySqlStringConcat == qr2.mySqlStringConcat &&
-    qr1.stringManipulationStatements == qr2.stringManipulationStatements &&
-    qr1.alwaysTrueConditional == qr2.alwaysTrueConditional &&
-    qr1.commentedConditionals == qr2.commentedConditionals &&
-    qr1.commentedQuotes == qr2.commentedQuotes &&
-    qr1.globalVariables == qr2.globalVariables &&
-    qr1.joinStatements == qr2.joinStatements &&
-    qr1.crossJoinStatements == qr2.crossJoinStatements &&
-    qr1.regexLength == qr2.regexLength &&
-    qr1.slowRegexes == qr2.slowRegexes &&
-    qr1.emptyPassword == qr2.emptyPassword &&
-    qr1.multipleQueries == qr2.multipleQueries &&
-    qr1.orderByNumber == qr2.orderByNumber &&
-    qr1.alwaysTrue == qr2.alwaysTrue &&
-    qr1.informationSchema == qr2.informationSchema &&
-    qr1.valid == qr2.valid &&
-    qr1.userTable == qr2.userTable;
+    return qr1.queryType == qr2.queryType
+        && qr1.multiLineComments == qr2.multiLineComments
+        && qr1.hashComments == qr2.hashComments
+        && qr1.dashDashComments == qr2.dashDashComments
+        && qr1.mySqlComments == qr2.mySqlComments
+        && qr1.mySqlVersionedComments == qr2.mySqlVersionedComments
+        && qr1.sensitiveTables == qr2.sensitiveTables
+        && qr1.orStatements == qr2.orStatements
+        && qr1.unionStatements == qr2.unionStatements
+        && qr1.unionAllStatements == qr2.unionAllStatements
+        && qr1.bruteForceCommands == qr2.bruteForceCommands
+        && qr1.ifStatements == qr2.ifStatements
+        && qr1.hexStrings == qr2.hexStrings
+        && qr1.benchmarkStatements == qr2.benchmarkStatements
+        && qr1.userStatements == qr2.userStatements
+        && qr1.fingerprintingStatements == qr2.fingerprintingStatements
+        && qr1.mySqlStringConcat == qr2.mySqlStringConcat
+        && qr1.stringManipulationStatements == qr2.stringManipulationStatements
+        && qr1.alwaysTrueConditional == qr2.alwaysTrueConditional
+        && qr1.commentedConditionals == qr2.commentedConditionals
+        && qr1.commentedQuotes == qr2.commentedQuotes
+        && qr1.globalVariables == qr2.globalVariables
+        && qr1.joinStatements == qr2.joinStatements
+        && qr1.crossJoinStatements == qr2.crossJoinStatements
+        && qr1.regexLength == qr2.regexLength
+        && qr1.slowRegexes == qr2.slowRegexes
+        && qr1.emptyPassword == qr2.emptyPassword
+        && qr1.multipleQueries == qr2.multipleQueries
+        && qr1.orderByNumber == qr2.orderByNumber
+        && qr1.alwaysTrue == qr2.alwaysTrue
+        && qr1.informationSchema == qr2.informationSchema
+        && qr1.valid == qr2.valid
+        && qr1.userTable == qr2.userTable
+    ;
 }
 
 

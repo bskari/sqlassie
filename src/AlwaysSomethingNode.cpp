@@ -21,27 +21,15 @@
 #include "AlwaysSomethingNode.hpp"
 #include "ComparisonNode.hpp"
 #include "sqlParser.h"
+#include "QueryRisk.hpp"
 
 #include <string>
-#include <boost/regex.hpp>
+
 using std::string;
-using boost::regex;
-using boost::regex_match;
-
-AlwaysSomethingNode::AlwaysSomethingNode(
-    const bool always,
-    const int compareType
-)
-    : ComparisonNode(compareType)
-    , always_(always)
-{
-}
 
 
-AlwaysSomethingNode::AlwaysSomethingNode(
-    const bool always
-)
-    : ComparisonNode(EQ)  // This type is a lie, but doesn't matter anyway
+AlwaysSomethingNode::AlwaysSomethingNode(const bool always)
+    : ExpressionNode("AlwaysSomething")
     , always_(always)
 {
 }
@@ -54,10 +42,15 @@ AlwaysSomethingNode::~AlwaysSomethingNode()
 
 AstNode* AlwaysSomethingNode::copy() const
 {
-    AlwaysSomethingNode* const temp =
-        new AlwaysSomethingNode(always_, compareType_);
+    AlwaysSomethingNode* const temp = new AlwaysSomethingNode(always_);
     AstNode::addCopyOfChildren(temp);
     return temp;
+}
+
+
+bool AlwaysSomethingNode::isAlwaysTrueOrFalse() const
+{
+    return true;
 }
 
 
@@ -67,7 +60,20 @@ bool AlwaysSomethingNode::isAlwaysTrue() const
 }
 
 
-bool AlwaysSomethingNode::anyIsAlwaysTrue() const
+QueryRisk::EmptyPassword AlwaysSomethingNode::emptyPassword() const
 {
-    return AlwaysSomethingNode::isAlwaysTrue();
+    return QueryRisk::PASSWORD_NOT_USED;
+}
+
+
+bool AlwaysSomethingNode::resultsInValue() const
+{
+    return false;
+}
+
+
+string AlwaysSomethingNode::getValue() const
+{
+    assert(resultsInValue());
+    return "";
 }

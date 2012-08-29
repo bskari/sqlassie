@@ -27,34 +27,80 @@
 #include "SensitiveNameChecker.hpp"
 #include "sqlParser.h"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/cast.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <ctype.h>
 #include <ostream>
+#include <string>
 
+using boost::lexical_cast;
+using boost::iequals;
+using boost::ilexicographical_compare;
 using boost::polymorphic_downcast;
 using boost::regex;
 using boost::regex_replace;
 using boost::regex_match;
+using std::ostream;
+using std::string;
+
+static bool compareStrings(
+    const int compareType,
+    const string& s1,
+    const string& s2
+);
+static bool compareValues(
+    const int compareType,
+    const string& s1,
+    const string& s2
+);
 
 
-ComparisonNode::ComparisonNode(const int compareType) :
-    ConditionalNode("Comparison"),
-    compareType_(compareType)
+ComparisonNode::ComparisonNode(
+    const ExpressionNode* const expr1,
+    const int compareType,
+    const ExpressionNode* const expr2
+)
+    : ExpressionNode("Comparison")
+    , expr1_(expr1)
+    , compareType_(compareType)
+    , expr2_(expr2)
 {
 }
 
 
 ComparisonNode::~ComparisonNode()
 {
+    delete expr1_;
+    delete expr2_;
 }
 
 
 AstNode* ComparisonNode::copy() const
 {
-    ComparisonNode* const temp = new ComparisonNode(compareType_);
+    ComparisonNode* const temp = new ComparisonNode(
+        expr1_,
+        compareType_,
+        expr2_
+    );
     AstNode::addCopyOfChildren(temp);
     return temp;
+}
+
+
+bool ComparisonNode::isAlwaysTrueOrFalse() const
+{
+    if (BETWEEN == compareType_)
+    {
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(children_.at(0));
+        return expr->resultsInValue()
+            && expr1_->resultsInValue()
+            && expr2_->resultsInValue();
+    }
+    return expr1_->resultsInValue()
+        && expr2_->resultsInValue();
 }
 
 
@@ -62,123 +108,80 @@ bool ComparisonNode::isAlwaysTrue() const
 {
     if (BETWEEN == compareType_)
     {
-        assert(3 == children_.size() && "BETWEEN operators should have 3 children");
-        // This is logically equivalent to
-        // (min[child1] <= expr[child0] AND expr[child0] <= max[child2])
-        const ExpressionNode* const expr = polymorphic_downcast<const ExpressionNode*>(
-            children_.at(0)
+        // BETWEEN is logically equivalent to
+        // (min[expr1_] <= expr[child0] AND expr[child0] <= max[expr2_])
+        assert(
+            1 == children_.size()
+            && "BETWEEN comparisons should have 1 child"
         );
-        const ExpressionNode* const minExpr = polymorphic_downcast<const ExpressionNode*>(
-            children_.at(1)
-        );
-        const ExpressionNode* const maxExpr = polymorphic_downcast<const ExpressionNode*>(
-            children_.at(2)
-        );
-
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(children_.at(0));
         // We only care about numbers; anything else (like identifiers) is
         // assumed to not always be true
         if (
-            ExpressionNode::isNumber(minExpr->getValue())
-            && ExpressionNode::isNumber(minExpr->getValue())
-            && ExpressionNode::isNumber(minExpr->getValue())
+            expr->resultsInValue()
+            && expr1_->resultsInValue()
+            && expr2_->resultsInValue()
         )
         {
-            std::cout << minExpr->getValue() << " <= " << expr->getValue() << " <= " << maxExpr->getValue() << std::endl;
-            return minExpr->getValue() <= expr->getValue()
-                && expr->getValue() <= maxExpr->getValue();
+            return expr1_->getValue() <= expr->getValue()
+                && expr->getValue() <= expr2_->getValue();
+        }
+        else
+        {
+            return false;
         }
     }
 
-    assert(2 == children_.size() && "ComparisonNode should have 2 children");
+    assert(0 == children_.size() && "ComparisonNode should have no children");
 
-    const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(0)
-    );
-    const ExpressionNode* const expr2 = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(1)
-    );
-
-    // Fields may or may not compare correctly, so assume it's legitimate
-    if (expr1->isIdentifier() || expr2->isIdentifier())
+    // Both either need to result in values or strings
+    /// @TODO(bskari|2012-07-29) Handle things like (0 == '0')
+    if (
+        !(expr1_->resultsInValue() && expr2_->resultsInValue())
+        && !(expr1_->resultsInString() && expr2_->resultsInString())
+    )
     {
         return false;
     }
 
-    if (EQ == compareType_)
+    string expr1, expr2;
+    if (expr1_->resultsInValue() && expr2_->resultsInValue())
     {
-        return expr1->getValue() == expr2->getValue();
+        return compareValues(
+            compareType_,
+            lexical_cast<string>(convertFloatOrHexString(expr1_->getValue())),
+            lexical_cast<string>(convertFloatOrHexString(expr2_->getValue()))
+        );
     }
-    else if (LT == compareType_)
+    else
     {
-        return expr1->getValue() < expr2->getValue();
+        return compareStrings(
+            compareType_,
+            expr1_->getValue(),
+            expr2_->getValue()
+        );
     }
-    else if (GT == compareType_)
-    {
-        return expr1->getValue() > expr2->getValue();
-    }
-    else if (LE == compareType_)
-    {
-        return expr1->getValue() <= expr2->getValue();
-    }
-    else if (GE == compareType_)
-    {
-        return expr1->getValue() >= expr2->getValue();
-    }
-    else if (NE == compareType_)
-    {
-        return expr1->getValue() != expr2->getValue();
-    }
-    else if (LIKE_KW == compareType_)
-    {
-        // Empty compares are always false
-        if (expr2->getValue().size() == 0)
-        {
-            return false;
-        }
-        regex perl(MySqlConstants::mySqlRegexToPerlRegex(expr2->getValue()));
-        return regex_match(expr1->getValue(), perl);
-    }
-    else if (SOUNDS == compareType_)
-    {
-        return MySqlConstants::soundex(expr1->getValue())
-            == MySqlConstants::soundex(expr2->getValue());
-    }
-
-    Logger::log(Logger::ERROR)
-        << "Unknown comparison operator in ComparisonNode "
-        << compareType_;
-    assert(false);
-    return true;
-}
-
-
-bool ComparisonNode::anyIsAlwaysTrue() const
-{
-    return ComparisonNode::isAlwaysTrue();
 }
 
 
 QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
-    assert(2 == children_.size() && "ComparisonNode should have 2 children");
-
-    const ExpressionNode* const expr1 = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(0)
-    );
-    const ExpressionNode* const expr2 = polymorphic_downcast<const ExpressionNode*>(
-        children_.at(1)
+    assert(
+        0 == children_.size()
+        || (1 == children_.size() && BETWEEN == compareType_)
     );
 
     // Only check for equality comparisons to password field
     if (
         EQ != compareType_
-        || SensitiveNameChecker::get().isPasswordField(expr1->getValue())
+        || SensitiveNameChecker::get().isPasswordField(expr1_->getValue())
     )
     {
         return QueryRisk::PASSWORD_NOT_USED;
     }
 
-    if (expr2->getValue().empty())
+    if (expr2_->getValue().empty())
     {
         return QueryRisk::PASSWORD_EMPTY;
     }
@@ -186,8 +189,33 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 }
 
 
+bool ComparisonNode::resultsInValue() const
+{
+    // BETWEEN comparisons have an extra child to check
+    if (BETWEEN == compareType_)
+    {
+        assert(children_.size() == 1);
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(children_.at(0));
+        if (!expr->resultsInValue())
+        {
+            return false;
+        }
+    }
+    return expr1_->resultsInValue() && expr2_->resultsInValue();
+}
+
+
+string ComparisonNode::getValue() const
+{
+    assert(resultsInValue());
+    /// @TODO(bskari|2012-07-28) Implement this
+    return "";
+}
+
+
 void ComparisonNode::print(
-    std::ostream& out,
+    ostream& out,
     const int depth,
     const char indent
 ) const
@@ -198,4 +226,79 @@ void ComparisonNode::print(
     }
     out << name_ << ':' << compareType_ << '\n';
     printChildren(out, depth + 1, indent);
+}
+
+
+bool compareStrings(
+    const int compareType,
+    const string& s1,
+    const string& s2
+)
+{
+    switch (compareType)
+    {
+        // MySQL does case insensitive comparisons by default
+        case EQ:
+            return iequals(s1, s2);
+        case NE:
+            return !iequals(s1, s2);
+        case LT:
+            return ilexicographical_compare(s1, s2);
+        case GT:
+            return !ilexicographical_compare(s1, s2) && !iequals(s1, s2);
+        case LE:
+            return ilexicographical_compare(s1, s2) || iequals(s1, s2);
+        case GE:
+            return !ilexicographical_compare(s1, s2);
+        case LIKE_KW:
+            // Empty compares are always false
+            if (s2.size() == 0)
+            {
+                return false;
+            }
+            else
+            {
+                regex perl(MySqlConstants::mySqlRegexToPerlRegex(s2));
+                return regex_match(s1, perl);
+            }
+        case SOUNDS:
+            return MySqlConstants::soundex(s1) == MySqlConstants::soundex(s2);
+        default:
+            Logger::log(Logger::WARN) << "Unknown comparison operator "
+                << compareType
+                << " in ComparisonNode.cpp::compareStrings";
+            assert(false);
+            return false;
+    }
+}
+
+
+bool compareValues(
+    const int compareType,
+    const string& s1,
+    const string& s2
+)
+{
+    switch (compareType)
+    {
+        case EQ:
+            return s1 == s2;
+        case LT:
+            return s1 < s2;
+        case GT:
+            return s1 > s2;
+        case LE:
+            return s1 <= s2;
+        case GE:
+            return s1 >= s2;
+        case NE:
+            return s1 != s2;
+        default:
+            Logger::log(Logger::ERROR)
+                << "Unknown comparison operator "
+                << compareType
+                << " in ComparisonNode.cpp::compareValues";
+            assert(false);
+            return false;
+    }
 }

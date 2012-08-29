@@ -21,7 +21,7 @@
 #ifndef SRC_BOOLEANLOGICNODE_HPP_
 #define SRC_BOOLEANLOGICNODE_HPP_
 
-#include "ConditionalNode.hpp"
+#include "ExpressionNode.hpp"
 #include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
@@ -33,53 +33,71 @@
  * @date December 10 2010
  */
 
-class BooleanLogicNode : public ConditionalNode
+class BooleanLogicNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
      * @param logicalOp The logical binary operator type.
      */
-    BooleanLogicNode(const int logicalOperator);
+    BooleanLogicNode(
+        const ExpressionNode* const expr1,
+        const int logicalOperator,
+        const ExpressionNode* const expr2
+    );
 
-    virtual ~BooleanLogicNode();
+    ~BooleanLogicNode();
 
     /**
      * Overridden from AstNode.
      */
-    virtual AstNode* copy() const WARN_UNUSED_RESULT;
+    AstNode* copy() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if the conditionals result in always true or always false.
+     * Overridden from ExpressionNode.
+     */
+    bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the conditionals are always true.
-     * Overridden from ConditionalNode.
+     * Overridden from ExpressionNode.
      */
-    virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT;
-
-    /**
-     * Determines if the any of this node's children are always true.
-     * Overridden from ConditionalNode.
-     */
-    virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
+    bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the there is an empty password.
-     * Overridden from ConditionalNode.
+     * Overridden from ExpressionNode.
      */
-    virtual QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if the there is an empty password.
+     * Overridden from ExpressionNode.
+     */
+    bool resultsInValue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Gets the value of this expression.
+     * Overridden from ExpressionNode.
+     */
+    std::string getValue() const WARN_UNUSED_RESULT;
 
     /**
      * Overridden from AstNode.
      */
-    virtual void print(
+    void print(
         std::ostream& out,
         const int depth,
         const char indent
     ) const;
 
 private:
+    const ExpressionNode* const expr1_;
     const int logicalOperator_;
+    const ExpressionNode* const expr2_;
 
-    BooleanLogicNode(const BooleanLogicNode& rhs);
-    BooleanLogicNode& operator=(const BooleanLogicNode& rhs);
+    BooleanLogicNode(const BooleanLogicNode&);
+    BooleanLogicNode& operator=(const BooleanLogicNode&);
 };
 #endif  // SRC_BOOLEANLOGICNODE_HPP_

@@ -18,7 +18,6 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ConditionalNode.hpp"
 #include "ExpressionNode.hpp"
 #include "SensitiveNameChecker.hpp"
 #include "InValuesListNode.hpp"
@@ -38,11 +37,9 @@ using std::string;
 using std::vector;
 
 
-InValuesListNode::InValuesListNode(const bool in,
-    const ExpressionNode* const expression) :
-    ConditionalNode("InValuesList"),
-    in_(in),
-    expression_(expression)
+InValuesListNode::InValuesListNode(const ExpressionNode* const expression)
+    : ExpressionNode("InValuesList")
+    , expression_(expression)
 {
 }
 
@@ -55,9 +52,36 @@ InValuesListNode::~InValuesListNode()
 
 AstNode* InValuesListNode::copy() const
 {
-    InValuesListNode* const temp = new InValuesListNode(in_, expression_);
+    InValuesListNode* const temp = new InValuesListNode(expression_);
     AstNode::addCopyOfChildren(temp);
     return temp;
+}
+
+
+bool InValuesListNode::isAlwaysTrueOrFalse() const
+{
+    if (!expression_->resultsInValue() || !expression_->resultsInString())
+    {
+        return false;
+    }
+
+    // Everything else needs to result in a value or string
+    vector<const AstNode*>::const_iterator end(children_.end());
+    for (
+        vector<const AstNode*>::const_iterator i(children_.begin());
+        i != end;
+        ++i
+    )
+    {
+        const ExpressionNode* const expr =
+            polymorphic_downcast<const ExpressionNode*>(*i);
+
+        if (!expr->resultsInValue() || !expr->resultsInString())
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -66,7 +90,9 @@ bool InValuesListNode::isAlwaysTrue() const
     bool in = false;
 
     // Identifiers may or may not be in a list - it's legitimate
-    if (expression_->isIdentifier())
+    const bool isValue = expression_->resultsInValue();
+    const bool isString = expression_->resultsInString();
+    if (!isValue && !isString)
     {
         return false;
     }
@@ -74,27 +100,28 @@ bool InValuesListNode::isAlwaysTrue() const
     const string firstExpression(expression_->getValue());
 
     vector<const AstNode*>::const_iterator end(children_.end());
-    for (vector<const AstNode*>::const_iterator i(children_.begin());
+    for (
+        vector<const AstNode*>::const_iterator i(children_.begin());
         i != end;
-        ++i)
+        ++i
+    )
     {
         const ExpressionNode* const expr =
             polymorphic_downcast<const ExpressionNode*>(*i);
 
-        if (firstExpression == expr->getValue())
+        if (
+            (
+                isValue == expr->resultsInValue()
+                || expr->resultsInString()
+            )
+            && firstExpression == expr->getValue()
+        )
         {
             in = true;
             break;
         }
     }
-    // The user can either specify "expr IN (...)" or "expr NOT IN (...)"
-    return in_ == in;
-}
-
-
-bool InValuesListNode::anyIsAlwaysTrue() const
-{
-    return isAlwaysTrue();
+    return in;
 }
 
 
@@ -109,6 +136,24 @@ QueryRisk::EmptyPassword InValuesListNode::emptyPassword() const
         return QueryRisk::PASSWORD_EMPTY;
     }
     return QueryRisk::PASSWORD_NOT_USED;
+}
+
+
+bool InValuesListNode::resultsInValue() const
+{
+    return expression_->resultsInValue();
+}
+
+
+string InValuesListNode::getValue() const
+{
+    assert(resultsInValue());
+
+    if (isAlwaysTrue())
+    {
+        return "1";
+    }
+    return "0";
 }
 
 
@@ -128,14 +173,7 @@ void InValuesListNode::print(
     {
         out << indent;
     }
-    if (in_)
-    {
-        out << "In\n";
-    }
-    else
-    {
-        out << "Not In\n";
-    }
+    out << "In\n";
 
     printChildren(out, depth + 1, indent);
     for (int i = 0; i < depth; ++i)

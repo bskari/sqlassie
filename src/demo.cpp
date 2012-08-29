@@ -241,6 +241,8 @@ int main(int argc, char* argv[])
                 case QueryRisk::TYPE_SET:
                 case QueryRisk::TYPE_EXPLAIN:
                 case QueryRisk::TYPE_DESCRIBE:
+                case QueryRisk::TYPE_LOCK:
+                case QueryRisk::TYPE_USE:
                     Logger::log(Logger::ERROR)
                         << "Non-risky query type was mistakenly blocked";
                     assert(false);

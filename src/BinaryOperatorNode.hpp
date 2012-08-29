@@ -18,67 +18,74 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SRC_COMPARISONNODE_HPP_
-#define SRC_COMPARISONNODE_HPP_
+#ifndef SRC_BINARYOPERATORNODE_HPP_
+#define SRC_BINARYOPERATORNODE_HPP_
 
+#include "AstNode.hpp"
 #include "ExpressionNode.hpp"
-#include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
-#include <iosfwd>
+#include <string>
 
 /**
- * Parse tree node that represents a comparison between two expressions. The
- * comparisons can be things like equality, greater than, like, or sounds like.
+ * Parse tree node that holds a binary operator, like '+' or '/', and two
+ * expressions that the operator operatos on. The operator is stored as the
+ * token value as defined by the parser.
  * @author Brandon Skari
- * @date December 9 2010
+ * @date July 4 2012
  */
 
-class ComparisonNode : public ExpressionNode
+class BinaryOperatorNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
-     * @param compareType The type of comparison being used.
+     * @param operatorToken The operator's token value, as defined by the parser.
      */
-    ComparisonNode(
+    BinaryOperatorNode(
         const ExpressionNode* const expr1,
-        const int compareType,
+        const int operatorToken,
         const ExpressionNode* const expr2
     );
 
-    ~ComparisonNode();
+    virtual ~BinaryOperatorNode();
 
     /**
      * Overridden from AstNode.
      */
-    AstNode* copy() const WARN_UNUSED_RESULT;
+    virtual AstNode* copy() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the conditionals result in always true or always false.
+     * Determines if the conditionals are always something.
      * Overridden from ExpressionNode.
      */
     bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the comparison is always true.
+     * Determines if the conditionals are always true.
      * Overridden from ExpressionNode.
      */
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the password is empty.
+     * Determines if there is an empty password.
+     * Overridden from ExpressionNode.
      */
     QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if this node ultimately results in a value.
+     * Gets the operator's token value.
+     */
+    int getBinaryOperator() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if the there is an empty password.
      * Overridden from ExpressionNode.
      */
     bool resultsInValue() const WARN_UNUSED_RESULT;
 
     /**
-     * Returns the value of this node.
+     * Gets the value of this expression.
      * Overridden from ExpressionNode.
      */
     std::string getValue() const WARN_UNUSED_RESULT;
@@ -86,19 +93,18 @@ public:
     /**
      * Overridden from AstNode.
      */
-    void print(
+    virtual void print(
         std::ostream& out,
         const int depth,
         const char indent
     ) const;
 
-
 private:
     const ExpressionNode* const expr1_;
-    int compareType_;
+    const int operator_;
     const ExpressionNode* const expr2_;
 
-    ComparisonNode(const ComparisonNode& rhs);
-    ComparisonNode& operator=(ComparisonNode& rhs);
+    BinaryOperatorNode(const BinaryOperatorNode& rhs);
+    BinaryOperatorNode& operator=(const BinaryOperatorNode& rhs);
 };
-#endif  // SRC_COMPARISONNODE_HPP_
+#endif  // SRC_BINARYOPERATORNODE_HPP_

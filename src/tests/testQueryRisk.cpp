@@ -200,17 +200,381 @@ void testQueryRiskComments()
 }
 
 
-void testQueryRiskAlwaysTrue()
+void testQueryRiskSensitiveTables()
+{
+    QueryRisk qr;
+
+    // Sensitive tables as of July 15 2012 (taken from QueryRisk.cpp)
+    // customer member admin user permission session
+
+    qr = parseQuery("SELECT * FROM customer");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery("SELECT name, password FROM user WHERE name = 'quote'");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM benign_table "
+        "UNION SELECT password FROM user"
+    );
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery(
+        "SELECT u.name, u.password, s.csrf, s.token "
+        "FROM user u JOIN session s ON u.id = s.user_id"
+    );
+    BOOST_CHECK(2 == qr.sensitiveTables);
+
+    qr = parseQuery("DELETE FROM admin WHERE id = 1");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+
+    qr = parseQuery("INSERT INTO permission (user_id, flags) VALUES (1, 2)");
+    BOOST_CHECK(1 == qr.sensitiveTables);
+}
+
+
+void testQueryRiskOrStatements()
+{
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0");
+    BOOST_CHECK(0 == qr.orStatements);
+
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0 OR age > 21");
+    BOOST_CHECK(1 == qr.orStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN email e ON e.user_id = u.id"
+        " WHERE flags & 0x01 = 0 OR age > 21 OR"
+        " (SELECT COUNT(*) FROM email WHERE flags & 0x01 = 0 OR time > NOW()"
+        " GROUP BY user_id);"
+    );
+    BOOST_CHECK(3 == qr.orStatements);
+
+    qr = parseQuery("SELECT * FROM user WHERE 1 = 1 OR 1 OR 1 OR 1 OR 1 OR 1");
+    BOOST_CHECK(5 == qr.orStatements);
+}
+
+
+void testQueryRiskUnionStatements()
+{
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0");
+    BOOST_CHECK(0 == qr.unionStatements);
+
+    qr = parseQuery("SELECT * FROM user WHERE id = 5 UNION SELECT 1, 'admin'");
+    BOOST_CHECK(1 == qr.unionStatements);
+
+    // UNION ALL statements also count as UNIONs
+    qr = parseQuery("SELECT * FROM user WHERE id = 5 UNION ALL SELECT 1, 'a'");
+    BOOST_CHECK(1 == qr.unionStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN email e ON e.user_id = u.id"
+        " UNION SELECT 1, (SELECT MAX(age) FROM user) AS max_age, 'admin'"
+        " UNION SELECT 2, (SELECT MIN(age) FROM user) AS min_age, 'admin'"
+    );
+    BOOST_CHECK(2 == qr.unionStatements);
+}
+
+
+void testQueryRiskUnionAllStatements()
+{
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0");
+    BOOST_CHECK(0 == qr.unionAllStatements);
+
+    // UNION statements shouldn't be counted as UNION ALL statements
+    qr = parseQuery("SELECT * FROM user WHERE id = 5 UNION SELECT 1, 'admin'");
+    BOOST_CHECK(0 == qr.unionAllStatements);
+
+    qr = parseQuery("SELECT * FROM user WHERE id = 5 UNION ALL SELECT 1, 'a'");
+    BOOST_CHECK(1 == qr.unionStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN email e ON e.user_id = u.id"
+        " UNION ALL SELECT 1, (SELECT MAX(age) FROM user) AS max_age, 'admin'"
+        " UNION ALL SELECT 2, (SELECT MIN(age) FROM user) AS min_age, 'admin'"
+    );
+    BOOST_CHECK(2 == qr.unionStatements);
+}
+
+
+void testQueryRiskBruteForceCommands()
+{
+    QueryRisk qr;
+
+    // Current list of brute force commands
+    // mid substr substring load_file char
+
+    // Check for mid (upper and lowercase)
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT MID(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT mid(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+
+    // Check for substr and substring (upper and lowercase)
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT SUBSTR(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT substr(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT SUBSTRING(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " AND (SELECT substring(password, 1, 1) AS p FROM user u WHERE p < 'n')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+
+    // Check for load_file (upper and lowercase)
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " UNION SELECT LOAD_FILE('/etc/passwd')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM user WHERE username = 'u' AND password = 'p'"
+        " UNION SELECT load_file('/etc/passwd')"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+
+    // Check for char (upper and lowercase)
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM post WHERE id = 729"
+        " UNION SELECT * FROM user "
+        " WHERE name LIKE CHAR(34, 37, 97, 100, 109, 105, 110, 37, 34)"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+    qr = parseQuery(
+        "SELECT * FROM post WHERE id = 729"
+        " UNION SELECT * FROM user "
+        " WHERE name LIKE char(34, 37, 97, 100, 109, 105, 110, 37, 34)"
+    );
+    BOOST_CHECK(1 == qr.bruteForceCommands);
+}
+
+
+void testQueryRiskIfStatements()
+{
+    QueryRisk qr;
+
+    qr = parseQuery(
+        "INSERT INTO USER (name, password, age) VALUES ('B', 'p', IF("
+        " (SELECT SUBSTR(password, 1, 1) FROM user WHERE name = 'admin') < 'f',"
+        " BENCHMARK(1000000, MD5('f')),"
+        " 1"
+        "))"
+    );
+    BOOST_CHECK(1 == qr.ifStatements);
+}
+
+
+void testQueryRiskHexStrings()
+{
+    QueryRisk qr;
+
+    // --------------------------------------------------------
+    // Situations where hex digits are used as numbers are okay
+    // --------------------------------------------------------
+
+    // Binary operators should imply that it's a number
+    qr = parseQuery("SELECT * FROM user WHERE flags & 0x01 = 0");
+    BOOST_CHECK(0 == qr.hexStrings);
+
+    // This should be determinable as a number because it's being compared to
+    // an integer
+    qr = parseQuery("SELECT * FROM user WHERE flags + 0x01 = 0");
+    BOOST_CHECK(0 == qr.hexStrings);
+
+    // ----------------------------------------------------
+    // Situations where hex digits are strings are not okay
+    // ----------------------------------------------------
+
+    // Like statements always use strings
+    qr = parseQuery("SELECT * FROM user WHERE name LIKE 0x61646d696e");
+    BOOST_CHECK(1 == qr.hexStrings);
+
+    // Comparing strings should imply that it's a string
+    qr = parseQuery("SELECT * FROM user WHERE 'admin' = 0x61646D696E");
+    BOOST_CHECK(1 == qr.hexStrings);
+
+    // -----------------------------------------------------------------------
+    // Some cases depend on the schema and are indeterminate from SQLassie, so
+    // they shouldn't be counted
+    // -----------------------------------------------------------------------
+
+    qr = parseQuery("SELECT * FROM user WHERE name = 0x61646D696E");
+    BOOST_CHECK(0 == qr.hexStrings);
+}
+
+
+void testQueryRiskBenchmarkStatements()
+{
+    QueryRisk qr;
+
+    qr = parseQuery(
+        "INSERT INTO USER (name, password, age) VALUES ('B', 'p', IF("
+        " (SELECT SUBSTR(password, 1, 1) FROM user WHERE name = 'admin') < 'f',"
+        " BENCHMARK(1000000, MD5('f')),"
+        " 1"
+        "))"
+    );
+    BOOST_CHECK(1 == qr.benchmarkStatements);
+}
+
+
+void testQueryRiskUserStatements()
+{
+    QueryRisk qr;
+
+    // User tables are OK - MySQL user functions are not
+    qr = parseQuery("SELECT * FROM user WHERE username = 'f'");
+    BOOST_CHECK(0 == qr.userStatements);
+
+    qr = parseQuery("SELECT user()");
+    BOOST_CHECK(1 == qr.userStatements);
+    qr = parseQuery("SELECT USER()");
+    BOOST_CHECK(1 == qr.userStatements);
+    qr = parseQuery("SELECT current_user()");
+    BOOST_CHECK(1 == qr.userStatements);
+    // current_user is both a function and a reserved word that returns the
+    // value of the function call
+    qr = parseQuery("SELECT current_user");
+    BOOST_CHECK(1 == qr.userStatements);
+    qr = parseQuery("SELECT session_user()");
+    BOOST_CHECK(1 == qr.userStatements);
+    qr = parseQuery("SELECT system_user()");
+    BOOST_CHECK(1 == qr.userStatements);
+
+    qr = parseQuery("SELECT * FROM permission UNION SELECT user(), host()");
+    BOOST_CHECK(1 == qr.userStatements);
+
+    qr = parseQuery(
+        "SELECT * FROM email WHERE SUBSTR(current_user(), 1, 1) < 'f'"
+    );
+    BOOST_CHECK(1 == qr.userStatements);
+}
+
+
+void testQueryRiskFingerprintingStatements()
+{
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT id FROM user UNION SELECT schema()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT SCHEMA()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT database()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT version()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT connection_id()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT last_insert_id()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+    qr = parseQuery("SELECT id FROM user UNION SELECT row_count()");
+    BOOST_CHECK(1 == qr.fingerprintingStatements);
+}
+
+
+void testQueryRiskMySqlStringConcat()
+{
+    // MySQL implicitly concatenates adjacent strings, just like C++
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT 'a' 'b'");
+    BOOST_CHECK(1 == qr.mySqlStringConcat);
+    qr = parseQuery("SELECT 'a' 'b' 'c'");
+    BOOST_CHECK(2 == qr.mySqlStringConcat);
+    qr = parseQuery("SELECT 'a' 'b' 'c' 'd'");
+    BOOST_CHECK(3 == qr.mySqlStringConcat);
+
+    qr = parseQuery("SELECT * FROM user WHERE 'a' 'bc' = 'a' 'bc'");
+    BOOST_CHECK(2 == qr.mySqlStringConcat);
+}
+
+
+void testQueryRiskStringManipulationStatements()
+{
+    QueryRisk qr;
+
+    qr = parseQuery(
+        "SELECT id FROM user UNION SELECT concat(name, password) FROM user"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id FROM user UNION SELECT CONCAT(name, password) FROM user"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id FROM user WHERE name = 'Brandon'"
+        " OR name LIKE CHAR(34, 37, 97, 100, 109, 105, 110, 37, 34) -- ' "
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name LIKE INSERT('admn', 4, 0, 'i') -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR HEX(name) = '61646D696E' -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = MID('zzzadminzzz', 4, 5) -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = REPLACE('zzzadminzzz', 'zzz', '') -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = REVERSE('nimda') -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = SUBSTR('zzzadminzzz', 4, 5) -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+    qr = parseQuery(
+        "SELECT id, password FROM user WHERE name = 'Brandon'"
+        " OR name = SUBSTRING('zzzadminzzz', 4, 5) -- '"
+    );
+    BOOST_CHECK(1 == qr.stringManipulationStatements);
+}
+
+
+void testQueryRiskAlwaysTrueConditional()
 {
     QueryRisk qr;
 
     // ------------------------------------------------------------------------
     // expression IN (expression, expression, expression, ...)
     // ------------------------------------------------------------------------
-
-    // Subselects shouldn't be detectable as always true
-    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (SELECT 1)");
-    BOOST_CHECK(!qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE 1 IN (1)");
     BOOST_CHECK(qr.alwaysTrue);
@@ -414,10 +778,10 @@ void testQueryRiskAlwaysTrue()
     BOOST_CHECK(qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE 'bRaNdOn' != 'not brandon'");
-    BOOST_CHECK(!qr.alwaysTrue);
+    BOOST_CHECK(qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE 'brandon' != 'not brandon'");
-    BOOST_CHECK(!qr.alwaysTrue);
+    BOOST_CHECK(qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
     // and/or/xor statements
@@ -448,6 +812,74 @@ void testQueryRiskAlwaysTrue()
 }
 
 
+void testQueryRiskCommentedConditionals()
+{
+    QueryRisk qr;
+
+    // Plain old commented conditionals
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " -- AND password = SHA256('password')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " # AND password = SHA256('password')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " /* AND password = SHA256('password */ -- ')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name LIKE 'Brandon%'"
+        " -- OR age > 25"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name LIKE 'Brandon%'"
+        " -- XOR age > 25"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    // Test some commented conditionals with no intervening space
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " #AND password = SHA256('password')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " /*AND password = SHA256('password */ -- ')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " /*!AND password = SHA256('password */ -- ')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+
+    qr = parseQuery(
+        "SELECT COUNT(*) FROM user WHERE name = 'Brandon'"
+        " /*!12345AND password = SHA256('password */ -- ')"
+    );
+    BOOST_CHECK(1 == qr.commentedConditionals);
+}
+
+
+void testQueryRiskCommentedQuotes()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
 void testQueryRiskGlobalVariables()
 {
     QueryRisk qr;
@@ -475,36 +907,69 @@ void testQueryRiskGlobalVariables()
 }
 
 
-void testQueryRiskSensitiveTables()
+void testQueryRiskJoinStatements()
 {
-    QueryRisk qr;
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
 
-    // Sensitive tables as of July 15 2012 (taken from QueryRisk.cpp)
-    // customer member admin user permission session
 
-    qr = parseQuery("SELECT * FROM customer");
-    BOOST_CHECK(1 == qr.sensitiveTables);
+void testQueryRiskCrossJoinStatements()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
 
-    qr = parseQuery("SELECT name, password FROM user WHERE name = 'quote'");
-    BOOST_CHECK(1 == qr.sensitiveTables);
 
-    qr = parseQuery(
-        "SELECT COUNT(*) FROM benign_table "
-        "UNION SELECT password FROM user"
-    );
-    BOOST_CHECK(1 == qr.sensitiveTables);
+void testQueryRiskRegexLength()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
 
-    qr = parseQuery(
-        "SELECT u.name, u.password, s.csrf, s.token "
-        "FROM user u JOIN session s ON u.id = s.user_id"
-    );
-    BOOST_CHECK(2 == qr.sensitiveTables);
 
-    qr = parseQuery("DELETE FROM admin WHERE id = 1");
-    BOOST_CHECK(1 == qr.sensitiveTables);
+void testQueryRiskSlowRegexes()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
 
-    qr = parseQuery("INSERT INTO permission (user_id, flags) VALUES (1, 2)");
-    BOOST_CHECK(1 == qr.sensitiveTables);
+
+void testQueryRiskEmptyPassword()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskMultipleQueries()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskOrderByNumber()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskAlwaysTrue()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskInformationSchema()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskValid()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
+}
+
+
+void testQueryRiskUserTable()
+{
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
 }
 
 

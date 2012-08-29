@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -18,41 +18,70 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AstNode.hpp"
-#include "Logger.hpp"
-#include "OperatorNode.hpp"
+#include "ComparisonNode.hpp"
+#include "NullNode.hpp"
+#include "QueryRisk.hpp"
+#include "sqlParser.h"
 
-#include <cassert>
+#include <ostream>
+#include <string>
+
+using std::ostream;
+using std::string;
 
 
-OperatorNode::OperatorNode(const int operatorToken)
-    : AstNode("Operator")
-    , operator_(operatorToken)
+NullNode::NullNode()
+    : ExpressionNode("Null")
 {
 }
 
 
-OperatorNode::~OperatorNode()
+NullNode::~NullNode()
 {
 }
 
 
-AstNode* OperatorNode::copy() const
+AstNode* NullNode::copy() const
 {
-    OperatorNode* const temp = new OperatorNode(operator_);
-    assert(children_.empty());
+    NullNode* const temp = new NullNode();
+    AstNode::addCopyOfChildren(temp);
     return temp;
 }
 
 
-int OperatorNode::getOperator() const
+bool NullNode::isAlwaysTrueOrFalse() const
 {
-    return operator_;
+    return true;
 }
 
 
-void OperatorNode::print(
-    std::ostream& out,
+bool NullNode::isAlwaysTrue() const
+{
+    return false;
+}
+
+
+QueryRisk::EmptyPassword NullNode::emptyPassword() const
+{
+    return QueryRisk::PASSWORD_NOT_USED;
+}
+
+
+bool NullNode::resultsInValue() const
+{
+    return false;
+}
+
+
+string NullNode::getValue() const
+{
+    assert(resultsInValue());
+    return "";
+}
+
+
+void NullNode::print(
+    ostream& out,
     const int depth,
     const char indent
 ) const
@@ -61,8 +90,5 @@ void OperatorNode::print(
     {
         out << indent;
     }
-    // I'm only expecting to use this for debugging, so printing out the
-    // token value instead of the operator itself isn't a bad plan
-    out << name_ << ": op(" << operator_ << ")\n";
-    printChildren(out, depth + 1, indent);
+    out << "NULL\n";
 }

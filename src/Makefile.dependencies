@@ -17,23 +17,21 @@
 # along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
 
 AlwaysSomethingNode.o:	AlwaysSomethingNode.cpp AlwaysSomethingNode.hpp \
-	ComparisonNode.hpp sqlParser.h
+	ComparisonNode.hpp QueryRisk.hpp sqlParser.h
 
 AstNode.o:	AstNode.cpp AstNode.hpp nullptr.hpp
 
 AttackProbabilities.o:	AttackProbabilities.cpp AttackProbabilities.hpp
 
+BinaryOperatorNode.o:	BinaryOperatorNode.cpp AstNode.hpp \
+	BinaryOperatorNode.hpp ExpressionNode.hpp Logger.hpp sqlParser.h
+
 BooleanLogicNode.o:	BooleanLogicNode.cpp AstNode.hpp BooleanLogicNode.hpp \
-	Logger.hpp OperatorNode.hpp QueryRisk.hpp sqlParser.h
+	Logger.hpp QueryRisk.hpp sqlParser.h
 
 ComparisonNode.o:	ComparisonNode.cpp ComparisonNode.hpp ExpressionNode.hpp \
 	Logger.hpp MySqlConstants.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
 	nullptr.hpp sqlParser.h
-
-ConditionalListNode.o:	ConditionalListNode.cpp AstNode.hpp \
-	ConditionalListNode.hpp ConditionalNode.hpp Logger.hpp nullptr.hpp
-
-ConditionalNode.o:	ConditionalNode.cpp AstNode.hpp ConditionalNode.hpp
 
 DlibProbabilities.o:	DlibProbabilities.cpp AttackProbabilities.hpp \
 	BayesException.hpp DlibProbabilities.hpp Logger.hpp QueryRisk.hpp \
@@ -41,15 +39,14 @@ DlibProbabilities.o:	DlibProbabilities.cpp AttackProbabilities.hpp \
 	dlib/dlib/graph.h dlib/dlib/graph_utils.h huginParser.tab.hpp \
 	huginScanner.yy.hpp nullptr.hpp
 
-ExpressionNode.o:	ExpressionNode.cpp AstNode.hpp ExpressionNode.hpp \
-	Logger.hpp OperatorNode.hpp nullptr.hpp sqlParser.h
+ExpressionNode.o:	ExpressionNode.cpp AstNode.hpp ExpressionNode.hpp
 
-InSubselectNode.o:	InSubselectNode.cpp InSubselectNode.hpp \
-	InValuesListNode.hpp QueryRisk.hpp
+FunctionNode.o:	FunctionNode.cpp ComparisonNode.hpp FunctionNode.hpp \
+	QueryRisk.hpp sqlParser.h
 
-InValuesListNode.o:	InValuesListNode.cpp ConditionalNode.hpp \
-	ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp nullptr.hpp
+InValuesListNode.o:	InValuesListNode.cpp ExpressionNode.hpp \
+	InValuesListNode.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
+	nullptr.hpp
 
 ListenSocket.o:	ListenSocket.cpp ListenSocket.hpp Logger.hpp \
 	MessageHandler.hpp SocketException.hpp
@@ -98,7 +95,8 @@ MySqlSocket.o:	MySqlSocket.cpp MySqlConstants.hpp MySqlSocket.hpp Socket.hpp
 NegationNode.o:	NegationNode.cpp ExpressionNode.hpp Logger.hpp \
 	MySqlConstants.hpp NegationNode.hpp QueryRisk.hpp nullptr.hpp
 
-OperatorNode.o:	OperatorNode.cpp AstNode.hpp Logger.hpp OperatorNode.hpp
+NullNode.o:	NullNode.cpp ComparisonNode.hpp NullNode.hpp QueryRisk.hpp \
+	sqlParser.h
 
 ParserInterface.o:	ParserInterface.cpp ParserInterface.hpp ScannerContext.hpp \
 	TokenInfo.hpp clearStack.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
@@ -127,6 +125,9 @@ SimpleProxy.o:	SimpleProxy.cpp SimpleProxy.hpp Socket.hpp SocketException.hpp
 
 Socket.o:	Socket.cpp Logger.hpp Socket.hpp SocketException.hpp nullptr.hpp
 
+TerminalNode.o:	TerminalNode.cpp AstNode.hpp ExpressionNode.hpp Logger.hpp \
+	TerminalNode.hpp sqlParser.h
+
 TokenInfo.o:	TokenInfo.cpp TokenInfo.hpp
 
 demo.o:	demo.cpp AttackProbabilities.hpp DlibProbabilities.hpp Logger.hpp \
@@ -150,10 +151,10 @@ queryStatistics.o:	queryStatistics.cpp Logger.hpp ParserInterface.hpp \
 
 riskAnalyzer.o:	riskAnalyzer.cpp AttackProbabilities.hpp \
 	DlibProbabilities.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
-	SensitiveNameChecker.hpp nullptr.hpp
+	ReadlineStream.hpp SensitiveNameChecker.hpp nullptr.hpp
 
-scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ScannerContext.hpp \
-	nullptr.hpp scanner.yy.hpp sqlParser.h
+scanner.o:	scanner.cpp Logger.hpp QueryRisk.hpp ReadlineStream.hpp \
+	ScannerContext.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
 
 sqlassie.o:	sqlassie.cpp Logger.hpp MySqlGuardListenSocket.hpp \
 	MySqlLoginCheck.hpp QueryWhitelist.hpp SensitiveNameChecker.hpp \
@@ -165,15 +166,15 @@ tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp tests/testMySqlConstants.hpp \
 	tests/testNode.hpp tests/testParser.hpp tests/testQueryRisk.hpp \
-	tests/testQueryWhitelist.hpp tests/testScanner.hpp
+	tests/testQueryWhitelist.hpp tests/testScanner.hpp \
+	tests/testSqlassie.hpp
 
 tests/testMySqlConstants.o:	tests/testMySqlConstants.cpp MySqlConstants.hpp \
 	tests/testMySqlConstants.hpp
 
 tests/testNode.o:	tests/testNode.cpp AlwaysSomethingNode.hpp AstNode.hpp \
-	ComparisonNode.hpp ConditionalListNode.hpp ConditionalNode.hpp \
-	ExpressionNode.hpp InValuesListNode.hpp NegationNode.hpp \
-	OperatorNode.hpp sqlParser.h tests/testNode.hpp
+	BinaryOperatorNode.hpp ComparisonNode.hpp InValuesListNode.hpp \
+	NegationNode.hpp TerminalNode.hpp sqlParser.h tests/testNode.hpp
 
 tests/testParser.o:	tests/testParser.cpp ParserInterface.hpp QueryRisk.hpp \
 	tests/testParser.hpp
@@ -186,4 +187,7 @@ tests/testQueryWhitelist.o:	tests/testQueryWhitelist.cpp ParserInterface.hpp \
 
 tests/testScanner.o:	tests/testScanner.cpp QueryRisk.hpp ScannerContext.hpp \
 	nullptr.hpp scanner.yy.hpp sqlParser.h tests/testScanner.hpp
+
+tests/testSqlassie.o:	tests/testSqlassie.cpp DescribedException.hpp \
+	nullptr.hpp tests/testSqlassie.hpp warnUnusedResult.h
 

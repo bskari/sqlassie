@@ -21,13 +21,11 @@
 #include "testNode.hpp"
 #include "../AlwaysSomethingNode.hpp"
 #include "../AstNode.hpp"
+#include "../BinaryOperatorNode.hpp"
 #include "../ComparisonNode.hpp"
-#include "../ConditionalListNode.hpp"
-#include "../ConditionalNode.hpp"
-#include "../ExpressionNode.hpp"
 #include "../InValuesListNode.hpp"
 #include "../NegationNode.hpp"
-#include "../OperatorNode.hpp"
+#include "../TerminalNode.hpp"
 #include "../sqlParser.h"
 
 #include <boost/test/unit_test.hpp>
@@ -49,108 +47,128 @@ void testAlwaysSomethingNode()
     for (unsigned int i = 0; i < sizeof(values) / sizeof(values[0]); ++i)
     {
         const bool value = values[i];
-        AlwaysSomethingNode asn(value, EQ);
+        AlwaysSomethingNode asn(value);
         BOOST_CHECK_EQUAL(value, asn.isAlwaysTrue());
-        BOOST_CHECK_EQUAL(value, asn.anyIsAlwaysTrue());
     }
 }
 
 
 void testComparisonNode()
 {
-    ExpressionNode* enAdd;
-    ExpressionNode* enSubtract;
-    ExpressionNode* enMultiply;
+    BinaryOperatorNode* bonAdd;
+    BinaryOperatorNode* bonSubtract;
+    BinaryOperatorNode* bonMultiply;
 
     ComparisonNode* cn;
     NegationNode* nn;
 
-    cn = new ComparisonNode(EQ);
-    cn->addChild(new ExpressionNode("1", false));
-    cn->addChild(new ExpressionNode("2", false));
+    cn = new ComparisonNode(
+        new TerminalNode("1", INTEGER),
+        EQ,
+        new TerminalNode("2", INTEGER)
+    );
     BOOST_CHECK(!cn->isAlwaysTrue());
     BOOST_CHECK_EQUAL(QueryRisk::PASSWORD_NOT_USED, cn->emptyPassword());
     delete cn;
 
-    cn = new ComparisonNode(NE);
-    cn->addChild(new ExpressionNode("1", false));
-    cn->addChild(new ExpressionNode("2", false));
+    cn = new ComparisonNode(
+        new TerminalNode("1", INTEGER),
+        NE,
+        new TerminalNode("1", INTEGER)
+    );
     BOOST_CHECK(cn->isAlwaysTrue());
     BOOST_CHECK_EQUAL(QueryRisk::PASSWORD_NOT_USED, cn->emptyPassword());
     delete cn;
 
-    // (1 + 2) * 3 == (-4 - 5)
-    enAdd = new ExpressionNode();
-    enAdd->addChild(new ExpressionNode("1", false));
-    enAdd->addChild(new OperatorNode(PLUS));
-    enAdd->addChild(new ExpressionNode("2", false));
-    enMultiply = new ExpressionNode();
-    enMultiply->addChild(enAdd);
-    enMultiply->addChild(new OperatorNode(STAR));
-    enMultiply->addChild(new ExpressionNode("-3", false));
-    enSubtract = new ExpressionNode();
-    enSubtract->addChild(new ExpressionNode("-4", false));
-    enSubtract->addChild(new OperatorNode(MINUS));
-    enSubtract->addChild(new ExpressionNode("5", false));
-    cn = new ComparisonNode(EQ);
-    cn->addChild(enMultiply);
-    cn->addChild(enSubtract);
+    // (1 + 2) * -3 == (-4 - 5)
+    bonAdd = new BinaryOperatorNode(
+        new TerminalNode("1", INTEGER),
+        PLUS,
+        new TerminalNode("2", INTEGER)
+    );
+    bonMultiply = new BinaryOperatorNode(
+        bonAdd,
+        STAR,
+        new TerminalNode("-3", INTEGER)
+    );
+    bonSubtract = new BinaryOperatorNode(
+        new TerminalNode("-4", INTEGER),
+        MINUS,
+        new TerminalNode("5", INTEGER)
+    );
+    cn = new ComparisonNode(
+        bonMultiply,
+        EQ,
+        bonSubtract
+    );
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode(LIKE_KW);
-    cn->addChild(new ExpressionNode("skari", false));
-    cn->addChild(new ExpressionNode("%", false));
+    cn = new ComparisonNode(
+        new TerminalNode("skari", STRING),
+        LIKE_KW,
+        new TerminalNode("%", STRING)
+    );
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode(LIKE_KW);
-    cn->addChild(new ExpressionNode("skari", false));
-    cn->addChild(new ExpressionNode("s%i", false));
+    cn = new ComparisonNode(
+        new TerminalNode("skari", STRING),
+        LIKE_KW,
+        new TerminalNode("s%i", STRING)
+    );
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode(LIKE_KW);
-    cn->addChild(new ExpressionNode("skari", false));
-    cn->addChild(new ExpressionNode("___r_", false));
+    cn = new ComparisonNode(
+        new TerminalNode("skari", STRING),
+        LIKE_KW,
+        new TerminalNode("___r_", STRING)
+    );
     BOOST_CHECK(cn->isAlwaysTrue());
     delete cn;
 
-    cn = new ComparisonNode(LIKE_KW);
-    cn->addChild(new ExpressionNode("skari", false));
-    cn->addChild(new ExpressionNode("___", false));
+    cn = new ComparisonNode(
+        new TerminalNode("skari", STRING),
+        LIKE_KW,
+        new TerminalNode("___", STRING)
+    );
     BOOST_CHECK(!cn->isAlwaysTrue());
     delete cn;
 
-    nn = new NegationNode;
-    cn = new ComparisonNode(LIKE_KW);
-    cn->addChild(new ExpressionNode("brandon", false));
-    cn->addChild(new ExpressionNode("skari", false));
-    nn->addChild(cn);
+    cn = new ComparisonNode(
+        new TerminalNode("brandon", STRING),
+        LIKE_KW,
+        new TerminalNode("skari", STRING)
+    );
+    nn = new NegationNode(cn);
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 
-    nn = new NegationNode;
-    cn = new ComparisonNode(LIKE_KW);
-    cn->addChild(new ExpressionNode("brandon", false));
-    cn->addChild(new ExpressionNode("s%", false));
-    nn->addChild(cn);
+    cn = new ComparisonNode(
+        new TerminalNode("brandon", STRING),
+        LIKE_KW,
+        new TerminalNode("s%", STRING)
+    );
+    nn = new NegationNode(cn);
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 
-    nn = new NegationNode;
-    cn = new ComparisonNode(LIKE_KW);
-    cn->addChild(new ExpressionNode("skari", false));
-    cn->addChild(new ExpressionNode("__b__", false));
-    nn->addChild(cn);
+    cn = new ComparisonNode(
+        new TerminalNode("skari", STRING),
+        LIKE_KW,
+        new TerminalNode("__b__", STRING)
+    );
+    nn = new NegationNode(cn);
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 
-    nn = new NegationNode;
-    cn = new ComparisonNode(LIKE_KW);
-    cn->addChild(new ExpressionNode("skari", false));
-    cn->addChild(new ExpressionNode("______", false));
-    nn->addChild(cn);
+    cn = new ComparisonNode(
+        new TerminalNode("skari", STRING),
+        LIKE_KW,
+        new TerminalNode("______", STRING)
+    );
+    nn = new NegationNode(cn);
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 }

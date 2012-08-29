@@ -31,4 +31,6 @@ void testAllTokensScan();
  */
 void testScanNumbers();
 
+void testScanComments();
+
 #endif  // SRC_TESTS_TESTSCANNER_HPP_

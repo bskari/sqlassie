@@ -21,7 +21,7 @@
 #ifndef SRC_NEGATIONNODE_HPP_
 #define SRC_NEGATIONNODE_HPP_
 
-#include "ConditionalNode.hpp"
+#include "ExpressionNode.hpp"
 #include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
@@ -34,49 +34,63 @@
  * @date January 2 2012
  */
 
-class NegationNode : public ConditionalNode
+class NegationNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
      */
-    NegationNode();
+    explicit NegationNode(const ExpressionNode* const expression);
 
-    virtual ~NegationNode();
+    ~NegationNode();
 
     /**
      * Overridden from AstNode.
      */
-    virtual AstNode* copy() const WARN_UNUSED_RESULT;
+    AstNode* copy() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if the conditionals result in always true or always false.
+     * Overridden from ExpressionNode.
+     */
+    bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the comparison is always true.
      * Overridden from ComparisonNode.
      */
-    virtual bool isAlwaysTrue() const WARN_UNUSED_RESULT;
-
-    /**
-     * Determines if the comparison is always true.
-     * Overridden from ComparisonNode.
-     */
-    virtual bool anyIsAlwaysTrue() const WARN_UNUSED_RESULT;
+    bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
      * Determines if the password is empty.
      */
-    virtual QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
+
+    /**
+     * Determines if there is an empty password.
+     * Overridden from ExpressionNode.
+     */
+    bool resultsInValue() const WARN_UNUSED_RESULT;
+
+    /**
+     * Gets the value of this expression.
+     * Overridden from ExpressionNode.
+     */
+    std::string getValue() const WARN_UNUSED_RESULT;
 
     /**
      * Overridden from AstNode.
      */
-    virtual void print(
+    void print(
         std::ostream& out,
         const int depth,
         const char indent
     ) const;
 
 private:
-    NegationNode(const NegationNode& rhs);
-    NegationNode& operator=(NegationNode& rhs);
+    const ExpressionNode* expression_;
+
+    NegationNode(const NegationNode&);
+    NegationNode& operator=(NegationNode&);
 };
 #endif  // SRC_NEGATIONNODE_HPP_

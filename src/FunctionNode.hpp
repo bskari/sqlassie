@@ -1,6 +1,6 @@
 /*
  * SQLassie - database firewall
- * Copyright (C) 2011 Brandon Skari <brandon.skari@gmail.com>
+ * Copyright (C) 2012 Brandon Skari <brandon.skari@gmail.com>
  *
  * This file is part of SQLassie.
  *
@@ -18,36 +18,32 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SRC_COMPARISONNODE_HPP_
-#define SRC_COMPARISONNODE_HPP_
+/**
+ * Parse tree node that represents a function call.
+ * @author Brandon Skari
+ * @date July 28 2012
+ */
 
+#ifndef SRC_FUNCTIONNODE_HPP_
+#define SRC_FUNCTIONNODE_HPP_
+
+#include "AstNode.hpp"
 #include "ExpressionNode.hpp"
-#include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
 #include <iosfwd>
+#include <string>
 
-/**
- * Parse tree node that represents a comparison between two expressions. The
- * comparisons can be things like equality, greater than, like, or sounds like.
- * @author Brandon Skari
- * @date December 9 2010
- */
 
-class ComparisonNode : public ExpressionNode
+class FunctionNode : public ExpressionNode
 {
 public:
     /**
      * Default constructor.
-     * @param compareType The type of comparison being used.
      */
-    ComparisonNode(
-        const ExpressionNode* const expr1,
-        const int compareType,
-        const ExpressionNode* const expr2
-    );
+    explicit FunctionNode(const std::string& functionName);
 
-    ~ComparisonNode();
+    ~FunctionNode();
 
     /**
      * Overridden from AstNode.
@@ -61,25 +57,24 @@ public:
     bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the comparison is always true.
+     * Determines if the conditionals are always true.
      * Overridden from ExpressionNode.
      */
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the password is empty.
+     * Determines if there is an empty password.
      */
     QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if this node ultimately results in a value.
-     * Overridden from ExpressionNode.
+     * Determines if this expression is reducible to a value, either a string
+     * or a number.
      */
     bool resultsInValue() const WARN_UNUSED_RESULT;
 
     /**
      * Returns the value of this node.
-     * Overridden from ExpressionNode.
      */
     std::string getValue() const WARN_UNUSED_RESULT;
 
@@ -92,13 +87,10 @@ public:
         const char indent
     ) const;
 
-
 private:
-    const ExpressionNode* const expr1_;
-    int compareType_;
-    const ExpressionNode* const expr2_;
+    const std::string functionName_;
 
-    ComparisonNode(const ComparisonNode& rhs);
-    ComparisonNode& operator=(ComparisonNode& rhs);
+    FunctionNode(const FunctionNode&);
+    FunctionNode& operator=(const FunctionNode);
 };
-#endif  // SRC_COMPARISONNODE_HPP_
+#endif  // SRC_FUNCTIONNODE_HPP_

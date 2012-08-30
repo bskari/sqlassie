@@ -31,6 +31,7 @@
     yyscan_t yyscanner \
 )
 
+#include "../Logger.hpp"
 #include "../nullptr.hpp"
 #include "../ParserInterface.hpp"
 #include "../QueryRisk.hpp"
@@ -40,14 +41,14 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
-#include <sys/ipc.h> 
+#include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/timeb.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -76,12 +77,15 @@ static void initializeRandomQueries(const char* filename);
  * Generates a (possibly invalid) random query. Queries will be generated
  * using the Markov chain map.
  */
-static string generateRandomQuery();
+static string generateRandomQuery(unsigned int* randState);
+
+static unsigned int getRandSeed();
 
 typedef int token_t;
 typedef float probability_t;
-// Mapping from a token to tokens that followed it in the sample file, along with a CPD of that
-// token or one of the previous tokens being used. For example:
+// Mapping from a token to tokens that followed it in the sample file, along
+// with a CPD of that token or one of the previous tokens being used.
+// For example:
 // SELECT => {
 //   (STAR, .3),
 //   (INTEGER, .4),
@@ -92,11 +96,13 @@ typedef float probability_t;
 static map<token_t, vector<pair<token_t, probability_t> > > tokenToTokenCpd;
 static map<token_t, string> tokenToString;
 
-const int IPC_SIZE = 4096;
+static const int IPC_SIZE = 4096;
 
 
 int main(int argc, char* argv[])
 {
+    Logger::initialize();
+
     if (argc > 1)
     {
         initializeRandomQueries(argv[1]);
@@ -105,9 +111,10 @@ int main(int argc, char* argv[])
     {
         initializeRandomQueries("../src/tests/queries/wikidb.sql");
     }
-    srand(time(nullptr));
 
-    const key_t key = rand();
+    unsigned int randState = getRandSeed();
+
+    const key_t key = rand_r(&randState);
     const int shmid = shmget(key, IPC_SIZE, IPC_CREAT | 0666);
     if (shmid < 0)
     {
@@ -121,7 +128,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    while (true)
+    for (int i = 0; i < 100; ++i)
     {
         // Run the parser in another process so that we can monitor crashes
         const pid_t pid = fork();
@@ -129,19 +136,24 @@ int main(int argc, char* argv[])
         // Child process
         if (0 == pid)
         {
+            // The child needs to reseed so that it doesn't get the same query
+            // every time
+            randState = getRandSeed();
+
             QueryRisk qr;
             while (true)
             {
-                const string query(generateRandomQuery());
+                const string query(generateRandomQuery(&randState));
 
-                // Use strncat instead of strncpy to avoid the overhead of padding
+                // Use strncat instead of strncpy to avoid overhead of padding
                 // the rest of the string with '\0's
                 sharedMemory[0] = '\0';
                 strncat(sharedMemory, query.c_str(), query.size());
                 sharedMemory[IPC_SIZE - 1] = '\0';
 
                 ParserInterface parser(query);
-                parser.parse(&qr);
+                const bool _ = parser.parse(&qr);
+                if (_) {}  // Silence compiler warning
             }
         }
         // Parent
@@ -176,13 +188,15 @@ void initializeRandomQueries(const char* filename)
         yyscan_t scanner;
         if (0 != sql_lex_init(&scanner))
         {
-            cerr << "Unable to initialize scanner for initializeRandomQueries" << endl;
+            cerr << "Unable to initialize scanner for"
+                " initializeRandomQueries" << endl;
             exit(EXIT_FAILURE);
         }
         YY_BUFFER_STATE bufferState = sql__scan_string(s.c_str(), scanner);
         if (nullptr == bufferState)
         {
-            cerr << "Unable to initialize scanner buffer for initializeRandomQueries" << endl;
+            cerr << "Unable to initialize scanner buffer for"
+                " initializeRandomQueries" << endl;
             exit(EXIT_FAILURE);
         }
 
@@ -268,41 +282,76 @@ void initializeRandomQueries(const char* filename)
 }
 
 
-string generateRandomQuery()
+string generateRandomQuery(unsigned int* randState)
 {
     ostringstream out;
     // All queries begin with SELECT, INSERT, UPDATE, DELETE, SET, SHOW,
     // DESCRIBE, or EXPLAIN.
-    // The wikidb set doesn't use DESCRIBE though.
-    const token_t beginningTokens[] = {
-        //SELECT, INSERT, UPDATE, DELETE, SET, SHOW, DESCRIBE, EXPLAIN
-        SELECT, INSERT, UPDATE, DELETE, SET, SHOW, EXPLAIN
+    const token_t beginTokens[] = {
+        SELECT, INSERT, UPDATE, DELETE, SET, SHOW, DESCRIBE, EXPLAIN
     };
-    token_t token = beginningTokens[
-        rand() % (sizeof(beginningTokens) / sizeof(beginningTokens[0]))
+    token_t token = beginTokens[
+        rand_r(randState) % (sizeof(beginTokens) / sizeof(beginTokens[0]))
     ];
+    const size_t maxToken = tokenToString.rbegin()->first;
 
+    // Always make sure that we start on a token that's used in the input file
     do
+    {
+        // @TODO ideally this should exactly pick from the values in
+        // tokenToString
+        token = rand_r(randState) % (maxToken + 1);
+    }
+    while (tokenToString.end() == tokenToString.find(token));
+
+    // While not end of query
+    while (0 != token)
     {
         out << tokenToString.at(token) << ' ';
 
-        const probability_t tokenProbability =
-            static_cast<probability_t>(rand()) / RAND_MAX;
-        vector<pair<token_t, probability_t> >::const_iterator end(
-            tokenToTokenCpd.at(token).end()
-        );
-        for (
-            vector<pair<token_t, probability_t> >::const_iterator i(
-                tokenToTokenCpd.at(token).begin()
-            );
-            i != end;
-            ++i
-        )
+        // Some of the time, we'll just choose a random token
+        const bool chooseRandomToken =
+            (static_cast<probability_t>(rand_r(randState)) / RAND_MAX) < 0.05;
+
+        if (chooseRandomToken)
         {
-            if (i->second >= tokenProbability)
+            // Always make sure that we choose a token that's used in the
+            // input query file
+            do
             {
-                token = i->first;
-                break;
+                // @TODO ideally this should exactly pick from the values in
+                // tokenToString
+                token = rand_r(randState) % (maxToken + 1);
+            }
+            while (tokenToString.end() == tokenToString.find(token));
+        }
+        else
+        {
+            if (tokenToTokenCpd.end() == tokenToTokenCpd.find(token))
+            {
+                cout << "FUCK" << endl;
+                cout << token << " " << tokenToString.at(token) << endl;
+                cout << "what" << endl;
+            }
+            // Use the Markov chain to choose a value
+            const probability_t tokenProbability =
+                static_cast<probability_t>(rand_r(randState)) / RAND_MAX;
+            vector<pair<token_t, probability_t> >::const_iterator end(
+                tokenToTokenCpd.at(token).end()
+            );
+            for (
+                vector<pair<token_t, probability_t> >::const_iterator i(
+                    tokenToTokenCpd.at(token).begin()
+                );
+                i != end;
+                ++i
+            )
+            {
+                if (i->second >= tokenProbability)
+                {
+                    token = i->first;
+                    break;
+                }
             }
         }
 
@@ -315,7 +364,14 @@ string generateRandomQuery()
             token = tokenToTokenCpd.at(token).back().first;
         }
     }
-    while (0 != token);  // Not end of tokens
 
     return out.str();
+}
+
+
+static unsigned int getRandSeed()
+{
+    timeb timeStruct;
+    ftime(&timeStruct);
+    return (timeStruct.time / 1000) * 1000 + timeStruct.millitm;
 }

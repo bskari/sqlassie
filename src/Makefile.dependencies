@@ -163,6 +163,9 @@ sqlassie.o:	sqlassie.cpp Logger.hpp MySqlGuardListenSocket.hpp \
 tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 	accumulator.hpp nullptr.hpp
 
+tests/fuzzer.o:	tests/fuzzer.cpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
+	ScannerContext.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
+
 tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp tests/testMySqlConstants.hpp \
 	tests/testNode.hpp tests/testParser.hpp tests/testQueryRisk.hpp \

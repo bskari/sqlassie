@@ -549,13 +549,10 @@ distinct(A) ::= DISTINCTROW.    {A;}
 distinct(A) ::= .               {A;}
 
 // MySQL specific select options
-select_opt ::= high_priority_opt straight_join_opt
-          sql_small_result_opt sql_big_result_opt sql_buffer_result_opt
-          sql_cache_opt sql_calc_found_rows_opt .
+select_opt ::= high_priority_opt sql_small_result_opt sql_big_result_opt
+    sql_buffer_result_opt sql_cache_opt sql_calc_found_rows_opt .
 high_priority_opt ::= .
 high_priority_opt ::= HIGH_PRIORITY.
-straight_join_opt ::= .
-straight_join_opt ::= STRAIGHT_JOIN.
 sql_small_result_opt ::= .
 sql_small_result_opt ::= SQL_SMALL_RESULT.
 sql_big_result_opt ::= .
@@ -661,8 +658,9 @@ fullname ::= nm DOT nm(X).
     sc->qrPtr->checkTable(X->scannedString_);
 }
 
-joinop(X) ::= COMMA.            {X;}
-joinop(X) ::= join_opt JOIN_KW. {X;}
+joinop ::= COMMA.               {++sc->qrPtr->joinStatements;}
+joinop ::= join_opt JOIN_KW.    {++sc->qrPtr->joinStatements;}
+joinop ::= STRAIGHT_JOIN.       {++sc->qrPtr->joinStatements;}
 
 join_opt ::= INNER.
 join_opt ::= CROSS.

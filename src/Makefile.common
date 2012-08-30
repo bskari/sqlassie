@@ -63,6 +63,16 @@ $(BINARY_DIR)/demo: $(demoDependencies)
 	$(CXX) $(CXXFLAGS) $(demoDependencies) \
 		-lboost_regex -lboost_thread -lpthread -o $(BINARY_DIR)/demo
 
+fuzzerDependencies = tests/fuzzer.o ParserInterface.o QueryRisk.o \
+	scanner.yy.o ScannerContext.o sqlParser.h sqlParser.o ExpressionNode.o \
+	AstNode.o NegationNode.o InValuesListNode.o BinaryOperatorNode.o \
+	ComparisonNode.o AlwaysSomethingNode.o NullNode.o TerminalNode.o \
+	FunctionNode.o BooleanLogicNode.o Logger.o MySqlConstants.o TokenInfo.o \
+	SensitiveNameChecker.o
+$(BINARY_DIR)/fuzzer: $(fuzzerDependencies)
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(fuzzerDependencies) \
+		-lboost_regex -o $(BINARY_DIR)/fuzzer
+
 loggerDependencies = logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o \
 	ProxyHalf.o ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \
 	MessageHandler.o Logger.o ProxyHalf.hpp

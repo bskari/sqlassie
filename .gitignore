@@ -21,16 +21,7 @@ Makefile
 Makefile.custom
 
 # Binaries
-demo
-logger
-parser
-probabilities
-queryStatistics
-riskAnalyzer
-scanner
-sqlassie
-test
-tunnel
+bin/*
 
 # Flex, Bison, and Lemon output
 huginParser.output

@@ -1054,7 +1054,7 @@ expr ::= expr IS NULL_KW.
         boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     // NULL IS NULL is always true, everything else is false, or safe enough
     // to always be considered false
-    const bool alwaysTrue = (!ex->resultsInValue() && "NULL" != ex->getValue());
+    const bool alwaysTrue = (ex->resultsInValue() && "NULL" != ex->getValue());
     AstNode* const asn = new AlwaysSomethingNode(alwaysTrue);
     asn->addChild(sc->nodes.top());
     sc->nodes.pop();

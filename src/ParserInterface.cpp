@@ -279,7 +279,7 @@ int ParserInterface::getLexValue(TokenInfo* const ti)
             break;
         // Everything else (including regular IDs) just get set normally
         default:
-            ti->scannedString_ = string(sql_get_text(scannerPimpl_->scanner_));;
+            ti->scannedString_ = id;
             break;
     }
     ti->token_ = lexCode;

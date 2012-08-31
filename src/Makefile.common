@@ -26,7 +26,8 @@ BINARIES = $(BINARY_DIR)/logger \
 	$(BINARY_DIR)/probabilities \
 	$(BINARY_DIR)/sqlassie \
 	$(BINARY_DIR)/test \
-	$(BINARY_DIR)/demo
+	$(BINARY_DIR)/demo \
+	$(BINARY_DIR)/fuzzer
 
 LEX = flex
 YACC = yacc

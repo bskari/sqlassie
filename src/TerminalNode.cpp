@@ -107,6 +107,10 @@ bool TerminalNode::isAlwaysTrue() const
         /// @TODO(bskari|2012-07-27) Doing a full conversion here seems
         /// unnecessary when all we care about is if it's 0
         return lexical_cast<int64_t>(value_) != static_cast<int64_t>(0);
+    case FLOAT:
+        /// @TODO(bskari|2012-08-30) Doing a full conversion here seems
+        /// unnecessary when all we care about is if it's 0
+        return lexical_cast<double>(value_) != static_cast<double>(0.0);
     case HEX_NUMBER:
         /// @TODO(bskari|2012-07-27) Convert the hex value to an integer and
         /// see if it's 0

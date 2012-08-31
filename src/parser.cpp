@@ -38,12 +38,16 @@
 #include "ReadlineStream.hpp"
 #include "scanner.yy.hpp"
 #include "SensitiveNameChecker.hpp"
+#include "sqlParser.h"
 #include "TokenInfo.hpp"
 
+#include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <ostream>
 #include <string>
+#include <vector>
 
+using boost::shared_ptr;
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -51,8 +55,15 @@ using std::ifstream;
 using std::istream;
 using std::ostream;
 using std::string;
+using std::vector;
 
 void printParseErrorLocation(const string& query, ostream& out = cout);
+
+string getScannedString(
+    const ScannerContext& sc,
+    yyscan_t scanner,
+    const int lexToken
+);
 
 // Methods from the parser
 extern void* sqlassieParseAlloc(void* (*allocProc)(size_t numBytes));
@@ -145,51 +156,65 @@ void printParseErrorLocation(const string& query, ostream& out)
     yyscan_t scanner = nullptr;
     YY_BUFFER_STATE bufferState = nullptr;
     void* lemonParser = nullptr;
-    TokenInfo ti;
 
-    if (0 != sql_lex_init(&scanner))
+    // Use a do { ... } while (false) loop to handle cleanup without gotos
+    bool success = false;
+    do
     {
-        goto ERROR;
-    }
-
-    bufferState = sql__scan_string(query.c_str(), scanner);
-    if (nullptr == bufferState)
-    {
-        goto ERROR;
-    }
-
-    lemonParser = sqlassieParseAlloc(malloc);
-    if (nullptr == lemonParser)
-    {
-        goto ERROR;
-    }
-
-    // Keep parsing until we hit an error
-    while (qr.valid)
-    {
-        const int lexToken = sql_lex(&sc, scanner);
-        if (qr.valid)
+        if (0 != sql_lex_init(&scanner))
         {
-            sqlassieParse(lemonParser, lexToken, &ti, &sc);
+            break;
         }
-    }
 
-    if (!qr.valid)
-    {
-        int lexToken;
-        // We hit an error, so print the reamining tokens
-        do
+        bufferState = sql__scan_string(query.c_str(), scanner);
+        if (nullptr == bufferState)
         {
-            out << sql_get_text(scanner) << ' ';
-            lexToken = sql_lex(&sc, scanner);
+            break;
         }
-        while (0 != lexToken);
-    }
-    goto CLEANUP;
 
-ERROR:
-    cout << " (unknown)";
-CLEANUP:
+        lemonParser = sqlassieParseAlloc(malloc);
+        if (nullptr == lemonParser)
+        {
+            break;
+        }
+
+        vector<shared_ptr<TokenInfo> > tokenInfos;
+        // Keep parsing until we hit an error
+        while (qr.valid)
+        {
+            const int lexToken = sql_lex(&sc, scanner);
+            shared_ptr<TokenInfo> ti(new TokenInfo);
+            ti->token_ = lexToken;
+            ti->scannedString_ = getScannedString(sc, scanner, lexToken);
+            // Save the TokenInfo so that it can be used by the parser
+            tokenInfos.push_back(ti);
+
+            if (qr.valid)
+            {
+                sqlassieParse(lemonParser, lexToken, ti.get(), &sc);
+            }
+        }
+
+        if (!qr.valid)
+        {
+            int lexToken;
+            // We hit an error, so print the reamining tokens
+            do
+            {
+                out << sql_get_text(scanner) << ' ';
+                lexToken = sql_lex(&sc, scanner);
+            }
+            while (0 != lexToken);
+        }
+        success = true;
+    }
+    while (false);
+
+    if (!success)
+    {
+        cout << " (unknown)";
+    }
+
     if (nullptr != lemonParser)
     {
         sqlassieParseFree(lemonParser, free);
@@ -202,4 +227,36 @@ CLEANUP:
     {
         sql_lex_destroy(scanner);
     }
+}
+
+
+string getScannedString(
+    const ScannerContext& sc,
+    yyscan_t scanner,
+    const int lexToken
+)
+{
+    string id(sql_get_text(scanner));
+    switch (lexToken)
+    {
+        // ID can be a quoted string, which we trim
+        case ID:
+            if ('`' == id.at(0))
+            {
+                return id.substr(1, id.length() - 2);
+            }
+            else
+            {
+                return id;
+            }
+            break;
+        // Quoted strings are scanned in pieces, so the actual string needs to
+        // assembled in pieces and saved in scannerContext_.quotedString.
+        case STRING:
+            return sc.quotedString;
+        // Everything else (including regular IDs) just get set normally
+        default:
+            return id;
+    }
+    return id;  // Silence compiler warning
 }

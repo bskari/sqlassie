@@ -142,7 +142,7 @@ logger.o:	logger.cpp Logger.hpp MySqlLoggerListenSocket.hpp
 
 parser.o:	parser.cpp AstNode.hpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
 	ReadlineStream.hpp SensitiveNameChecker.hpp TokenInfo.hpp \
-	nullptr.hpp scanner.yy.hpp
+	nullptr.hpp scanner.yy.hpp sqlParser.h
 
 probabilities.o:	probabilities.cpp csvParse.hpp
 

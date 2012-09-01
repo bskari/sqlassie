@@ -1010,13 +1010,40 @@ void testQueryRiskJoinStatements()
 
 void testQueryRiskCrossJoinStatements()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN user_email ue ON ue.user_id = u.id"
+    );
+    BOOST_CHECK(0 == qr.crossJoinStatements);
+
+    qr = parseQuery("SELECT * FROM user u CROSS JOIN user_email ue");
+    BOOST_CHECK(1 == qr.crossJoinStatements);
+
+    // Joins that are always true are effectively identical to CROSS JOINs
+    qr = parseQuery("SELECT * FROM user u JOIN user_email ue");
+    BOOST_CHECK(1 == qr.crossJoinStatements);
+
+    qr = parseQuery("SELECT * FROM user u JOIN user_email ue ON 1 = 1");
+    BOOST_CHECK(1 == qr.crossJoinStatements);
+
+    qr = parseQuery("SELECT * FROM user u JOIN user_email ue ON 3 = 1 + 2");
+    BOOST_CHECK(1 == qr.crossJoinStatements);
 }
 
 
 void testQueryRiskRegexLength()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM user WHERE name = '_'");
+    BOOST_CHECK(0 == qr.regexLength);
+
+    qr = parseQuery("SELECT * FROM user WHERE name LIKE '_'");
+    BOOST_CHECK(1 == qr.regexLength);
+
+    qr = parseQuery("SELECT * FROM user WHERE name LIKE '123456789'");
+    BOOST_CHECK(9 == qr.regexLength);
 }
 
 

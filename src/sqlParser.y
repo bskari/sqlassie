@@ -165,6 +165,13 @@ static void addComparisonNode(
     }
 }
 
+// I don't want to incur the overhead of including <algorithm>
+template <typename T>
+T max(const T& t1, const T& t2)
+{
+    return ((t1 > t2) ? t1 : t2);
+}
+
 } // end %include
 
 %syntax_error {
@@ -302,15 +309,15 @@ string(A) ::= STRING(X).    {A = X;}
 // as can be found after the column name in a CREATE TABLE statement.
 // Multiple tokens are concatenated to form the value of the typetoken.
 //
-typetoken(A) ::= typename(X).   {A;X;}
-typetoken(A) ::= typename(X) LP signed RP(Y). {A;X;Y;}
-typetoken(A) ::= typename(X) LP signed COMMA signed RP(Y). {A;X;Y;}
-typename(A) ::= ids(X).             {A;X;}
-typename(A) ::= typename(X) ids(Y). {A;X;Y;}
-plus_num(A) ::= number(X).          {A;X;}
-minus_num(A) ::= MINUS number(X).   {A;X;}
-number(A) ::= INTEGER|FLOAT.        {A;}
-number(A) ::= HEX_NUMBER.           {A;}
+typetoken ::= typename.
+typetoken ::= typename LP signed RP.
+typetoken ::= typename LP signed COMMA signed RP.
+typename ::= ids.
+typename ::= typename ids.
+plus_num ::= number.
+minus_num ::= MINUS number.
+number ::= INTEGER|FLOAT.
+number ::= HEX_NUMBER.
 signed ::= plus_num.
 signed ::= minus_num.
 
@@ -519,10 +526,10 @@ cmd ::= UNLOCK TABLES lock_tables_list.
 //////////////////////// The SELECT statement /////////////////////////////////
 //
 cmd ::= select_statement.   {sc->qrPtr->queryType = QueryRisk::TYPE_SELECT;}
-select_statement ::= select_opt select(X) outfile_opt lock_read_opt.   {X;}
+select_statement ::= select_opt select outfile_opt lock_read_opt.
 
-select(A) ::= oneselect(X).                  {A;X;}
-select(A) ::= select(X) multiselect_op(Y) oneselect(Z).  {A;X;Y;Z;}
+select ::= oneselect.
+select ::= select multiselect_op oneselect.
 multiselect_op ::= UNION.       {++sc->qrPtr->unionStatements;}
 multiselect_op ::= UNION ALL.
 {
@@ -543,10 +550,10 @@ oneselect ::= SELECT distinct selcollist from where_opt
 // The "distinct" nonterminal is true (1) if the DISTINCT keyword is
 // present and false (0) if it is not.
 //
-distinct(A) ::= DISTINCT.       {A;}
-distinct(A) ::= ALL.            {A;}
-distinct(A) ::= DISTINCTROW.    {A;}
-distinct(A) ::= .               {A;}
+distinct ::= DISTINCT.
+distinct ::= ALL.
+distinct ::= DISTINCTROW.
+distinct ::= .
 
 // MySQL specific select options
 select_opt ::= high_priority_opt sql_small_result_opt sql_big_result_opt
@@ -579,11 +586,11 @@ lock_read_opt ::= LOCK IN SHARE MODE.
 // "SELECT * FROM ..." is encoded as a special expression with an
 // opcode of TK_ALL.
 //
-sclp(A) ::= selcollist(X) COMMA.             {A;X;}
-sclp(A) ::= .                                {A;}
-selcollist(A) ::= sclp(P) expr(X) as(Y).     {A;X;Y;P;}
-selcollist(A) ::= sclp(P) STAR. {A;P;}
-selcollist(A) ::= sclp(P) nm(X) DOT STAR(Y) as. {A;X;Y;P;}
+sclp ::= selcollist COMMA.
+sclp ::= .
+selcollist ::= sclp expr as.
+selcollist ::= sclp STAR.
+selcollist ::= sclp nm DOT STAR as.
 
 // An option "AS <id>" phrase that can follow one of the expressions that
 // define the result set, or one of the tables in the FROM clause.
@@ -598,8 +605,8 @@ as ::= .
 
 // A complete FROM clause.
 //
-from(A) ::= .                {A;}
-from(A) ::= FROM seltablist(X). {A;X;}
+from ::= .
+from ::= FROM seltablist.
 
 // MySQL match statement
 //
@@ -613,14 +620,13 @@ againstmodifier_opt ::= WITH QUERY EXPANSION.
 // "seltablist" is a "Select Table List" - the content of the FROM clause
 // in a SELECT statement.  "stl_prefix" is a prefix of this list.
 //
-stl_prefix(A) ::= seltablist(X) joinop(Y).    {A;X;Y;}
-stl_prefix(A) ::= .                           {A;}
+stl_prefix ::= seltablist joinop.
+stl_prefix ::= .
 seltablist ::= stl_prefix table_name dbnm
                 as index_hint_list_opt on_opt using_opt.
-seltablist(A) ::= stl_prefix(X) LP select(S) RP
-                as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;S;Z;N;U;}
-seltablist(A) ::= stl_prefix(X) LP seltablist(F) RP
-                as(Z) index_hint_list_opt on_opt(N) using_opt(U). {A;X;F;Z;N;U;}
+seltablist ::= stl_prefix LP select RP as index_hint_list_opt on_opt using_opt.
+seltablist ::= stl_prefix LP seltablist RP
+                as index_hint_list_opt on_opt using_opt.
 
 // A seltablist_paren nonterminal represents anything in a FROM that
 // is contained inside parentheses.  This can be either a subquery or
@@ -663,6 +669,9 @@ joinop ::= join_opt JOIN_KW.    {++sc->qrPtr->joinStatements;}
 joinop ::= STRAIGHT_JOIN.       {++sc->qrPtr->joinStatements;}
 
 join_opt ::= INNER.
+// CROSS JOIN statements normally don't have an ON statement, and other JOIN
+// statements that don't have ON statements behave like (and are counted as)
+// CROSS JOINs, so we don't need to count them here.
 join_opt ::= CROSS.
 join_opt ::= natural_opt left_right_opt outer_opt.
 left_right_opt ::= .
@@ -673,8 +682,41 @@ natural_opt ::= NATURAL.
 outer_opt ::= .
 outer_opt ::= OUTER.
 
-on_opt(N) ::= ON expr(E).   {N;E;}
-on_opt(N) ::= .             {N;}
+on_opt ::= ON expr.
+{
+    // ON expressions are only valid after a JOIN has been seen
+    if (0 == sc->qrPtr->joinStatements)
+    {
+        sc->qrPtr->valid = false;
+    }
+    // Because the parser allows ON statements in the first SELECT, we only
+    // want to increment crossJoinStatements if there has been a JOIN. For
+    // example, "SELECT * FROM user" shouldn't count as a CROSS JOIN.
+    else
+    {
+        // Any join with an always true conditional is equivalent to a CROSS JOIN,
+        // modulo the JOIN type's behavior when dealing with NULL values.
+        ExpressionNode* const expr =
+            boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
+        sc->nodes.pop();
+        if (expr->isAlwaysTrue())
+        {
+            ++sc->qrPtr->crossJoinStatements;
+        }
+    }
+}
+on_opt ::= .
+{
+    // Any join with an always true conditional is equivalent to a CROSS JOIN,
+    // modulo the JOIN type's behavior when dealing with NULL values.
+    // Because the parser allows ON statements in the first SELECT, we only
+    // want to increment crossJoinStatements if there has been a JOIN. For
+    // example, "SELECT * FROM user" shouldn't count as a CROSS JOIN.
+    if (sc->qrPtr->joinStatements > 0)
+    {
+        ++sc->qrPtr->crossJoinStatements;
+    }
+}
 
 // MySQL specific indexing hints
 index_hint_list_opt ::= .
@@ -694,19 +736,19 @@ index_hint_for_opt ::= FOR GROUP BY.
 index_list ::= nm .
 index_list ::= nm COMMA index_list .
 
-using_opt(U) ::= USING LP inscollist(L) RP.  {U;L;}
-using_opt(U) ::= .                        {U;}
+using_opt ::= USING LP inscollist RP.
+using_opt ::= .
 
-orderby_opt(A) ::= .                          {A;}
-orderby_opt(A) ::= ORDER BY sortlist(X).      {A;X;}
-sortlist(A) ::= sortlist(X) COMMA expr(Y) sortorder(Z). {A;X;Y;Z;}
-sortlist(A) ::= expr(Y) sortorder(Z). {A;Y;Z;}
+orderby_opt ::= .
+orderby_opt ::= ORDER BY sortlist.
+sortlist ::= sortlist COMMA expr sortorder.
+sortlist ::= expr sortorder.
 
-sortorder(A) ::= ASC.           {A;}
-sortorder(A) ::= DESC.          {A;}
-sortorder(A) ::= .              {A;}
+sortorder ::= ASC.
+sortorder ::= DESC.
+sortorder ::= .
 
-groupby_opt(A) ::= .                      {A;}
+groupby_opt ::= .
 groupby_opt ::= GROUP BY nexprlist.
 {
     std::stack<ExpressionNode*>& s = expressionLists.top();
@@ -719,8 +761,8 @@ groupby_opt ::= GROUP BY nexprlist.
 }
 
 
-having_opt(A) ::= .                {A;}
-having_opt(A) ::= HAVING expr(X).  {A;X;}
+having_opt ::= .
+having_opt ::= HAVING expr.
 
 // The destructor for limit_opt will never fire in the current grammar.
 // The limit_opt non-terminal only occurs at the end of a single production
@@ -733,10 +775,10 @@ having_opt(A) ::= HAVING expr(X).  {A;X;}
 //  sqlite3ExprDelete(pParse->db, $$.pLimit);
 //  sqlite3ExprDelete(pParse->db, $$.pOffset);
 //}
-limit_opt(A) ::= .                    {A;}
-limit_opt(A) ::= LIMIT expr(X).       {A;X;}
-limit_opt(A) ::= LIMIT expr(X) OFFSET expr(Y). {A;X;Y;}
-limit_opt(A) ::= LIMIT expr(X) COMMA expr(Y). {A;X;Y;}
+limit_opt ::= .
+limit_opt ::= LIMIT expr.
+limit_opt ::= LIMIT expr OFFSET expr.
+limit_opt ::= LIMIT expr COMMA expr.
 
 // Subselects have some different semantics.
 // 1) We care about the risks in them, because attackers can use them to
@@ -785,12 +827,12 @@ where_opt ::= WHERE expr.
 
 ////////////////////////// The UPDATE command ////////////////////////////////
 //
-cmd ::= UPDATE update_opt fullname(X) SET setlist(Y)
-    where_opt(W) orderby_opt(O) limit_opt(L).
-    {X;Y;W;O;L; sc->qrPtr->queryType = QueryRisk::TYPE_UPDATE;}
+cmd ::= UPDATE update_opt fullname SET setlist
+    where_opt orderby_opt limit_opt.
+    {sc->qrPtr->queryType = QueryRisk::TYPE_UPDATE;}
 
-setlist(A) ::= setlist(Z) COMMA nm(X) EQ expr(Y). {A;X;Y;Z;}
-setlist(A) ::= nm(X) EQ expr(Y). {A;X;Y;}
+setlist ::= setlist COMMA nm EQ expr.
+setlist ::= nm EQ expr.
 
 update_opt ::= .
 update_opt ::= LOW_PRIORITY.
@@ -818,8 +860,8 @@ insert_priority_opt ::= LOW_PRIORITY.
 insert_priority_opt ::= DELAYED.
 insert_priority_opt ::= HIGH_PRIORITY.
 
-insert_cmd(A) ::= INSERT.   {A;}
-insert_cmd(A) ::= REPLACE.  {A;}
+insert_cmd ::= INSERT.
+insert_cmd ::= REPLACE.
 
 // A ValueList is either a single VALUES clause or a comma-separated list
 // of VALUES clauses.  If it is a single VALUES clause then the
@@ -854,10 +896,10 @@ valuelist ::= valuelist COMMA LP exprlist RP.
     expressionLists.pop();
 }
 
-inscollist_opt(A) ::= .                      {A;}
-inscollist_opt(A) ::= LP inscollist(X) RP.   {A;X;}
-inscollist(A) ::= inscollist(X) COMMA nm(Y). {A;X;Y;}
-inscollist(A) ::= nm(Y). {A;Y;}
+inscollist_opt ::= .
+inscollist_opt ::= LP inscollist RP.
+inscollist ::= inscollist COMMA nm.
+inscollist ::= nm.
 
 /////////////////////////// Expression Processing /////////////////////////////
 //
@@ -1038,10 +1080,30 @@ like_op(A) ::= SOUNDS(OP) LIKE_KW.
 
 expr ::= expr like_op(B) expr. [LIKE_KW]
 {
+    const ExpressionNode* const e =
+        boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
+    if (e->resultsInString())
+    {
+        sc->qrPtr->regexLength = max(
+            sc->qrPtr->regexLength,
+            e->getValue().length()
+        );
+    }
+
     addComparisonNode(sc, B.tokenType, B.negation);
 }
 expr ::= expr like_op(B) expr ESCAPE expr. [LIKE_KW]
 {
+    const ExpressionNode* const e =
+        boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
+    if (e->resultsInString())
+    {
+        sc->qrPtr->regexLength = max(
+            sc->qrPtr->regexLength,
+            e->getValue().length()
+        );
+    }
+
     addComparisonNode(sc, B.tokenType, B.negation);
     /// @TODO(bskari|2012-07-04) Do I need to do anything with the last expr?
     delete sc->nodes.top();
@@ -1164,8 +1226,8 @@ expr ::= expr in_op(N) LP exprlist RP. [IN]
         sc->nodes.push(inValuesListNode);
     }
 }
-expr ::= expr(X) in_op(N) LP subselect(Y) RP. [IN]      {X;Y;N;}
-expr ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN]        {X;Y;N;Z;}
+expr ::= expr in_op LP subselect RP.
+expr ::= expr in_op nm dbnm. [IN]
 //// MySQL ANY/SOME operators: = > < >= <= <> !=
 //anyOrSome(A) ::= ANY|SOME.
 //expr(A) ::= expr(X) EQ|NE(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN]
@@ -1173,12 +1235,12 @@ expr ::= expr(X) in_op(N) nm(Y) dbnm(Z). [IN]        {X;Y;N;Z;}
 
 /* CASE expressions */
 expr ::= CASE case_operand case_exprlist case_else END.
-case_exprlist(A) ::= case_exprlist(X) WHEN expr(Y) THEN expr(Z). {A;X;Y;Z;}
-case_exprlist(A) ::= WHEN expr(Y) THEN expr(Z). {A;Y;Z;}
-case_else(A) ::=  ELSE expr(X).         {A;X;}
-case_else(A) ::=  .                     {A;}
-case_operand(A) ::= expr(X).            {A;X;}
-case_operand(A) ::= .                   {A;}
+case_exprlist ::= case_exprlist WHEN expr THEN expr.
+case_exprlist ::= WHEN expr THEN expr.
+case_else ::=  ELSE expr.
+case_else ::=  .
+case_operand ::= expr.
+case_operand ::= .
 
 exprlist ::= nexprlist.
 exprlist ::= .
@@ -1205,4 +1267,4 @@ nexprlist ::= expr.
     sc->nodes.pop();
 }
 
-expr(A) ::= mysql_match.    {A;}
+expr ::= mysql_match.

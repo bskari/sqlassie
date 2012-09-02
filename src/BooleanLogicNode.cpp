@@ -47,6 +47,8 @@ BooleanLogicNode::BooleanLogicNode(
 
 BooleanLogicNode::~BooleanLogicNode()
 {
+    delete expr1_;
+    delete expr2_;
 }
 
 

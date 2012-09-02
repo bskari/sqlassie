@@ -51,6 +51,8 @@ BinaryOperatorNode::BinaryOperatorNode(
 
 BinaryOperatorNode::~BinaryOperatorNode()
 {
+    delete expr1_;
+    delete expr2_;
 }
 
 

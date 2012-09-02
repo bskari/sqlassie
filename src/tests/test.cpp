@@ -110,6 +110,8 @@ test::test_suite* init_unit_test_suite(int, char*[])
         FD(testAstNode),
         FD(testAlwaysSomethingNode),
         FD(testComparisonNode),
+        FD(testNegationNode),
+        FD(testInValuesListNode),
         // Tests from testMySqlConstants.cpp
         FD(testSoundex),
         FD(testConvertRegex),

@@ -172,3 +172,116 @@ void testComparisonNode()
     BOOST_CHECK(nn->isAlwaysTrue());
     delete nn;
 }
+
+
+void testNegationNode()
+{
+    NegationNode* nn;
+
+    nn = new NegationNode(new AlwaysSomethingNode(true));
+    BOOST_CHECK(nn->isAlwaysTrueOrFalse());
+    BOOST_CHECK(!nn->isAlwaysTrue());
+    BOOST_CHECK(nn->isAlwaysFalse());
+    delete nn;
+
+    nn = new NegationNode(new NegationNode(new AlwaysSomethingNode(true)));
+    BOOST_CHECK(nn->isAlwaysTrueOrFalse());
+    BOOST_CHECK(nn->isAlwaysTrue());
+    BOOST_CHECK(!nn->isAlwaysFalse());
+    delete nn;
+
+    // Identifier comparisons should neither be always true or always false
+    nn = new NegationNode(
+        new ComparisonNode(
+            new TerminalNode("x", ID),
+            EQ,
+            new TerminalNode("5", INTEGER)
+        )
+    );
+    BOOST_CHECK(!nn->isAlwaysTrueOrFalse());
+    BOOST_CHECK(!nn->isAlwaysTrue());
+    BOOST_CHECK(!nn->isAlwaysFalse());
+    delete nn;
+}
+
+
+void testInValuesListNode()
+{
+    InValuesListNode* ivln;
+
+    // 1 IN ()
+    ivln = new InValuesListNode(new TerminalNode("1", INTEGER));
+    BOOST_CHECK(ivln->resultsInValue());
+    BOOST_CHECK(ivln->isAlwaysTrueOrFalse());
+    BOOST_CHECK(!ivln->isAlwaysTrue());
+    BOOST_CHECK(ivln->isAlwaysFalse());
+    delete ivln;
+
+    // 1 IN (1)
+    ivln = new InValuesListNode(new TerminalNode("1", INTEGER));
+    ivln->addChild(new TerminalNode("1", INTEGER));
+    BOOST_CHECK(ivln->resultsInValue());
+    BOOST_CHECK(ivln->isAlwaysTrueOrFalse());
+    BOOST_CHECK(ivln->isAlwaysTrue());
+    BOOST_CHECK(!ivln->isAlwaysFalse());
+    delete ivln;
+
+    // 1 IN (0, 2, 3)
+    ivln = new InValuesListNode(new TerminalNode("1", INTEGER));
+    ivln->addChild(new TerminalNode("0", INTEGER));
+    ivln->addChild(new TerminalNode("2", INTEGER));
+    ivln->addChild(new TerminalNode("3", INTEGER));
+    BOOST_CHECK(ivln->resultsInValue());
+    BOOST_CHECK(ivln->isAlwaysTrueOrFalse());
+    BOOST_CHECK(!ivln->isAlwaysTrue());
+    BOOST_CHECK(ivln->isAlwaysFalse());
+    delete ivln;
+
+    // 1 IN (2 - 1)
+    ivln = new InValuesListNode(new TerminalNode("1", INTEGER));
+    ivln->addChild(
+        new BinaryOperatorNode(
+            new TerminalNode("2", INTEGER),
+            MINUS,
+            new TerminalNode("1", INTEGER)
+        )
+    );
+    BOOST_CHECK(ivln->resultsInValue());
+    BOOST_CHECK(ivln->isAlwaysTrueOrFalse());
+    BOOST_CHECK(ivln->isAlwaysTrue());
+    BOOST_CHECK(!ivln->isAlwaysFalse());
+    delete ivln;
+
+    // 1 IN (0, 2, 2 - 1)
+    ivln = new InValuesListNode(new TerminalNode("1", INTEGER));
+    ivln->addChild(new TerminalNode("0", INTEGER));
+    ivln->addChild(new TerminalNode("2", INTEGER));
+    ivln->addChild(
+        new BinaryOperatorNode(
+            new TerminalNode("2", INTEGER),
+            MINUS,
+            new TerminalNode("1", INTEGER)
+        )
+    );
+    BOOST_CHECK(ivln->resultsInValue());
+    BOOST_CHECK(ivln->isAlwaysTrueOrFalse());
+    BOOST_CHECK(ivln->isAlwaysTrue());
+    BOOST_CHECK(!ivln->isAlwaysFalse());
+    delete ivln;
+
+    // 1 IN (age, 1)
+    ivln = new InValuesListNode(new TerminalNode("1", INTEGER));
+    ivln->addChild(new TerminalNode("age", ID));
+    ivln->addChild(
+        new BinaryOperatorNode(
+            new TerminalNode("2", INTEGER),
+            MINUS,
+            new TerminalNode("1", INTEGER)
+        )
+    );
+    BOOST_CHECK(ivln->resultsInValue());
+    BOOST_CHECK(ivln->isAlwaysTrueOrFalse());
+    BOOST_CHECK(ivln->isAlwaysTrue());
+    BOOST_CHECK(!ivln->isAlwaysFalse());
+    delete ivln;
+}

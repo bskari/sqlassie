@@ -23,5 +23,7 @@
 void testAstNode();
 void testAlwaysSomethingNode();
 void testComparisonNode();
+void testNegationNode();
+void testInValuesListNode();
 
 #endif  // SRC_TESTS_TESTNODE_HPP_

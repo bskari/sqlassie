@@ -28,7 +28,6 @@ ReadlineSource::ReadlineSource(const ReadlineSource& rhs)
 
 ReadlineSource::~ReadlineSource()
 {
-    free(input_);
 }
 
 
@@ -44,6 +43,7 @@ std::streamsize ReadlineSource::read(char_type* s, const std::streamsize n)
     // Need to prompt the user for more input
     if (nullptr == input_ || '\0' == *currentInput_)
     {
+        free(input_);
         input_ = readline(prompt_.c_str());
         if (nullptr == input_)
         {
@@ -63,6 +63,5 @@ std::streamsize ReadlineSource::read(char_type* s, const std::streamsize n)
         ++currentInput_;
         ++copyCount;
     }
-
     return copyCount;
 }

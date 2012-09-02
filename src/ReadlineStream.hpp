@@ -29,13 +29,10 @@
 #define SRC_READLINESTREAM_HPP_
 
 #include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/categories.hpp>
-#include <readline/readline.h>
 #include <string>
 
-#include <iostream>
-
 #include "nullptr.hpp"
+
 
 class ReadlineSource
 {

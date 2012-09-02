@@ -91,7 +91,7 @@ test::test_suite* init_unit_test_suite(int, char*[])
         FD(testQueryRiskFingerprintingStatements),
         FD(testQueryRiskMySqlStringConcat),
         FD(testQueryRiskStringManipulationStatements),
-        FD(testQueryRiskAlwaysTrueConditional),
+        FD(testQueryRiskAlwaysTrueConditionals),
         FD(testQueryRiskCommentedConditionals),
         FD(testQueryRiskCommentedQuotes),
         FD(testQueryRiskGlobalVariables),

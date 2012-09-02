@@ -187,7 +187,7 @@ double DlibProbabilities::getProbabilityOfAccessAttack(const QueryRisk& qr)
         ? qr.stringManipulationStatements : 4;
     states[HexStrings] = qr.hexStrings ? 0 : 1;
     states[OrAlwaysTrue] =
-        (qr.orStatements && qr.alwaysTrue && qr.alwaysTrueConditional) ? 0 : 1;
+        (qr.orStatements && qr.alwaysTrue && (qr.alwaysTrueConditionals > 0)) ? 0 : 1;
     states[CommentedConditionals] = qr.commentedConditionals ? 0 : 1;
     states[StringStmts] = (qr.userStatements || qr.fingerprintingStatements
         || qr.globalVariables) ? 0 : 1;
@@ -195,7 +195,7 @@ double DlibProbabilities::getProbabilityOfAccessAttack(const QueryRisk& qr)
     states[UnionStmts] = qr.unionStatements ? 0 : 1;
     states[BenchmarkStmts] = qr.benchmarkStatements ? 0 : 1;
     states[CommentedQuotes] = qr.commentedQuotes ? 0 : 1;
-    states[AlwaysTrueConditional] = qr.alwaysTrueConditional ? 0 : 1;
+    states[AlwaysTrueConditional] = (qr.alwaysTrueConditionals > 0) ? 0 : 1;
     states[SensitiveTables] = qr.sensitiveTables ? 0 : 1;
     states[UnionAllStmts] = qr.unionAllStatements ? 0 : 1;
     states[OrStmts] = qr.orStatements ? 0 : 1;
@@ -267,7 +267,7 @@ double DlibProbabilities::getProbabilityOfBypassAttack(const QueryRisk& qr)
     int states[static_cast<int>(CommentedConditionals) + 1];
 
     states[OrAlwaysTrue] =
-        (qr.alwaysTrue && qr.orStatements && qr.alwaysTrueConditional);
+        (qr.alwaysTrue && qr.orStatements && (qr.alwaysTrueConditionals > 0));
     states[HexStrings] = qr.hexStrings ? 0 : 1;
     states[BruteForce] = qr.bruteForceCommands ? 0 : 1;
     states[CommentedQuotes] = qr.commentedQuotes ? 0 : 1;
@@ -275,7 +275,7 @@ double DlibProbabilities::getProbabilityOfBypassAttack(const QueryRisk& qr)
         || qr.globalVariables) ? 0 : 1;
     states[GlobalVariables] = qr.globalVariables ? 0 : 1;
     states[UnionStmts] = (qr.unionStatements || qr.unionAllStatements) ? 0 : 1;
-    states[AlwaysTrueConditional] = qr.alwaysTrueConditional ? 0 : 1;
+    states[AlwaysTrueConditional] = (qr.alwaysTrueConditionals > 0) ? 0 : 1;
     states[OrStmts] = qr.orStatements ? 0 : 1;
     states[StringManipulation] = (qr.stringManipulationStatements <= 3)
         ? qr.stringManipulationStatements : 4;
@@ -504,13 +504,13 @@ double DlibProbabilities::getProbabilityOfFingerprintingAttack(
     states[UnionStmts] = (qr.unionStatements || qr.unionAllStatements) ? 0 : 1;
     states[MySqlVersionComments] = qr.mySqlVersionedComments ? 0 : 1;
     states[UserStmts] = qr.userStatements ? 0 : 1;
-    states[AlwaysTrueConditional] = qr.alwaysTrueConditional ? 0 : 1;
+    states[AlwaysTrueConditional] = (qr.alwaysTrueConditionals > 0) ? 0 : 1;
     states[BenchmarkStmts] = qr.benchmarkStatements ? 0 : 1;
     states[StringStmts] =
         (qr.userStatements || qr.fingerprintingStatements
             || qr.globalVariables) ? 0 : 1;
     states[OrAlwaysTrue] =
-        (qr.alwaysTrue && qr.orStatements && qr.alwaysTrueConditional) ? 0 : 1;
+        (qr.alwaysTrue && qr.orStatements && (qr.alwaysTrueConditionals > 0)) ? 0 : 1;
 
     const int evidenceNodeNumbers[] = {
         MySqlComments,
@@ -604,8 +604,8 @@ double DlibProbabilities::getProbabilityOfSchemaAttack(const QueryRisk& qr)
     states[CommentedConditionals] = qr.commentedConditionals ? 0 : 1;
     states[BenchmarkStmts] = qr.benchmarkStatements ? 0 : 1;
     states[OrAlwaysTrue] =
-        (qr.alwaysTrue && qr.orStatements && qr.alwaysTrueConditional ? 0 : 1);
-    states[AlwaysTrueConditional] = qr.alwaysTrueConditional ? 0 : 1;
+        (qr.alwaysTrue && qr.orStatements && (qr.alwaysTrueConditionals > 0) ? 0 : 1);
+    states[AlwaysTrueConditional] = (qr.alwaysTrueConditionals > 0) ? 0 : 1;
     states[StringManipulation] = (
         qr.stringManipulationStatements <= 3
         ? qr.stringManipulationStatements

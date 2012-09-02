@@ -152,16 +152,21 @@ static void addComparisonNode(
         boost::polymorphic_downcast<ExpressionNode*>(sc->nodes.top());
     sc->nodes.pop();
 
-    ExpressionNode* const e = new ComparisonNode(expr1, comparisonType, expr2);
+    ComparisonNode* const c = new ComparisonNode(expr1, comparisonType, expr2);
+
+    if (c->isAlwaysTrue())
+    {
+        ++sc->qrPtr->alwaysTrueConditionals;
+    }
 
     if (negation)
     {
-        AstNode* const negationNode = new NegationNode(e);
+        AstNode* const negationNode = new NegationNode(c);
         sc->nodes.push(negationNode);
     }
     else
     {
-        sc->nodes.push(e);
+        sc->nodes.push(c);
     }
 }
 
@@ -740,9 +745,29 @@ using_opt ::= USING LP inscollist RP.
 using_opt ::= .
 
 orderby_opt ::= .
-orderby_opt ::= ORDER BY sortlist.
+orderby_opt ::= ORDER BY expr sortorder sortlistremainder.
+{
+    // The first expression in a sort list is special, because ordering by a
+    // number (ORDER BY 1) is dangerous, but only if it's first in the list.
+    const ExpressionNode* const expr =
+        boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
+    if (expr->resultsInValue())
+    {
+        sc->qrPtr->orderByNumber = true;
+    }
+}
+sortlistremainder ::= .
+sortlistremainder ::= COMMA sortlist.
 sortlist ::= sortlist COMMA expr sortorder.
+{
+    delete sc->nodes.top();
+    sc->nodes.pop();
+}
 sortlist ::= expr sortorder.
+{
+    delete sc->nodes.top();
+    sc->nodes.pop();
+}
 
 sortorder ::= ASC.
 sortorder ::= DESC.
@@ -1029,22 +1054,27 @@ expr ::= expr EQ(OP) expr.
     const ExpressionNode* const expr2 =
         boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
 
-    // We'll have to pop and repush to get at the second expr node
-    AstNode* const topNode = sc->nodes.top();
-    sc->nodes.pop();
-
-    const ExpressionNode* const expr1 =
-        boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
-
-    sc->nodes.push(topNode);
-
-    if (expr1->isField())
+    // We only want to check the password if expr1->isField() and
+    // expr2->resultsInString. We'll check half here to avoid doing extra
+    // work.
     if (expr2->resultsInString())
     {
-        sc->qrPtr->checkPasswordComparison(
-            expr1->getValue(),
-            expr2->getValue()
-        );
+        // We'll have to pop and repush to get at the first expr node
+        AstNode* const topNode = sc->nodes.top();
+        sc->nodes.pop();
+
+        const ExpressionNode* const expr1 =
+            boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
+
+        sc->nodes.push(topNode);
+
+        if (expr1->isField())
+        {
+            sc->qrPtr->checkPasswordComparison(
+                expr1->getValue(),
+                expr2->getValue()
+            );
+        }
     }
 
     addComparisonNode(sc, OP->token_);
@@ -1235,10 +1265,18 @@ expr ::= expr in_op(N) LP exprlist RP. [IN]
     {
         ExpressionNode* negationNode = new NegationNode(inValuesListNode);
         sc->nodes.push(negationNode);
+        if (negationNode->isAlwaysTrue())
+        {
+            ++sc->qrPtr->alwaysTrueConditionals;
+        }
     }
     else
     {
         sc->nodes.push(inValuesListNode);
+        if (inValuesListNode->isAlwaysTrue())
+        {
+            ++sc->qrPtr->alwaysTrueConditionals;
+        }
     }
 }
 expr ::= expr in_op LP subselect RP.

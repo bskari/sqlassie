@@ -93,7 +93,7 @@ QueryRisk::QueryRisk()
     , fingerprintingStatements(0)
     , mySqlStringConcat(0)
     , stringManipulationStatements(0)
-    , alwaysTrueConditional(0)
+    , alwaysTrueConditionals(0)
     , commentedConditionals(0)
     , commentedQuotes(0)
     , globalVariables(0)
@@ -131,7 +131,7 @@ QueryRisk::QueryRisk(const QueryRisk& rhs)
     , fingerprintingStatements(rhs.fingerprintingStatements)
     , mySqlStringConcat(rhs.mySqlStringConcat)
     , stringManipulationStatements(rhs.stringManipulationStatements)
-    , alwaysTrueConditional(rhs.alwaysTrueConditional)
+    , alwaysTrueConditionals(rhs.alwaysTrueConditionals)
     , commentedConditionals(rhs.commentedConditionals)
     , commentedQuotes(rhs.commentedQuotes)
     , globalVariables(rhs.globalVariables)
@@ -267,7 +267,7 @@ std::ostream& operator<<(std::ostream& out, const QueryRisk& rhs)
         "fingerprintingStatements",
         "mySqlStringConcat",
         "stringManipulationStatements",
-        "alwaysTrueConditional",
+        "alwaysTrueConditionals",
         "commentedConditionals",
         "commentedQuotes",
         "globalVariables",
@@ -294,7 +294,7 @@ std::ostream& operator<<(std::ostream& out, const QueryRisk& rhs)
         &rhs.fingerprintingStatements,
         &rhs.mySqlStringConcat,
         &rhs.stringManipulationStatements,
-        &rhs.alwaysTrueConditional,
+        &rhs.alwaysTrueConditionals,
         &rhs.commentedConditionals,
         &rhs.commentedQuotes,
         &rhs.globalVariables,
@@ -439,7 +439,7 @@ bool operator==(const QueryRisk& qr1, const QueryRisk& qr2)
         && qr1.fingerprintingStatements == qr2.fingerprintingStatements
         && qr1.mySqlStringConcat == qr2.mySqlStringConcat
         && qr1.stringManipulationStatements == qr2.stringManipulationStatements
-        && qr1.alwaysTrueConditional == qr2.alwaysTrueConditional
+        && qr1.alwaysTrueConditionals == qr2.alwaysTrueConditionals
         && qr1.commentedConditionals == qr2.commentedConditionals
         && qr1.commentedQuotes == qr2.commentedQuotes
         && qr1.globalVariables == qr2.globalVariables

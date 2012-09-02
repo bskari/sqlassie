@@ -96,7 +96,7 @@ public:
     size_t fingerprintingStatements;
     size_t mySqlStringConcat;
     size_t stringManipulationStatements;
-    size_t alwaysTrueConditional;
+    size_t alwaysTrueConditionals;
     size_t commentedConditionals;
     size_t commentedQuotes;
     size_t globalVariables;

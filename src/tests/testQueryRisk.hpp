@@ -47,7 +47,7 @@ void testQueryRiskUserStatements();
 void testQueryRiskFingerprintingStatements();
 void testQueryRiskMySqlStringConcat();
 void testQueryRiskStringManipulationStatements();
-void testQueryRiskAlwaysTrueConditional();
+void testQueryRiskAlwaysTrueConditionals();
 void testQueryRiskCommentedConditionals();
 void testQueryRiskCommentedQuotes();
 void testQueryRiskGlobalVariables();

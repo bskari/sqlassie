@@ -70,7 +70,7 @@ void testQueryRiskSafe()
     BOOST_CHECK(0 == qr.fingerprintingStatements);
     BOOST_CHECK(0 == qr.mySqlStringConcat);
     BOOST_CHECK(0 == qr.stringManipulationStatements);
-    BOOST_CHECK(0 == qr.alwaysTrueConditional);
+    BOOST_CHECK(0 == qr.alwaysTrueConditionals);
     BOOST_CHECK(0 == qr.commentedConditionals);
     BOOST_CHECK(0 == qr.commentedQuotes);
     BOOST_CHECK(0 == qr.globalVariables);
@@ -568,247 +568,47 @@ void testQueryRiskStringManipulationStatements()
 }
 
 
-void testQueryRiskAlwaysTrueConditional()
+void testQueryRiskAlwaysTrueConditionals()
 {
     QueryRisk qr;
 
-    // ------------------------------------------------------------------------
-    // expression IN (expression, expression, expression, ...)
-    // ------------------------------------------------------------------------
-
     qr = parseQuery("SELECT * FROM foo WHERE 1 IN (1)");
-    BOOST_CHECK(qr.alwaysTrue);
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
 
-    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (1, 2, 3)");
-    BOOST_CHECK(qr.alwaysTrue);
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 1 IN (1, 2, 3)"
+        " AND 1 = 1"
+        " AND 5 > 0 + 4"
+    );
+    BOOST_CHECK(3 == qr.alwaysTrueConditionals);
 
-    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (4, 3, 2, 1)");
-    BOOST_CHECK(qr.alwaysTrue);
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 1 IN (1, 2, 3)"
+        " AND 1 = 2"
+        " AND 5 > 0 + 4"
+    );
+    BOOST_CHECK(2 == qr.alwaysTrueConditionals);
 
     qr = parseQuery(
         "SELECT * FROM foo WHERE 1 IN (4, 3, 2, (SELECT age FROM user), 1)"
     );
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE -45 IN (-50, -45, -40)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 IN ('1')");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE '1' IN (1)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE '1' IN ('3' - '2')");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery(
-        "SELECT * FROM foo WHERE 'a' IN ('aa', 'ab', 'ac', 'a', 'ad')"
-    );
-    BOOST_CHECK(qr.alwaysTrue);
-
-    // ------------------------------------------------------------------------
-    // expression NOT IN (expression, expression, expression, ...)
-    // ------------------------------------------------------------------------
-
-    // Subselects shouldn't be detectable as always true
-    qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN (SELECT 1)");
-    BOOST_CHECK(!qr.alwaysTrue);
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
 
     qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN (0)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN (0, 2, 3)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (4, 3, 2, 0)");
-    BOOST_CHECK(!qr.alwaysTrue);
-
-    qr = parseQuery(
-        "SELECT * FROM foo WHERE 1 NOT IN (4, 3, 2, (SELECT age FROM user), 0)"
-    );
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE -45 NOT IN (-50, -40)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN ('2')");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE '1' NOT IN ('2')");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE '1' NOT IN ('3' + '2')");
-    BOOST_CHECK(qr.alwaysTrue);
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
 
     qr = parseQuery(
         "SELECT * FROM foo WHERE 'a' NOT IN ('aa', 'ab', 'ac', 'ad')"
+        " OR 1 > 2"
+        " OR 1 < 2"
     );
-    BOOST_CHECK(qr.alwaysTrue);
+    BOOST_CHECK(2 == qr.alwaysTrueConditionals);
 
-    // ------------------------------------------------------------------------
-    // expression BETWEEN expression AND expression
-    // ------------------------------------------------------------------------
     qr = parseQuery("SELECT * FROM f WHERE 2 BETWEEN 1 AND 3");
-    BOOST_CHECK(qr.alwaysTrue);
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
 
-    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN -1 AND 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM f WHERE 1 BETWEEN -1 AND 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM f WHERE -1 BETWEEN -1 AND 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN 1 AND -1");
-    BOOST_CHECK(!qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM f WHERE 1 BETWEEN 1 AND 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    // ------------------------------------------------------------------------
-    // mathematical comparisons
-    // ------------------------------------------------------------------------
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 = 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 != 2");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 = '1'");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE '1' = 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 2 > 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 >= 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 < 2");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 <= 2");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE NOT (1 > 2)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE !(1 > 2)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE !!!(1 > 2)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE NOT NOT !!!(1 > 2)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 + 1 = 2");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 > 2");
-    BOOST_CHECK(!qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 2 <= 1");
-    BOOST_CHECK(!qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE (1 + 1) & 0x01 = 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE (1 << 4) = 0x10");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE (1 << 2) | 0x10 = 0x14");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery(
-        "SELECT * FROM foo WHERE (0x08 >> 3) |"
-        " (0x04 >> 2) | (0x02 >> 1) | (0x01 >> 0) = 0x01"
-    );
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery(
-        "SELECT * FROM foo WHERE (1 << 0) |"
-        "(1 << 1) | (1 << 2) | (1 << 4) = 15"
-    );
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 = 1.0");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1.0 = 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1.0000 = 1.0");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    const char* const zeroes[] = {"0", "0.", ".0", "0.0"};
-    string s("SELECT * FROM f WHERE ");
-    for (size_t i = 0; i < sizeof(zeroes) / sizeof(zeroes[0]); ++i)
-    {
-        for (size_t j = 0; j < sizeof(zeroes) / sizeof(zeroes[0]); ++j)
-        {
-            qr = parseQuery(s + zeroes[i] + " = " + zeroes[j]);
-            BOOST_CHECK(qr.alwaysTrue);
-        }
-    }
-
-    qr = parseQuery("SELECT * FROM u WHERE age + 1 = age + 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM u WHERE age + 1 = 1 + age");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM u WHERE age + 3 = 1 + age * 1 + 2");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    // ------------------------------------------------------------------------
-    // string comparisons
-    // ------------------------------------------------------------------------
-
-    // MySQL is case insensitive
-    qr = parseQuery("SELECT * FROM foo WHERE 'brandon' = 'BRANDON'");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 'bRaNdOn' = 'brandon'");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 'bRaNdOn' != 'not brandon'");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 'brandon' != 'not brandon'");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    // ------------------------------------------------------------------------
-    // and/or/xor statements
-    // ------------------------------------------------------------------------
-    qr = parseQuery("SELECT * FROM foo WHERE 1 = 1 AND 1 = 2");
-    BOOST_CHECK(!qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE 1 = 0 OR 1 = 1");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE (1 = 2 OR 1 = 1) AND 1 = 2");
-    BOOST_CHECK(!qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE (1 = 2 OR 2 = 2) AND (1 = 1)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery(
-        "SELECT * FROM foo WHERE ((1 = 1) AND (1 = 2)) "
-        "OR (1 = 1 AND (1 = 2 OR 2 = 3))"
-    );
-    BOOST_CHECK(!qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 3)");
-    BOOST_CHECK(qr.alwaysTrue);
-
-    qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 2)");
-    BOOST_CHECK(!qr.alwaysTrue);
+    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN 0 - 1 AND 0 + 1");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
 }
 
 
@@ -1118,19 +918,295 @@ void testQueryRiskEmptyPassword()
 
 void testQueryRiskMultipleQueries()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+    const string select("SELECT * FROM user u WHERE name = 'f';");
+    const string insert("INSERT INTO user (name, email) VALUES ('f', 'f@x');");
+    const string update("UPDATE user SET email = 'f@x.com' WHERE id = 5;");
+    const string delete_("DELETE from user WHERE id = 5;");
+    const string* statements[] = {&select, &insert, &update, &delete_};
+
+    // Make sure that each statement parses on its own
+    for (size_t i = 0; i < sizeof(statements) / sizeof(statements[0]); ++i)
+    {
+        ParserInterface parser(*statements[i]);
+        const bool successfullyParsed = parser.parse(&qr);
+        BOOST_REQUIRE(successfullyParsed);
+    }
+
+    // Make sure that compund statements don't parse
+    for (size_t i = 0; i < sizeof(statements) / sizeof(statements[0]); ++i)
+    {
+        for (size_t j = 0; j < sizeof(statements) / sizeof(statements[0]); ++j)
+        {
+            ParserInterface parser(*statements[i] + *statements[j]);
+            const bool successfullyParsed = parser.parse(&qr);
+            BOOST_CHECK(!successfullyParsed);
+        }
+    }
 }
 
 
 void testQueryRiskOrderByNumber()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM u ORDER BY 1");
+    BOOST_CHECK(qr.orderByNumber);
+
+    qr = parseQuery("SELECT * FROM u ORDER BY 1 + 1");
+    BOOST_CHECK(qr.orderByNumber);
+
+    // Ordering by number then something else is dangerous
+    qr = parseQuery("SELECT * FROM u ORDER BY 1, name");
+    BOOST_CHECK(qr.orderByNumber);
+
+    // Ordering by something else, then a number, should be fine
+    qr = parseQuery("SELECT * FROM u ORDER BY name, 1, name");
+    BOOST_CHECK(!qr.orderByNumber);
 }
 
 
 void testQueryRiskAlwaysTrue()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    // ------------------------------------------------------------------------
+    // expression IN (expression, expression, expression, ...)
+    // ------------------------------------------------------------------------
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (1)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (1, 2, 3)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (4, 3, 2, 1)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 1 IN (4, 3, 2, (SELECT age FROM user), 1)"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE -45 IN (-50, -45, -40)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 IN ('1')");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE '1' IN (1)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE '1' IN ('3' - '2')");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 'a' IN ('aa', 'ab', 'ac', 'a', 'ad')"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // ------------------------------------------------------------------------
+    // expression NOT IN (expression, expression, expression, ...)
+    // ------------------------------------------------------------------------
+
+    // Subselects shouldn't be detectable as always true
+    qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN (SELECT 1)");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN (0)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN (0, 2, 3)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (4, 3, 2, 0)");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 1 NOT IN (4, 3, 2, (SELECT age FROM user), 0)"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE -45 NOT IN (-50, -40)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 NOT IN ('2')");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE '1' NOT IN ('2')");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE '1' NOT IN ('3' + '2')");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 'a' NOT IN ('aa', 'ab', 'ac', 'ad')"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // ------------------------------------------------------------------------
+    // expression BETWEEN expression AND expression
+    // ------------------------------------------------------------------------
+    qr = parseQuery("SELECT * FROM f WHERE 2 BETWEEN 1 AND 3");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN -1 AND 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 1 BETWEEN -1 AND 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE -1 BETWEEN -1 AND 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN 1 AND -1");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 1 BETWEEN 1 AND 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // ------------------------------------------------------------------------
+    // mathematical comparisons
+    // ------------------------------------------------------------------------
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 = 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 != 2");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 = '1'");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE '1' = 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 2 > 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 >= 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 < 2");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 <= 2");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE NOT (1 > 2)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE !(1 > 2)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE !!!(1 > 2)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE NOT NOT !!!(1 > 2)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 + 1 = 2");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 > 2");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 2 <= 1");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE (1 + 1) & 0x01 = 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE (1 << 4) = 0x10");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE (1 << 2) | 0x10 = 0x14");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE (0x08 >> 3) |"
+        " (0x04 >> 2) | (0x02 >> 1) | (0x01 >> 0) = 0x01"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE (1 << 0) |"
+        "(1 << 1) | (1 << 2) | (1 << 4) = 15"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 = 1.0");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1.0 = 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1.0000 = 1.0");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    const char* const zeroes[] = {"0", "0.", ".0", "0.0"};
+    string s("SELECT * FROM f WHERE ");
+    for (size_t i = 0; i < sizeof(zeroes) / sizeof(zeroes[0]); ++i)
+    {
+        for (size_t j = 0; j < sizeof(zeroes) / sizeof(zeroes[0]); ++j)
+        {
+            qr = parseQuery(s + zeroes[i] + " = " + zeroes[j]);
+            BOOST_CHECK(qr.alwaysTrue);
+        }
+    }
+
+    qr = parseQuery("SELECT * FROM u WHERE age + 1 = age + 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM u WHERE age + 1 = 1 + age");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM u WHERE age + 3 = 1 + age * 1 + 2");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // ------------------------------------------------------------------------
+    // string comparisons
+    // ------------------------------------------------------------------------
+
+    // MySQL is case insensitive
+    qr = parseQuery("SELECT * FROM foo WHERE 'brandon' = 'BRANDON'");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 'bRaNdOn' = 'brandon'");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 'bRaNdOn' != 'not brandon'");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 'brandon' != 'not brandon'");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // ------------------------------------------------------------------------
+    // and/or/xor statements
+    // ------------------------------------------------------------------------
+    qr = parseQuery("SELECT * FROM foo WHERE 1 = 1 AND 1 = 2");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 = 0 OR 1 = 1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE (1 = 2 OR 1 = 1) AND 1 = 2");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE (1 = 2 OR 2 = 2) AND (1 = 1)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE ((1 = 1) AND (1 = 2)) "
+        "OR (1 = 1 AND (1 = 2 OR 2 = 3))"
+    );
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 3)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 2)");
+    BOOST_CHECK(!qr.alwaysTrue);
 }
 
 

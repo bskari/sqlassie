@@ -70,6 +70,13 @@ public:
     virtual bool resultsInString() const WARN_UNUSED_RESULT;
 
     /**
+     * Determines if this expression is a field.
+     * ExpressionNode defines this as returning false. Most nodes won't need
+     * to override this unless the default of false is inappropriate.
+     */
+    virtual bool isField() const WARN_UNUSED_RESULT;
+
+    /**
      * Returns the value of this node.
      */
     virtual std::string getValue() const WARN_UNUSED_RESULT = 0;

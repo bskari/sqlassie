@@ -1049,13 +1049,70 @@ void testQueryRiskRegexLength()
 
 void testQueryRiskSlowRegexes()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    // Matching anything shouldn't be slow
+    qr = parseQuery("SELECT * FROM u WHERE name LIKE '%'");
+    BOOST_CHECK(0 == qr.slowRegexes);
+
+    // Matching the end of a string is fine because we can still use indexes
+    qr = parseQuery("SELECT * FROM u WHERE name LIKE 'Br%'");
+    BOOST_CHECK(0 == qr.slowRegexes);
+
+    // Matching the beginning of a string prevents the use of an index, so we
+    // have to do a table scan
+    qr = parseQuery("SELECT * FROM u WHERE name LIKE '%in'");
+    BOOST_CHECK(1 == qr.slowRegexes);
+
+    qr = parseQuery(
+        "SELECT * FROM user u JOIN user_email ue ON u.id = ue.user_id"
+        " WHERE u.name LIKE '%in' OR email LIKE '%yahoo.com'"
+    );
+    BOOST_CHECK(2 == qr.slowRegexes);
 }
 
 
 void testQueryRiskEmptyPassword()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM user WHERE password = 'password'");
+    BOOST_CHECK(QueryRisk::PASSWORD_NOT_EMPTY == qr.emptyPassword);
+
+    qr = parseQuery("SELECT * FROM user WHERE password = ''");
+    BOOST_CHECK(QueryRisk::PASSWORD_EMPTY == qr.emptyPassword);
+
+    qr = parseQuery("SELECT * FROM user WHERE name = 'Brandon'");
+    BOOST_CHECK(QueryRisk::PASSWORD_NOT_USED == qr.emptyPassword);
+
+    // Empty passwords are the most dangerous, so it should be counted over
+    // other features
+    qr = parseQuery(
+        "SELECT * FROM user WHERE password = 'password'"
+        " OR password = ''"
+    );
+    BOOST_CHECK(QueryRisk::PASSWORD_EMPTY == qr.emptyPassword);
+
+    qr = parseQuery(
+        "SELECT * FROM user WHERE password = ''"
+        " OR password = 'password'"
+    );
+    BOOST_CHECK(QueryRisk::PASSWORD_EMPTY == qr.emptyPassword);
+
+    // Any column name with 'password' in it should count as a password
+    qr = parseQuery("SELECT * FROM u WHERE user_password = 'password'");
+    BOOST_CHECK(QueryRisk::PASSWORD_NOT_EMPTY == qr.emptyPassword);
+    qr = parseQuery("SELECT * FROM u WHERE password_2 = 'password'");
+    BOOST_CHECK(QueryRisk::PASSWORD_NOT_EMPTY == qr.emptyPassword);
+    qr = parseQuery("SELECT * FROM u WHERE second_password_2 = 'password'");
+    BOOST_CHECK(QueryRisk::PASSWORD_NOT_EMPTY == qr.emptyPassword);
+
+    // Let's combine the last 2 things
+    qr = parseQuery(
+        "SELECT * FROM u WHERE second_password_2 = 'password'"
+        " OR some_password_probably = ''"
+    );
+    BOOST_CHECK(QueryRisk::PASSWORD_EMPTY == qr.emptyPassword);
 }
 
 

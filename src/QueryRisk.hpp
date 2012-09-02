@@ -121,6 +121,10 @@ public:
     void checkTable(const std::string& table);
     void checkFunction(const std::string& function);
     void checkDatabase(const std::string& database);
+    void checkPasswordComparison(
+        const std::string& field,
+        const std::string& compareString
+    );
     ///@}
 
     /**

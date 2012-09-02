@@ -95,6 +95,12 @@ public:
     bool resultsInString() const WARN_UNUSED_RESULT;
 
     /**
+     * Determines if this expression is a field.
+     * Overridden from ExpressionNode.
+     */
+    virtual bool isField() const WARN_UNUSED_RESULT;
+
+    /**
      * Gets the value of this expression.
      * Overridden from ExpressionNode.
      */

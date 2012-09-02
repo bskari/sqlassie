@@ -51,6 +51,12 @@ bool ExpressionNode::resultsInString() const
 }
 
 
+bool ExpressionNode::isField() const
+{
+    return false;
+}
+
+
 bool ExpressionNode::isAlwaysFalse() const
 {
     if (isAlwaysTrueOrFalse())

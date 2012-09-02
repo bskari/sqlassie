@@ -168,10 +168,18 @@ bool TerminalNode::resultsInValue() const
     return false;
 }
 
+
 bool TerminalNode::resultsInString() const
 {
     return isString();
 }
+
+
+bool TerminalNode::isField() const
+{
+    return isIdentifier();
+}
+
 
 string TerminalNode::getValue() const
 {

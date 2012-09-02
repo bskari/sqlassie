@@ -1020,12 +1020,33 @@ expr ::= expr XOR(OP) expr.
 {
     addBooleanLogicNode(sc, OP->token_);
 }
-expr ::= expr LT|GT|LE|GE(OP) expr.
+expr ::= expr LT|GT|LE|GE|NE(OP) expr.
 {
     addComparisonNode(sc, OP->token_);
 }
-expr ::= expr EQ|NE(OP) expr.
+expr ::= expr EQ(OP) expr.
 {
+    const ExpressionNode* const expr2 =
+        boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
+
+    // We'll have to pop and repush to get at the second expr node
+    AstNode* const topNode = sc->nodes.top();
+    sc->nodes.pop();
+
+    const ExpressionNode* const expr1 =
+        boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
+
+    sc->nodes.push(topNode);
+
+    if (expr1->isField())
+    if (expr2->resultsInString())
+    {
+        sc->qrPtr->checkPasswordComparison(
+            expr1->getValue(),
+            expr2->getValue()
+        );
+    }
+
     addComparisonNode(sc, OP->token_);
 }
 expr ::= expr BITAND|BITOR|BITXOR|LSHIFT|RSHIFT(OP) expr.
@@ -1084,10 +1105,7 @@ expr ::= expr like_op(B) expr. [LIKE_KW]
         boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
     if (e->resultsInString())
     {
-        sc->qrPtr->regexLength = max(
-            sc->qrPtr->regexLength,
-            e->getValue().length()
-        );
+        sc->qrPtr->checkRegex(e->getValue());
     }
 
     addComparisonNode(sc, B.tokenType, B.negation);
@@ -1098,10 +1116,7 @@ expr ::= expr like_op(B) expr ESCAPE expr. [LIKE_KW]
         boost::polymorphic_downcast<const ExpressionNode*>(sc->nodes.top());
     if (e->resultsInString())
     {
-        sc->qrPtr->regexLength = max(
-            sc->qrPtr->regexLength,
-            e->getValue().length()
-        );
+        sc->qrPtr->checkRegex(e->getValue());
     }
 
     addComparisonNode(sc, B.tokenType, B.negation);

@@ -215,6 +215,38 @@ void QueryRisk::checkFunction(const string& function)
     }
 }
 
+
+void QueryRisk::checkPasswordComparison(
+    const std::string& field,
+    const std::string& compareString
+)
+{
+    switch (emptyPassword)
+    {
+    case PASSWORD_EMPTY:
+        // PASSWORD_EMPTY is the most dangerous, so never override it
+        return;
+    case PASSWORD_NOT_EMPTY:
+        if (string::npos != field.find("password") && compareString.empty())
+        {
+            emptyPassword = PASSWORD_EMPTY;
+        }
+        break;
+    case PASSWORD_NOT_USED:
+        if (string::npos != field.find("password") && !compareString.empty())
+        {
+            emptyPassword = PASSWORD_NOT_EMPTY;
+        }
+        break;
+    default:
+        Logger::log(Logger::ERROR)
+            << "Unknown emptyPassword enum value in QueryRisk: "
+            << emptyPassword;
+        assert(false);
+    }
+}
+
+
 std::ostream& operator<<(std::ostream& out, const QueryRisk& rhs)
 {
     const char* shortDescriptions[] = {
@@ -287,7 +319,7 @@ std::ostream& operator<<(std::ostream& out, const QueryRisk& rhs)
         }
     }
 
-    switch(rhs.emptyPassword)
+    switch (rhs.emptyPassword)
     {
     case QueryRisk::PASSWORD_EMPTY:
         out << "Password: empty" << endl;

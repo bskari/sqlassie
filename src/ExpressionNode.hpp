@@ -31,6 +31,7 @@
 #include "QueryRisk.hpp"
 #include "warnUnusedResult.h"
 
+#include <iosfwd>
 #include <string>
 
 
@@ -80,6 +81,15 @@ public:
      * Returns the value of this node.
      */
     virtual std::string getValue() const WARN_UNUSED_RESULT = 0;
+
+    /**
+     * Prints out this node and its children.
+     */
+    virtual void print(
+        std::ostream& out,
+        const int depth = 0,
+        const char indent = ' '
+    ) const;
 
 protected:
     typedef double SQL_FLOAT;

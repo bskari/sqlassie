@@ -30,6 +30,7 @@
 #include "AstNode.hpp"
 #include "ExpressionNode.hpp"
 
+#include <iosfwd>
 #include <string>
 
 
@@ -114,6 +115,16 @@ public:
     bool isIdentifier() const;
     bool isString() const;
     ///@}
+
+    /**
+     * Gets the value of this expression.
+     * Overridden from ExpressionNode.
+     */
+    virtual void print(
+        std::ostream& out,
+        const int depth = 0,
+        const char indent = ' '
+    ) const;
 
 private:
     const std::string value_;

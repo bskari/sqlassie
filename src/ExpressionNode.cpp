@@ -24,12 +24,14 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iomanip>
+#include <ostream>
 #include <sstream>
 #include <string>
 
 using boost::lexical_cast;
 using boost::starts_with;
 using std::hex;
+using std::ostream;
 using std::string;
 using std::stringstream;
 
@@ -83,4 +85,24 @@ ExpressionNode::SQL_FLOAT ExpressionNode::convertFloatOrHexString(
     {
         return lexical_cast<ExpressionNode::SQL_FLOAT>(str);
     }
+}
+
+
+void ExpressionNode::print(
+    ostream& out,
+    const int depth,
+    const char indent
+) const
+{
+    for (int i = 0; i < depth; ++i)
+    {
+        out << indent;
+    }
+    out << name_;
+    if (resultsInValue() || resultsInString())
+    {
+        out << " (" << getValue() << ')';
+    }
+    out << '\n';
+    printChildren(out, depth + 1, indent);
 }

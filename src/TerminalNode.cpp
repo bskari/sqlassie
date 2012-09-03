@@ -32,6 +32,7 @@
 using boost::bad_lexical_cast;
 using boost::lexical_cast;
 using std::string;
+using std::ostream;
 
 static bool stringIsNumber(const string& s);
 
@@ -269,4 +270,47 @@ static bool stringIsNumber(const string& s)
     }
 
     return end == i;
+}
+
+
+void TerminalNode::print(
+    ostream& out,
+    const int depth,
+    const char indent
+) const
+{
+    for (int i = 0; i < depth; ++i)
+    {
+        out << indent;
+    }
+    out << name_ << ' ';
+    switch (type_)
+    {
+        case HEX_NUMBER:
+            out << "HEX_NUMBER ";
+            break;
+        case INTEGER:
+            out << "INTEGER ";
+            break;
+        case STRING:
+            out << "STRING ";
+            break;
+        case ID:
+            out << "ID ";
+            break;
+        case FLOAT:
+            out << "FLOAT ";
+            break;
+        case GLOBAL_VARIABLE:
+            out << "GLOBAL_VARIABLE ";
+            break;
+        case VARIABLE:
+            out << "VARIABLE ";
+            break;
+        default:
+            out << "Unknown type ";
+            break;
+    }
+    out << value_ << '\n';
+    printChildren(out, depth + 1, indent);
 }

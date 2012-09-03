@@ -60,12 +60,17 @@ AstNode* InValuesListNode::copy() const
 
 bool InValuesListNode::isAlwaysTrueOrFalse() const
 {
-    if (!expression_->resultsInValue() || !expression_->resultsInString())
+    if (!expression_->resultsInValue() && !expression_->resultsInString())
     {
         return false;
     }
+    const string firstExpression(expression_->getValue());
 
-    // Everything else needs to result in a value or string
+    // If all the elements are values or strings, or the expression matches
+    // one of the values, then we can determine truthiness.
+    /// TODO(bskari|2012-09-02) Save this data so I don't have to recompute it
+    /// when I call isAlwaysTrue
+    bool allValuesOrStrings = true;
     vector<const AstNode*>::const_iterator end(children_.end());
     for (
         vector<const AstNode*>::const_iterator i(children_.begin());
@@ -76,27 +81,25 @@ bool InValuesListNode::isAlwaysTrueOrFalse() const
         const ExpressionNode* const expr =
             polymorphic_downcast<const ExpressionNode*>(*i);
 
-        if (!expr->resultsInValue() || !expr->resultsInString())
+        if (!expr->resultsInValue() && !expr->resultsInString())
         {
-            return false;
+            allValuesOrStrings = false;
+        }
+        else if (firstExpression == expr->getValue())
+        {
+            return true;
         }
     }
-    return true;
+    return allValuesOrStrings;
 }
 
 
 bool InValuesListNode::isAlwaysTrue() const
 {
-    bool in = false;
-
-    // Identifiers may or may not be in a list - it's legitimate
-    const bool isValue = expression_->resultsInValue();
-    const bool isString = expression_->resultsInString();
-    if (!isValue && !isString)
+    if (!expression_->resultsInValue() && !expression_->resultsInString())
     {
         return false;
     }
-
     const string firstExpression(expression_->getValue());
 
     vector<const AstNode*>::const_iterator end(children_.end());
@@ -111,17 +114,16 @@ bool InValuesListNode::isAlwaysTrue() const
 
         if (
             (
-                isValue == expr->resultsInValue()
+                expr->resultsInValue()
                 || expr->resultsInString()
             )
             && firstExpression == expr->getValue()
         )
         {
-            in = true;
-            break;
+            return true;
         }
     }
-    return in;
+    return false;
 }
 
 

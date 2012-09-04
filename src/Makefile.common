@@ -166,16 +166,15 @@ $(BINARY_DIR)/tunnel: $(tunnelDependencies)
 	$(CXX) $(CXXFLAGS) $(tunnelDependencies) \
 		-lboost_thread -lboost_program_options -o $(BINARY_DIR)/tunnel
 
-sqlParser.h: sqlParser.cpp ;
+sqlParser.h: sqlParser.c ;
 
-sqlParser.cpp: sqlParser.y
+sqlParser.c: sqlParser.y
 	$(LEMON) -s sqlParser.y
-	mv sqlParser.c sqlParser.cpp
 
-sqlParser.o: sqlParser.cpp AlwaysSomethingNode.hpp AstNode.hpp \
+sqlParser.o: sqlParser.c AlwaysSomethingNode.hpp AstNode.hpp \
 	ComparisonNode.hpp ExpressionNode.hpp InValuesListNode.hpp QueryRisk.hpp \
 	BooleanLogicNode.hpp
-	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlParser.cpp -c -o sqlParser.o
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) sqlParser.c -c -o sqlParser.o
 
 huginParser.tab.hpp: huginParser.tab.cpp ;
 
@@ -217,7 +216,7 @@ doxygen: Doxyfile
 .PHONY: dependencies
 dependencies: dependencies.py
 	# These files mess up the dependencies
-	rm -f sqlParser.h sqlParser.cpp sqlParser.o
+	rm -f sqlParser.h sqlParser.c sqlParser.o
 	rm -f scanner.yy.hpp scanner.yy.cpp scanner.yy.o
 	rm -f huginParser.tab.hpp huginParser.tab.cpp huginParser.tab.o
 	rm -f huginScanner.yy.hpp huginScanner.yy.cpp huginScanner.yy.o
@@ -228,7 +227,7 @@ clean:
 	rm -f *.o *.gch *~
 	rm -f tests/*.o tests/*~
 	rm -f scanner.yy.cpp scanner.yy.hpp \
-	sqlParser.out sqlParser.cpp sqlParser.h \
+	sqlParser.out sqlParser.c sqlParser.h \
 	huginScanner.yy.cpp huginScanner.yy.hpp \
 	huginParser.output huginParser.tab.cpp huginParser.tab.hpp
 	rm -rf queries/formatQueries queries/formatMySqlLog

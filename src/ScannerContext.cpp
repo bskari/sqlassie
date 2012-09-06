@@ -23,20 +23,62 @@
 
 #include <stack>
 #include <string>
+#include <utility>
+
+#include <iostream>
+
+using std::pair;
+
 
 ScannerContext::ScannerContext(QueryRisk* const qrToModify)
     : quotedString()
     , qrPtr(qrToModify)
-    , nodes()
+    , nodes_()
+    , selectDepth_()
 {
 }
 
 
 ScannerContext::~ScannerContext()
 {
-    while (!nodes.empty())
+    while (!nodes_.empty())
     {
-        delete nodes.top();
-        nodes.pop();
+        delete nodes_.top().first;
+        nodes_.pop();
     }
+}
+
+
+void ScannerContext::pushNode(AstNode* const node)
+{
+    nodes_.push(pair<AstNode*, size_t>(node, selectDepth_));
+}
+
+
+AstNode* ScannerContext::getTopNode() const
+{
+    assert(!nodes_.empty());
+    return nodes_.top().first;
+}
+
+
+void ScannerContext::popNode()
+{
+    nodes_.pop();
+}
+
+
+void ScannerContext::removeTopSelectDepthNodes()
+{
+    while (!nodes_.empty() && nodes_.top().second == selectDepth_)
+    {
+        nodes_.pop();
+    }
+    --selectDepth_;
+}
+
+
+void ScannerContext::increaseSelectDepth()
+{
+    ++selectDepth_;
 }

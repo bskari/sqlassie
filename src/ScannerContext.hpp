@@ -23,6 +23,7 @@
 
 #include <stack>
 #include <string>
+#include <utility>
 
 #include "AstNode.hpp"
 #include "QueryRisk.hpp"
@@ -30,19 +31,27 @@
 struct ScannerContext
 {
     std::string quotedString;
-
     QueryRisk* const qrPtr;
-
-    // To prevent memory leaks in the case of parse failures, I'll push and
-    // pop AST nodes here instead of directly returning them as part of the
-    // parser's rules. I don't care about error recovery when parsing fails
-    // anyway, and I don't feel like adding error handling just for memory.
-    std::stack<AstNode*> nodes;
 
     ScannerContext(QueryRisk* const qrPtr);
     ~ScannerContext();
 
+    void pushNode(AstNode* const node);
+    AstNode* getTopNode() const;
+    void popNode();
+
+    void removeTopSelectDepthNodes();
+    void increaseSelectDepth();
+
 private:
+    // To prevent memory leaks in the case of parse failures, I'll push and
+    // pop AST nodes here instead of directly returning them as part of the
+    // parser's rules. I don't care about error recovery when parsing fails
+    // anyway, and I don't feel like adding error handling just for memory.
+    std::stack<std::pair<AstNode*, size_t> > nodes_;
+
+    size_t selectDepth_;
+
     // Hidden methods
     ScannerContext(const ScannerContext& rhs);
     ScannerContext& operator=(const ScannerContext& rhs);

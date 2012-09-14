@@ -170,6 +170,12 @@ void testSyntacticallyInvalidCommandsAreBlocked()
 }
 
 
+// -Wformat warns about having a terminal NULL when using execl, which I do,
+// but it doesn't look like it because I'm using C++'s nullptr keyword.
+#if GCC_VERSION >= 40600
+    #pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wformat"
 SqlassieTestConnection::SqlassieTestConnection()
     : sqlassiePid_()
     , connection_(mysql_init(nullptr))
@@ -264,6 +270,11 @@ SqlassieTestConnection::SqlassieTestConnection()
         throw de;
     }
 }
+#if GCC_VERSION >= 40600
+    #pragma GCC diagnostic pop
+#else
+    #pragma GCC diagnostic warning "-Wunused-variable"
+#endif
 
 
 SqlassieTestConnection::~SqlassieTestConnection()
@@ -381,6 +392,15 @@ bool SqlassieTestConnection::createTestData()
     {
         throw DescribedException("Unable to create test data");
     }
+
+    // You can create a user with proper permissions by running:
+    /*
+    CREATE DATABASE sqlassie_test;
+    CREATE USER 'sqlassie'@'localhost';
+    GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP
+        ON sqlassie_test.* TO 'sqlassie'@'localhost';
+    FLUSH PRIVILEGES;
+    */
 
     const char* const host = "localhost";
     const char* const username = "sqlassie";

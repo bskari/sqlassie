@@ -627,7 +627,7 @@ againstmodifier_opt ::= WITH QUERY EXPANSION.
 //
 stl_prefix ::= seltablist joinop.
 stl_prefix ::= .
-seltablist ::= stl_prefix table_name dbnm
+seltablist ::= stl_prefix select_table
                 as index_hint_list_opt on_opt using_opt.
 seltablist ::= stl_prefix LP select RP as index_hint_list_opt on_opt using_opt.
 seltablist ::= stl_prefix LP seltablist RP
@@ -644,6 +644,29 @@ seltablist ::= stl_prefix LP seltablist RP
 //     sqlite3SrcListShiftJoinType(F);
 //     A = sqlite3SelectNew(pParse,0,F,0,0,0,0,0,0,0);
 //  }
+
+select_table ::= id(X).
+{
+    sc->qrPtr->checkTable(X->scannedString_);
+}
+select_table ::= string(X).
+{
+    sc->qrPtr->checkTable(X->scannedString_);
+}
+// I tried to just include this in the ID_FALLBACK, but it caused a lot of
+// other parse problems
+select_table ::= COLUMNS.
+select_table ::= id(X) DOT id(Y).
+{
+    sc->qrPtr->checkDatabase(X->scannedString_);
+    sc->qrPtr->checkTable(Y->scannedString_);
+}
+select_table ::= id(X) DOT string(Y).
+{
+    sc->qrPtr->checkDatabase(X->scannedString_);
+    sc->qrPtr->checkTable(Y->scannedString_);
+}
+select_table ::= id DOT COLUMNS.
 
 table_name ::= id(X).
 {

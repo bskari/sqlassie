@@ -163,9 +163,9 @@ void QueryRisk::checkTable(const string& table)
 }
 
 
-void QueryRisk::checkDatabase(const string& table)
+void QueryRisk::checkDatabase(const string& database)
 {
-    if (regex_search(table, informationSchemaRegex))
+    if (regex_search(database, informationSchemaRegex))
     {
         informationSchema = true;
     }

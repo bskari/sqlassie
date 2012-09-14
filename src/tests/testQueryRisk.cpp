@@ -1212,7 +1212,28 @@ void testQueryRiskAlwaysTrue()
 
 void testQueryRiskInformationSchema()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (1, 2, 3)");
+    BOOST_CHECK(!qr.informationSchema);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE name = 'brandon'"
+        " UNION SELECT SCHEMA_NAME, 1 FROM information_schema.SCHEMATA; -- '"
+    );
+    BOOST_CHECK(qr.informationSchema);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 1 IN (1)"
+        " UNION SELECT TABLE_NAME, 1, 1, 1, 1 FROM information_schema.TABLES;"
+    );
+    BOOST_CHECK(qr.informationSchema);
+
+    qr = parseQuery(
+        "SELECT * FROM foo WHERE 1 IN (1)"
+        " UNION SELECT COLUMN_NAME, 1, 1, 1 FROM information_schema.COLUMNS;"
+    );
+    BOOST_CHECK(qr.informationSchema);
 }
 
 

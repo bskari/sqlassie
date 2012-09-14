@@ -1239,13 +1239,43 @@ void testQueryRiskInformationSchema()
 
 void testQueryRiskValid()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT * FROM foo WHERE 1 IN (1, 2)");
+    BOOST_CHECK(qr.valid);
+
+    ParserInterface* parser;
+    bool success;
+
+    parser = new ParserInterface("SELECT * FROM foo WHERE 1 IN (1, 2");
+    success = parser->parse(&qr);
+    BOOST_CHECK(!success);
+    BOOST_CHECK(!qr.valid);
+    delete parser;
+
+    parser = new ParserInterface("I was walking on the moon one day");
+    success = parser->parse(&qr);
+    BOOST_CHECK(!success);
+    BOOST_CHECK(!qr.valid);
+    delete parser;
 }
 
 
 void testQueryRiskUserTable()
 {
-    BOOST_CHECK_MESSAGE(false, "Not implemented");
+    QueryRisk qr;
+
+    qr = parseQuery("SELECT id FROM something WHERE name = 'Brandon'");
+    BOOST_CHECK(!qr.userTable);
+
+    qr = parseQuery("SELECT id FROM user u WHERE name = 'Brandon'");
+    BOOST_CHECK(qr.userTable);
+
+    qr = parseQuery("SELECT id FROM user_email WHERE address LIKE '%.org'");
+    BOOST_CHECK(qr.userTable);
+
+    qr = parseQuery("SELECT id FROM temp_user_email WHERE age > 21");
+    BOOST_CHECK(qr.userTable);
 }
 
 

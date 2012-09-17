@@ -28,6 +28,7 @@
 #include "nullptr.hpp"
 #include "QueryRisk.hpp"
 
+#include <algorithm>
 #include <boost/bind.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/function.hpp>
@@ -50,6 +51,7 @@ using dlib::bayes_node_utils::set_node_as_evidence;
 using dlib::bayesian_network_join_tree;
 using std::bad_alloc;
 using std::ifstream;
+using std::min;
 using std::stack;
 using std::string;
 
@@ -676,9 +678,9 @@ double DlibProbabilities::getProbabilityOfDenialAttack(const QueryRisk& qr)
     states[AlwaysTrue] = qr.alwaysTrue ? 0 : 1;
     states[SlowRegex] = qr.slowRegexes ? 0 : 1;
     states[Benchmark] = qr.benchmarkStatements ? 0 : 1;
-    states[Joins] = (qr.joinStatements <= 4 ? qr.joinStatements : 5);
-    states[CrossJoin] = qr.globalVariables ? 0 : 1;
-    states[RegexLength] = (qr.regexLength / 5 < 5) ? (qr.regexLength / 5) : 5;
+    states[Joins] = min(qr.joinStatements, static_cast<size_t>(5));
+    states[CrossJoin] = (qr.crossJoinStatements > 0) ? 0 : 1;
+    states[RegexLength] = min(qr.regexLength / 5, static_cast<size_t>(5));
 
     const int evidenceNodeNumbers[] = {
         AlwaysTrue,

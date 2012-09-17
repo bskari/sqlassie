@@ -817,6 +817,19 @@ void testQueryRiskCrossJoinStatements()
     );
     BOOST_CHECK(0 == qr.crossJoinStatements);
 
+    // CROSS JOIN statements normally don't have an ON statement, and other
+    // JOIN statements that don't have ON statements behave like (and are
+    // counted as) CROSS JOINs, so we don't need to count them here.
+    qr = parseQuery(
+        "SELECT * FROM user u CROSS JOIN user_email ue ON ue.user_id = u.id"
+    );
+    BOOST_CHECK(0 == qr.crossJoinStatements);
+    qr = parseQuery(
+        "SELECT * FROM user u CROSS JOIN user_email ON user_email.user_id = u.id"
+    );
+    BOOST_CHECK(0 == qr.crossJoinStatements);
+
+    // Regular cross join
     qr = parseQuery("SELECT * FROM user u CROSS JOIN user_email ue");
     BOOST_CHECK(1 == qr.crossJoinStatements);
 

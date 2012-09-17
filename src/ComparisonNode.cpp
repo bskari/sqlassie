@@ -175,7 +175,10 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
     // Only check for equality comparisons to password field
     if (
         EQ != compareType_
-        || SensitiveNameChecker::get().isPasswordField(expr1_->getValue())
+        || (
+           !SensitiveNameChecker::get().isPasswordField(expr1_->getValue())
+           && !SensitiveNameChecker::get().isPasswordField(expr2_->getValue())
+        )
     )
     {
         return QueryRisk::PASSWORD_NOT_USED;

@@ -23,9 +23,11 @@
 #include "sqlParser.h"
 #include "QueryRisk.hpp"
 
+#include <ostream>
 #include <string>
 
 using std::string;
+using std::ostream;
 
 
 AlwaysSomethingNode::AlwaysSomethingNode(const bool always)
@@ -75,5 +77,39 @@ bool AlwaysSomethingNode::resultsInValue() const
 string AlwaysSomethingNode::getValue() const
 {
     assert(resultsInValue());
-    return "";
+
+    if (isAlwaysTrue())
+    {
+        return "1";
+    }
+    else
+    {
+        return "0";
+    }
+}
+
+
+void AlwaysSomethingNode::print(
+    std::ostream& out,
+    const int depth,
+    const char indent
+) const
+{
+    for (int i = 0; i < depth; ++i)
+    {
+        out << indent;
+    }
+
+    out << "AlwaysSomethingNode:";
+    if (isAlwaysTrue())
+    {
+        out << "true";
+    }
+    else
+    {
+        out << "false";
+    }
+    out << '\n';
+
+    printChildren(out, depth + 1, indent);
 }

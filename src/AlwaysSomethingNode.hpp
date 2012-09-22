@@ -82,6 +82,15 @@ public:
      */
     std::string getValue() const WARN_UNUSED_RESULT;
 
+    /**
+     * Overridden from AstNode.
+     */
+    void print(
+        std::ostream& out,
+        const int depth,
+        const char indent
+    ) const;
+
 private:
     const bool always_;
 

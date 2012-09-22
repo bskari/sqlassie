@@ -40,8 +40,20 @@ struct ScannerContext
     AstNode* getTopNode() const;
     void popNode();
 
-    void removeTopSelectDepthNodes();
-    void increaseSelectDepth();
+    /**
+     * The parser needs to know which nodes belong to which statement; for
+     * example, the parser will need to know the difference between nodes that
+     * belong to the outer and inner SELECT in the following statement:
+     * SELECT 1, 2, (SELECT 3), 4;
+     * so that it knows how to build the parse tree. That being said, the
+     * parser doesn't need to know the details of the implementation, but
+     * these functions should provide all the information the parser needs.
+     */
+    ///@{
+    bool isTopNodeFromCurrentDepth();
+    void increaseNodeDepth();
+    void decreaseNodeDepth();
+    ///@}
 
 private:
     // To prevent memory leaks in the case of parse failures, I'll push and

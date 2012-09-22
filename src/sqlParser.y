@@ -50,6 +50,7 @@
 
 #ifndef NDEBUG
 #include "sqlParser.h"
+#include <iostream>
 #endif
 
 #include "AlwaysSomethingNode.hpp"
@@ -84,7 +85,6 @@ struct InOpInfo
     bool negation;
 };
 
-static std::stack<std::stack<ExpressionNode*> > expressionLists;
 
 // Give up parsing as soon as the first error is encountered
 #define YYNOERRORRECOVERY 1
@@ -539,7 +539,7 @@ multiselect_op ::= UNION.       {++sc->qrPtr->unionStatements;}
 multiselect_op ::= UNION ALL.
 {
     ++sc->qrPtr->unionStatements;
-    ++sc->qrPtr->unionStatements;
+    ++sc->qrPtr->unionAllStatements;
 }
 // EXCEPT and INTERSECT are not supported in MySQL
 //multiselect_op(A) ::= EXCEPT|INTERSECT(OP).  {A;OP;}
@@ -797,15 +797,13 @@ sortorder ::= DESC.
 sortorder ::= .
 
 groupby_opt ::= .
-groupby_opt ::= GROUP BY nexprlist.
+groupby_opt ::= GROUP BY nexprbegin nexprlist.
 {
-    std::stack<ExpressionNode*>& s = expressionLists.top();
-    while (!s.empty())
+    while (sc->isTopNodeFromCurrentDepth())
     {
-        delete s.top();
-        s.pop();
+        sc->popNode();
     }
-    expressionLists.pop();
+    sc->decreaseNodeDepth();
 }
 
 
@@ -836,14 +834,18 @@ limit_opt ::= LIMIT expr COMMA expr.
 // We can't really determine what that expression is, so we'll default to
 // returning a fummy identifier, so that comparisons won't be mistakenly
 // assumed as true.
-subselect ::= subselectBegin select.
+subselect ::= subselectbegin select.
 {
-    sc->removeTopSelectDepthNodes();
+    while (sc->isTopNodeFromCurrentDepth())
+    {
+        sc->popNode();
+    }
+    sc->decreaseNodeDepth();
     sc->pushNode(TerminalNode::createDummyIdentifierTerminalNode());
 }
-subselectBegin ::= .
+subselectbegin ::= .
 {
-    sc->increaseSelectDepth();
+    sc->increaseNodeDepth();
 }
 
 /////////////////////////// The DELETE statement /////////////////////////////
@@ -918,16 +920,15 @@ insert_cmd ::= REPLACE.
 // into a set of SELECT statements without FROM clauses and connected by
 // UNION ALL and the ValueList.pSelect points to the right-most SELECT in
 // that compound.
-valuelist ::= VALUES LP nexprlist RP.
+valuelist ::= VALUES LP nexprbegin nexprlist RP.
 {
     /// @TODO(bskari|2012-07-29) Do something?
-    std::stack<ExpressionNode*>& s = expressionLists.top();
-    while (!s.empty())
+    while (sc->isTopNodeFromCurrentDepth())
     {
-        delete s.top();
-        s.pop();
+        delete sc->getTopNode();
+        sc->popNode();
     }
-    expressionLists.pop();
+    sc->decreaseNodeDepth();
 }
 
 // Since a list of VALUEs is inplemented as a compound SELECT, we have
@@ -935,13 +936,12 @@ valuelist ::= VALUES LP nexprlist RP.
 valuelist ::= valuelist COMMA LP exprlist RP.
 {
     /// @TODO(bskari|2012-07-29) Do something?
-    std::stack<ExpressionNode*>& s = expressionLists.top();
-    while (!s.empty())
+    while (sc->isTopNodeFromCurrentDepth())
     {
-        delete s.top();
-        s.pop();
+        delete sc->getTopNode();
+        sc->popNode();
     }
-    expressionLists.pop();
+    sc->decreaseNodeDepth();
 }
 
 inscollist_opt ::= .
@@ -1017,13 +1017,13 @@ expr ::= id(X) LP distinct exprlist RP.
     /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
     /// functions here. For example, IF(1, 1, 0) should always be true.
     FunctionNode* fn = new FunctionNode(X->scannedString_);
-    std::stack<ExpressionNode*>& exprList = expressionLists.top();
-    while (!exprList.empty())
+
+    while (sc->isTopNodeFromCurrentDepth())
     {
-        fn->addChild(exprList.top());
-        exprList.pop();
+        fn->addChild(sc->getTopNode());
+        sc->popNode();
     }
-    expressionLists.pop();
+    sc->decreaseNodeDepth();
 
     sc->pushNode(new FunctionNode(X->scannedString_));
 
@@ -1036,13 +1036,13 @@ expr ::= INSERT(X) LP distinct exprlist RP.
     /// @TODO(bskari|2012-07-04) I should probably handle a bunch of possible
     /// functions here. For example, IF(1, 1, 0) should always be true.
     FunctionNode* fn = new FunctionNode(X->scannedString_);
-    std::stack<ExpressionNode*>& exprList = expressionLists.top();
-    while (!exprList.empty())
+
+    while (sc->isTopNodeFromCurrentDepth())
     {
-        fn->addChild(exprList.top());
-        exprList.pop();
+        fn->addChild(sc->getTopNode());
+        sc->popNode();
     }
-    expressionLists.pop();
+    sc->decreaseNodeDepth();
 
     sc->pushNode(new FunctionNode(X->scannedString_));
 
@@ -1271,18 +1271,25 @@ in_op(A) ::= IN(OP).        {A.negation = false; A.inOpType = OP->token_;}
 in_op(A) ::= NOT IN(OP).    {A.negation = true; A.inOpType = OP->token_;}
 expr ::= expr in_op(N) LP exprlist RP. [IN]
 {
+    std::stack<AstNode*> expressionListNodes;
+
+    while (sc->isTopNodeFromCurrentDepth())
+    {
+        expressionListNodes.push(sc->getTopNode());
+        sc->popNode();
+    }
+    sc->decreaseNodeDepth();
+
     ExpressionNode* const inValuesListNode = new InValuesListNode(
         boost::polymorphic_cast<ExpressionNode*>(sc->getTopNode())
     );
     sc->popNode();
 
-    std::stack<ExpressionNode*>& exprList = expressionLists.top();
-    while (!exprList.empty())
+    while (!expressionListNodes.empty())
     {
-        inValuesListNode->addChild(exprList.top());
-        exprList.pop();
+        inValuesListNode->addChild(expressionListNodes.top());
+        expressionListNodes.pop();
     }
-    expressionLists.pop();
 
     if (N.negation)
     {
@@ -1311,36 +1318,29 @@ expr ::= expr in_op nm dbnm. [IN]
 
 /* CASE expressions */
 expr ::= CASE case_operand case_exprlist case_else END.
+{
+    sc->decreaseNodeDepth();
+}
 case_exprlist ::= case_exprlist WHEN expr THEN expr.
+{
+}
 case_exprlist ::= WHEN expr THEN expr.
 case_else ::=  ELSE expr.
 case_else ::=  .
 case_operand ::= expr.
 case_operand ::= .
 
-exprlist ::= nexprlist.
+exprlist ::= nexprbegin nexprlist.
 exprlist ::= .
 {
-    // Just push an empty list so that we can pop it later
-    std::stack<ExpressionNode*> s;
-    expressionLists.push(s);
+    // Just increase the node depth so that we can decrease it later
+    sc->increaseNodeDepth();
+}
+nexprbegin ::= .
+{
+    sc->increaseNodeDepth();
 }
 nexprlist ::= nexprlist COMMA expr.
-{
-    expressionLists.top().push(
-        boost::polymorphic_cast<ExpressionNode*>(sc->getTopNode())
-    );
-    sc->popNode();
-}
 nexprlist ::= expr.
-{
-    std::stack<ExpressionNode*> s;
-    expressionLists.push(s);
-
-    expressionLists.top().push(
-        boost::polymorphic_cast<ExpressionNode*>(sc->getTopNode())
-    );
-    sc->popNode();
-}
 
 expr ::= mysql_match.

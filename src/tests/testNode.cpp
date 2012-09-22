@@ -62,6 +62,7 @@ void testComparisonNode()
     ComparisonNode* cn;
     NegationNode* nn;
 
+    // 1 = 2
     cn = new ComparisonNode(
         new TerminalNode("1", INTEGER),
         EQ,
@@ -71,12 +72,13 @@ void testComparisonNode()
     BOOST_CHECK_EQUAL(QueryRisk::PASSWORD_NOT_USED, cn->emptyPassword());
     delete cn;
 
+    // 1 != 1
     cn = new ComparisonNode(
         new TerminalNode("1", INTEGER),
         NE,
         new TerminalNode("1", INTEGER)
     );
-    BOOST_CHECK(cn->isAlwaysTrue());
+    BOOST_CHECK(!cn->isAlwaysTrue());
     BOOST_CHECK_EQUAL(QueryRisk::PASSWORD_NOT_USED, cn->emptyPassword());
     delete cn;
 
@@ -270,6 +272,22 @@ void testInValuesListNode()
     delete ivln;
 
     // 1 IN (age, 1)
+    ivln = new InValuesListNode(new TerminalNode("1", INTEGER));
+    ivln->addChild(new TerminalNode("age", ID));
+    ivln->addChild(
+        new BinaryOperatorNode(
+            new TerminalNode("2", INTEGER),
+            MINUS,
+            new TerminalNode("1", INTEGER)
+        )
+    );
+    BOOST_CHECK(ivln->resultsInValue());
+    BOOST_CHECK(ivln->isAlwaysTrueOrFalse());
+    BOOST_CHECK(ivln->isAlwaysTrue());
+    BOOST_CHECK(!ivln->isAlwaysFalse());
+    delete ivln;
+
+    // 1 IN (3, (SELECT 2), 1)
     ivln = new InValuesListNode(new TerminalNode("1", INTEGER));
     ivln->addChild(new TerminalNode("age", ID));
     ivln->addChild(

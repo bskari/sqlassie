@@ -25,8 +25,6 @@
 #include <string>
 #include <utility>
 
-#include <iostream>
-
 using std::pair;
 
 
@@ -68,17 +66,24 @@ void ScannerContext::popNode()
 }
 
 
-void ScannerContext::removeTopSelectDepthNodes()
+bool ScannerContext::isTopNodeFromCurrentDepth()
 {
-    while (!nodes_.empty() && nodes_.top().second == selectDepth_)
+    if (nodes_.empty())
     {
-        nodes_.pop();
+        return false;
     }
+    return nodes_.top().second == selectDepth_;
+}
+
+
+void ScannerContext::decreaseNodeDepth()
+{
+    assert(selectDepth_ > 0);
     --selectDepth_;
 }
 
 
-void ScannerContext::increaseSelectDepth()
+void ScannerContext::increaseNodeDepth()
 {
     ++selectDepth_;
 }

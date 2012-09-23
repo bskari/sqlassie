@@ -1259,13 +1259,30 @@ expr ::= expr between_op(N) expr AND expr. [BETWEEN]
 
     if (N.negation)
     {
-        AstNode* const negationNode = new NegationNode(comparisonNode);
+        NegationNode* const negationNode = new NegationNode(comparisonNode);
         sc->pushNode(negationNode);
+
+        // The counting of alwaysTrueConditionals is normally handled in the
+        // addComparisonNode function, but BETWEEN doesn't use that function
+        // because it has three expressions instead of two
+        if (negationNode->isAlwaysTrue())
+        {
+            ++sc->qrPtr->alwaysTrueConditionals;
+        }
     }
     else
     {
         sc->pushNode(comparisonNode);
+
+        // The counting of alwaysTrueConditionals is normally handled in the
+        // addComparisonNode function, but BETWEEN doesn't use that function
+        // because it has three expressions instead of two
+        if (comparisonNode->isAlwaysTrue())
+        {
+            ++sc->qrPtr->alwaysTrueConditionals;
+        }
     }
+
 }
 in_op(A) ::= IN(OP).        {A.negation = false; A.inOpType = OP->token_;}
 in_op(A) ::= NOT IN(OP).    {A.negation = true; A.inOpType = OP->token_;}

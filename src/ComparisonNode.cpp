@@ -99,8 +99,16 @@ bool ComparisonNode::isAlwaysTrueOrFalse() const
             && expr1_->resultsInValue()
             && expr2_->resultsInValue();
     }
-    return expr1_->resultsInValue()
-        && expr2_->resultsInValue();
+    else
+    {
+        return (
+            expr1_->resultsInValue()
+            && expr2_->resultsInValue()
+        ) || (
+            expr1_->resultsInString()
+            && expr2_->resultsInString()
+        );
+    }
 }
 
 

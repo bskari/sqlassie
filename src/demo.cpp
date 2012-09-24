@@ -159,8 +159,8 @@ void setProbabilities(
 int main(int argc, char* argv[])
 {
     initializeSingletons();
-    SensitiveNameChecker::get().setPasswordSubstring("password");
-    SensitiveNameChecker::get().setUserSubstring("user");
+    SensitiveNameChecker::setPasswordSubstring("password");
+    SensitiveNameChecker::setUserSubstring("user");
     if (argc < 2)
     {
         // If no input is provided, print an error

@@ -47,8 +47,8 @@ int main(int argc, char* argv[])
 {
     Logger::initialize();
     SensitiveNameChecker::initialize();
-    SensitiveNameChecker::get().setPasswordSubstring("password");
-    SensitiveNameChecker::get().setUserSubstring("user");
+    SensitiveNameChecker::setPasswordSubstring("password");
+    SensitiveNameChecker::setUserSubstring("user");
     assert(
         34 == sizeof(QueryRisk)
         && "QueryStatistics size has changed; did you add more features?"

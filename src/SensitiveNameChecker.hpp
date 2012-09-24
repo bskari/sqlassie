@@ -35,11 +35,6 @@ class SensitiveNameChecker
 {
 public:
     /**
-     * Singleton accessor.
-     */
-    static SensitiveNameChecker& get();
-
-    /**
      * Creates the singleton instance.
      */
     static void initialize();
@@ -48,18 +43,18 @@ public:
      * Checks for various fields,
      */
     ///@{
-    bool isPasswordField(const std::string& field) const;
-    bool isUserTable(const std::string& table) const;
+    static bool isPasswordField(const std::string& field);
+    static bool isUserTable(const std::string& table);
     ///@}
 
     /**
      * Set how the fields are checked.
      */
     ///@{
-    void setPasswordRegex(const std::string& pwRegex);
-    void setPasswordSubstring(const std::string& pwSubstr);
-    void setUserRegex(const std::string& userRegex);
-    void setUserSubstring(const std::string& userSubstr);
+    static void setPasswordRegex(const std::string& pwRegex);
+    static void setPasswordSubstring(const std::string& pwSubstr);
+    static void setUserRegex(const std::string& userRegex);
+    static void setUserSubstring(const std::string& userSubstr);
     ///@}
 
 private:

@@ -42,13 +42,6 @@ SensitiveNameChecker::SensitiveNameChecker() :
 }
 
 
-SensitiveNameChecker& SensitiveNameChecker::get()
-{
-    assert(instance_ != NULL);
-    return *instance_;
-}
-
-
 void SensitiveNameChecker::initialize()
 {
     instance_ = new SensitiveNameChecker;
@@ -57,29 +50,30 @@ void SensitiveNameChecker::initialize()
 
 void SensitiveNameChecker::setPasswordRegex(const string& passwordRegex)
 {
-    passwordRegex_ = regex(passwordRegex, regex::perl | regex::icase);
+    instance_->passwordRegex_ =
+        regex(passwordRegex, regex::perl | regex::icase);
 }
 
 
 void SensitiveNameChecker::setPasswordSubstring(const string& passwordSubstring)
 {
-    passwordSubstring_ = passwordSubstring;
+    instance_->passwordSubstring_ = passwordSubstring;
 }
 
 
 void SensitiveNameChecker::setUserRegex(const string& userRegex)
 {
-    userRegex_ = regex(userRegex, regex::perl | regex::icase);
+    instance_->userRegex_ = regex(userRegex, regex::perl | regex::icase);
 }
 
 
 void SensitiveNameChecker::setUserSubstring(const string& userSubstring)
 {
-    userSubstring_ = userSubstring;
+    instance_->userSubstring_ = userSubstring;
 }
 
 
-bool SensitiveNameChecker::isPasswordField(const std::string& field) const
+bool SensitiveNameChecker::isPasswordField(const std::string& field)
 {
     return SensitiveNameChecker::isMatch(
         instance_->passwordRegex_,
@@ -89,7 +83,7 @@ bool SensitiveNameChecker::isPasswordField(const std::string& field) const
 }
 
 
-bool SensitiveNameChecker::isUserTable(const std::string& field) const
+bool SensitiveNameChecker::isUserTable(const std::string& field)
 {
     return SensitiveNameChecker::isMatch(
         instance_->userRegex_,

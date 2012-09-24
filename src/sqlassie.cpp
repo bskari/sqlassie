@@ -665,13 +665,10 @@ void setupOptions(
         const char*,
         boost::function<void (const string&)>
     > optionAndSetter;
-    SensitiveNameChecker& ref = SensitiveNameChecker::get();
-    SensitiveNameChecker* inst = &ref;
 
     boost::function<void (const string&)> test(
         boost::bind(
             &SensitiveNameChecker::setPasswordRegex,
-            inst,
             _1
         )
     );
@@ -681,7 +678,6 @@ void setupOptions(
             PASSWORD_REGEX,
             boost::bind(
                 &SensitiveNameChecker::setPasswordRegex,
-                inst,
                 _1
             )
         ),
@@ -689,7 +685,6 @@ void setupOptions(
             PASSWORD_SUBSTRING,
             boost::bind(
                 &SensitiveNameChecker::setPasswordSubstring,
-                inst,
                 _1
             )
         ),
@@ -697,7 +692,6 @@ void setupOptions(
             USER_REGEX,
             boost::bind(
                 &SensitiveNameChecker::setUserRegex,
-                inst,
                 _1
             )
         ),
@@ -705,7 +699,6 @@ void setupOptions(
             USER_SUBSTRING,
             boost::bind(
                 &SensitiveNameChecker::setUserSubstring,
-                inst,
                 _1
             )
         )

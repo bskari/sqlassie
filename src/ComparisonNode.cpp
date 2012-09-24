@@ -184,8 +184,8 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
     if (
         EQ != compareType_
         || (
-           !SensitiveNameChecker::get().isPasswordField(expr1_->getValue())
-           && !SensitiveNameChecker::get().isPasswordField(expr2_->getValue())
+           !SensitiveNameChecker::isPasswordField(expr1_->getValue())
+           && !SensitiveNameChecker::isPasswordField(expr2_->getValue())
         )
     )
     {

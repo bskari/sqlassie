@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
 {
     Logger::initialize();
     SensitiveNameChecker::initialize();
-    SensitiveNameChecker::get().setPasswordSubstring("password");
-    SensitiveNameChecker::get().setUserSubstring("user");
+    SensitiveNameChecker::setPasswordSubstring("password");
+    SensitiveNameChecker::setUserSubstring("user");
     const bool file = (argc > 1);
     istream* stream;
 

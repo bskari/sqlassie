@@ -47,8 +47,8 @@ test::test_suite* init_unit_test_suite(int, char*[])
     Logger::initialize();
     Logger::setLevel(Logger::ALL);
     SensitiveNameChecker::initialize();
-    SensitiveNameChecker::get().setPasswordSubstring("password");
-    SensitiveNameChecker::get().setUserSubstring("user");
+    SensitiveNameChecker::setPasswordSubstring("password");
+    SensitiveNameChecker::setUserSubstring("user");
 
     // Set up blocking for the whitelist test
     string parseWhitelistFilename("../src/tests/parseWhitelist.mysql");

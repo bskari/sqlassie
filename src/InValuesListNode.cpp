@@ -133,7 +133,7 @@ QueryRisk::EmptyPassword InValuesListNode::emptyPassword() const
     // This isn't quite as severe as "password = ''", but let's err on the side
     // of caution and treat it as such anyway
     /// @TODO(bskari): Come up with a more accurate way of handling this
-    if (SensitiveNameChecker::get().isPasswordField(expression_->getValue()))
+    if (SensitiveNameChecker::isPasswordField(expression_->getValue()))
     {
         return QueryRisk::PASSWORD_EMPTY;
     }

@@ -1038,7 +1038,7 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery(
         "SELECT * FROM foo WHERE 1 NOT IN (4, 3, 2, (SELECT age FROM user), 0)"
     );
-    BOOST_CHECK(qr.alwaysTrue);
+    BOOST_CHECK(!qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE -45 NOT IN (-50, -40)");
     BOOST_CHECK(qr.alwaysTrue);

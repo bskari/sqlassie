@@ -26,11 +26,16 @@
 
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
+#include <iomanip>
 #include <ostream>
+#include <sstream>
 #include <string>
 
 using boost::bad_lexical_cast;
 using boost::lexical_cast;
+using std::hex;
+using std::istringstream;
+using std::ostringstream;
 using std::string;
 using std::ostream;
 
@@ -178,6 +183,16 @@ bool TerminalNode::isField() const
 
 string TerminalNode::getValue() const
 {
+    /// @TODO(bskari|2012-09-23) Write a function instead of using streams
+    if (HEX_NUMBER == type_)
+    {
+        istringstream is(value_.substr(2)); // Skip the 0x
+        int64_t number;
+        is >> hex >> number;
+        ostringstream os;
+        os << number;
+        return os.str();
+    }
     return value_;
 }
 

@@ -137,6 +137,11 @@ string BinaryOperatorNode::getValue() const
         llExpr1 = static_cast<SQL_INT>(round(expr1));
         llExpr2 = static_cast<SQL_INT>(round(expr2));
         return lexical_cast<string>(llExpr1 | llExpr2);
+    case BITXOR:
+        // MySQL rounds floats when used with binary operators
+        llExpr1 = static_cast<SQL_INT>(round(expr1));
+        llExpr2 = static_cast<SQL_INT>(round(expr2));
+        return lexical_cast<string>(llExpr1 ^ llExpr2);
     case LSHIFT:
         llExpr1 = static_cast<SQL_INT>(round(expr1));
         llExpr2 = static_cast<SQL_INT>(round(expr2));

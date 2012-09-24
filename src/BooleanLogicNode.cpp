@@ -102,8 +102,14 @@ bool BooleanLogicNode::resultsInValue() const
 
 string BooleanLogicNode::getValue() const
 {
-    /// @TODO(bskari|2012-07-28) Do something!
-    return "";
+    if (isAlwaysTrue())
+    {
+        return "1";
+    }
+    else
+    {
+        return "0";
+    }
 }
 
 

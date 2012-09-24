@@ -1133,7 +1133,7 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM foo WHERE 2 <= 1");
     BOOST_CHECK(!qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM foo WHERE (1 + 1) & 0x01 = 1");
+    qr = parseQuery("SELECT * FROM foo WHERE (1 + 2) & 0x01 = 1");
     BOOST_CHECK(qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE (1 << 4) = 0x10");
@@ -1150,7 +1150,7 @@ void testQueryRiskAlwaysTrue()
 
     qr = parseQuery(
         "SELECT * FROM foo WHERE (1 << 0) |"
-        "(1 << 1) | (1 << 2) | (1 << 4) = 15"
+        "(1 << 1) | (1 << 2) | (1 << 3) = 15"
     );
     BOOST_CHECK(qr.alwaysTrue);
 
@@ -1222,10 +1222,10 @@ void testQueryRiskAlwaysTrue()
     BOOST_CHECK(!qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 3)");
-    BOOST_CHECK(qr.alwaysTrue);
+    BOOST_CHECK(!qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 2)");
-    BOOST_CHECK(!qr.alwaysTrue);
+    BOOST_CHECK(qr.alwaysTrue);
 }
 
 

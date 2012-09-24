@@ -172,6 +172,44 @@ void QueryRisk::checkDatabase(const string& database)
 }
 
 
+void QueryRisk::updatePasswordRisk(const EmptyPassword ep)
+{
+    switch (emptyPassword)
+    {
+        case PASSWORD_EMPTY:
+            // Nothing is riskier than an empty password, so there's nothing
+            // to update
+            return;
+        case PASSWORD_NOT_EMPTY:
+            switch (ep)
+            {
+                case PASSWORD_EMPTY:
+                    emptyPassword = ep;
+                    break;
+                case PASSWORD_NOT_EMPTY:
+                case PASSWORD_NOT_USED:
+                default:
+                    break;
+            }
+            break;
+        case PASSWORD_NOT_USED:
+            switch(ep)
+            {
+                case PASSWORD_EMPTY:
+                case PASSWORD_NOT_EMPTY:
+                    emptyPassword = ep;
+                    break;
+                case PASSWORD_NOT_USED:
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+
 void QueryRisk::checkRegex(const string& regexStr)
 {
     if (regexLength < regexStr.size())
@@ -212,37 +250,6 @@ void QueryRisk::checkFunction(const string& function)
     else if (regex_search(function, ifRegex))
     {
         ++ifStatements;
-    }
-}
-
-
-void QueryRisk::checkPasswordComparison(
-    const std::string& field,
-    const std::string& compareString
-)
-{
-    switch (emptyPassword)
-    {
-    case PASSWORD_EMPTY:
-        // PASSWORD_EMPTY is the most dangerous, so never override it
-        return;
-    case PASSWORD_NOT_EMPTY:
-        if (string::npos != field.find("password") && compareString.empty())
-        {
-            emptyPassword = PASSWORD_EMPTY;
-        }
-        break;
-    case PASSWORD_NOT_USED:
-        if (string::npos != field.find("password") && !compareString.empty())
-        {
-            emptyPassword = PASSWORD_NOT_EMPTY;
-        }
-        break;
-    default:
-        Logger::log(Logger::ERROR)
-            << "Unknown emptyPassword enum value in QueryRisk: "
-            << emptyPassword;
-        assert(false);
     }
 }
 

@@ -63,11 +63,6 @@ public:
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if there is an empty password.
-     */
-    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
-
-    /**
      * Determines if this expression is reducible to a value, either a string
      * or a number.
      */

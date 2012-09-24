@@ -94,32 +94,6 @@ bool BooleanLogicNode::isAlwaysTrue() const
 }
 
 
-QueryRisk::EmptyPassword BooleanLogicNode::emptyPassword() const
-{
-    // Here, we need to examine both nodes to examine the password risk.
-    // If one has an empty password, return that, because that's very risky.
-    // If one has a nonempty password, return that, because the other is benign.
-    // If neither are using passwords, return that.
-    if (
-        QueryRisk::PASSWORD_EMPTY == expr1_->emptyPassword()
-        || QueryRisk::PASSWORD_EMPTY == expr2_->emptyPassword()
-    )
-    {
-        return QueryRisk::PASSWORD_EMPTY;
-    }
-
-    if (
-        QueryRisk::PASSWORD_NOT_EMPTY == expr1_->emptyPassword()
-        || QueryRisk::PASSWORD_NOT_EMPTY == expr2_->emptyPassword()
-    )
-    {
-        return QueryRisk::PASSWORD_NOT_EMPTY;
-    }
-
-    return QueryRisk::PASSWORD_NOT_USED;
-}
-
-
 bool BooleanLogicNode::resultsInValue() const
 {
     return true;

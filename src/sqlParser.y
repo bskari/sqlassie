@@ -159,6 +159,8 @@ static void addComparisonNode(
         ++sc->qrPtr->alwaysTrueConditionals;
     }
 
+    sc->qrPtr->updatePasswordRisk(c->emptyPassword());
+
     if (negation)
     {
         AstNode* const negationNode = new NegationNode(c);
@@ -1076,29 +1078,6 @@ expr ::= expr EQ(OP) expr.
 {
     const ExpressionNode* const expr2 =
         boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());
-
-    // We only want to check the password if expr1->isField() and
-    // expr2->resultsInString. We'll check half here to avoid doing extra
-    // work.
-    if (expr2->resultsInString())
-    {
-        // We'll have to pop and repush to get at the first expr node
-        AstNode* const topNode = sc->getTopNode();
-        sc->popNode();
-
-        const ExpressionNode* const expr1 =
-            boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());
-
-        sc->pushNode(topNode);
-
-        if (expr1->isField())
-        {
-            sc->qrPtr->checkPasswordComparison(
-                expr1->getValue(),
-                expr2->getValue()
-            );
-        }
-    }
 
     addComparisonNode(sc, OP->token_);
 }

@@ -65,12 +65,6 @@ public:
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if the password is empty.
-     * Overridden from ExpressionNode.
-     */
-    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
-
-    /**
      * Determines if the there is an empty password.
      * Overridden from ExpressionNode.
      */

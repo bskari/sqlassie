@@ -68,12 +68,6 @@ public:
     bool isAlwaysTrue() const WARN_UNUSED_RESULT;
 
     /**
-     * Determines if there is an empty password.
-     * Overridden from ExpressionNode.
-     */
-    QueryRisk::EmptyPassword emptyPassword() const WARN_UNUSED_RESULT;
-
-    /**
      * Gets the operator's token value.
      */
     int getBinaryOperator() const WARN_UNUSED_RESULT;

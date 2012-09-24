@@ -121,11 +121,15 @@ public:
     void checkTable(const std::string& table);
     void checkFunction(const std::string& function);
     void checkDatabase(const std::string& database);
-    void checkPasswordComparison(
-        const std::string& field,
-        const std::string& compareString
-    );
     ///@}
+
+    /**
+     * Updates the password risk to the riskier of the current value or the
+     * provided value. For example, if the current risk is PASSWORD_NOT_USED
+     * and the provided password is PASSWORD_EMPTY, the risk will be changed
+     * to PASSWORD_EMPTY.
+     */
+    void updatePasswordRisk(const EmptyPassword ep);
 
     /**
      * Checks if a regular expression for denial of service attacks.

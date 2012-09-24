@@ -89,13 +89,6 @@ bool BinaryOperatorNode::isAlwaysTrue() const
 }
 
 
-QueryRisk::EmptyPassword BinaryOperatorNode::emptyPassword() const
-{
-    /// @TODO(bskari|2012-07-28) Do I need to do something else here?
-    return QueryRisk::PASSWORD_NOT_USED;
-}
-
-
 int BinaryOperatorNode::getBinaryOperator() const
 {
     return operator_;

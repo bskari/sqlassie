@@ -55,6 +55,7 @@ static bool compareValues(
     const string& s1,
     const string& s2
 );
+static bool isPasswordField(const ExpressionNode* const en);
 
 
 ComparisonNode::ComparisonNode(
@@ -173,6 +174,13 @@ bool ComparisonNode::isAlwaysTrue() const
 }
 
 
+bool isPasswordField(const ExpressionNode* const en)
+{
+    return en->isField()
+        && SensitiveNameChecker::isPasswordField(en->getValue());
+}
+
+
 QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
 {
     assert(
@@ -181,13 +189,11 @@ QueryRisk::EmptyPassword ComparisonNode::emptyPassword() const
     );
 
     // Only check for equality comparisons to password field
-    if (
-        EQ != compareType_
-        || (
-           !SensitiveNameChecker::isPasswordField(expr1_->getValue())
-           && !SensitiveNameChecker::isPasswordField(expr2_->getValue())
-        )
-    )
+    if (EQ != compareType_)
+    {
+        return QueryRisk::PASSWORD_NOT_USED;
+    }
+    if (!isPasswordField(expr1_) && !isPasswordField(expr2_))
     {
         return QueryRisk::PASSWORD_NOT_USED;
     }

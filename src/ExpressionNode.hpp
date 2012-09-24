@@ -50,12 +50,6 @@ public:
     virtual bool isAlwaysTrueOrFalse() const WARN_UNUSED_RESULT = 0;
 
     /**
-     * Determines if there is an empty password.
-     */
-    virtual QueryRisk::EmptyPassword emptyPassword()
-        const WARN_UNUSED_RESULT = 0;
-
-    /**
      * Determines if this expression is reducible to a number.
      * Example:
      * 1 + 1 => true

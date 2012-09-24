@@ -127,20 +127,6 @@ bool InValuesListNode::isAlwaysTrue() const
 }
 
 
-QueryRisk::EmptyPassword InValuesListNode::emptyPassword() const
-{
-    // If we're checking something like "password IN (...)", something is fishy
-    // This isn't quite as severe as "password = ''", but let's err on the side
-    // of caution and treat it as such anyway
-    /// @TODO(bskari): Come up with a more accurate way of handling this
-    if (SensitiveNameChecker::isPasswordField(expression_->getValue()))
-    {
-        return QueryRisk::PASSWORD_EMPTY;
-    }
-    return QueryRisk::PASSWORD_NOT_USED;
-}
-
-
 bool InValuesListNode::resultsInValue() const
 {
     return expression_->resultsInValue();

@@ -62,12 +62,6 @@ bool AlwaysSomethingNode::isAlwaysTrue() const
 }
 
 
-QueryRisk::EmptyPassword AlwaysSomethingNode::emptyPassword() const
-{
-    return QueryRisk::PASSWORD_NOT_USED;
-}
-
-
 bool AlwaysSomethingNode::resultsInValue() const
 {
     return false;

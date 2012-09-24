@@ -149,12 +149,6 @@ bool TerminalNode::anyIsAlwaysTrue() const
 }
 
 
-QueryRisk::EmptyPassword TerminalNode::emptyPassword() const
-{
-    return QueryRisk::PASSWORD_NOT_USED;
-}
-
-
 bool TerminalNode::resultsInValue() const
 {
     if (isNumber())

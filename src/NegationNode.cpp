@@ -69,12 +69,6 @@ bool NegationNode::isAlwaysTrue() const
 }
 
 
-QueryRisk::EmptyPassword NegationNode::emptyPassword() const
-{
-    return QueryRisk::PASSWORD_NOT_USED;
-}
-
-
 bool NegationNode::resultsInValue() const
 {
     return expression_->resultsInValue();

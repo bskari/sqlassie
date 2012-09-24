@@ -28,10 +28,15 @@
 #include "../TerminalNode.hpp"
 #include "../sqlParser.h"
 
+#include <boost/lexical_cast.hpp>
 #include <boost/test/unit_test.hpp>
 #include <string>
 
+using boost::lexical_cast;
 using std::string;
+
+static bool approximatelyEqual(const float a, const float b);
+
 
 void testAstNode()
 {
@@ -302,4 +307,134 @@ void testInValuesListNode()
     BOOST_CHECK(ivln->isAlwaysTrue());
     BOOST_CHECK(!ivln->isAlwaysFalse());
     delete ivln;
+}
+
+
+void testBinaryOperatorNode()
+{
+    // This function should test:
+    // + - * / DIV & | << >>
+    const BinaryOperatorNode* bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        PLUS,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("2" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        MINUS,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("-8" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        STAR,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("-15" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        SLASH,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK(approximatelyEqual(lexical_cast<float>(bon->getValue()), -0.6));
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        INTEGER_DIVIDE,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("0" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("3", INTEGER),
+        BITAND,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("1" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        BITAND,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("5" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("3", INTEGER),
+        BITOR,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("7" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        BITOR,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("18446744073709551613" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        LSHIFT,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("18446744073709551520" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("3", INTEGER),
+        LSHIFT,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("96" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("-3", INTEGER),
+        RSHIFT,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("576460752303423487" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("3", INTEGER),
+        RSHIFT,
+        new TerminalNode("5", INTEGER)
+    );
+    BOOST_CHECK("0" == bon->getValue());
+    delete bon;
+
+    bon = new BinaryOperatorNode(
+        new TerminalNode("243", INTEGER),
+        RSHIFT,
+        new TerminalNode("4", INTEGER)
+    );
+    BOOST_CHECK("15" == bon->getValue());
+    delete bon;
+}
+
+
+bool approximatelyEqual(const float a, const float b)
+{
+    // I know this isn't perfect for a lot of reasons, such as small values
+    // will always be deemed as approximately equal, but for the purposes of
+    // tests here, that's fine. Do not use this function outside of
+    // tests/testNode.cpp!
+    return abs(a - b) < 0.001;
 }

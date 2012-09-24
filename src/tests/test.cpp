@@ -112,6 +112,7 @@ test::test_suite* init_unit_test_suite(int, char*[])
         FD(testComparisonNode),
         FD(testNegationNode),
         FD(testInValuesListNode),
+        FD(testBinaryOperatorNode),
         // Tests from testMySqlConstants.cpp
         FD(testSoundex),
         FD(testConvertRegex),

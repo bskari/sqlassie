@@ -25,5 +25,6 @@ void testAlwaysSomethingNode();
 void testComparisonNode();
 void testNegationNode();
 void testInValuesListNode();
+void testBinaryOperatorNode();
 
 #endif  // SRC_TESTS_TESTNODE_HPP_

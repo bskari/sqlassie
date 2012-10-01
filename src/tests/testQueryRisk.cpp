@@ -416,6 +416,23 @@ void testQueryRiskHexStrings()
     qr = parseQuery("SELECT * FROM user WHERE 0x61646d696e LIKE name");
     BOOST_CHECK(1 == qr.hexStrings);
 
+    qr = parseQuery(
+        "SELECT * FROM user WHERE 0x61646d696e LIKE name ESCAPE 'f'"
+    );
+    BOOST_CHECK(1 == qr.hexStrings);
+
+    // Match statements always use strings
+    qr = parseQuery("SELECT * FROM user WHERE name MATCH 0x61646d696e");
+    BOOST_CHECK(1 == qr.hexStrings);
+
+    qr = parseQuery("SELECT * FROM user WHERE 0x61646d696e MATCH name");
+    BOOST_CHECK(1 == qr.hexStrings);
+
+    qr = parseQuery(
+        "SELECT * FROM user WHERE 0x61646d696e MATCH name ESCAPE 'f'"
+    );
+    BOOST_CHECK(1 == qr.hexStrings);
+
     // Comparing strings should imply that it's a string
     qr = parseQuery("SELECT * FROM user WHERE 'admin' = 0x61646D696E");
     BOOST_CHECK(1 == qr.hexStrings);

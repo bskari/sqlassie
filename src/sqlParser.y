@@ -145,14 +145,18 @@ static void addComparisonNode(
     bool negation = false
 )
 {
-    ExpressionNode* const expr2 =
+    ExpressionNode* const rightExpr =
         boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
     sc->popNode();
-    ExpressionNode* const expr1 =
+    ExpressionNode* const leftExpr =
         boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
     sc->popNode();
 
-    ComparisonNode* const c = new ComparisonNode(expr1, comparisonType, expr2);
+    ComparisonNode* const c = new ComparisonNode(
+        leftExpr,
+        comparisonType,
+        rightExpr
+    );
 
     if (c->isAlwaysTrue())
     {
@@ -160,6 +164,14 @@ static void addComparisonNode(
     }
 
     sc->qrPtr->updatePasswordRisk(c->emptyPassword());
+
+    if (
+        (leftExpr->isHex() && rightExpr->resultsInString())
+        || (rightExpr->isHex() && leftExpr->resultsInString())
+    )
+    {
+        ++sc->qrPtr->hexStrings;
+    }
 
     if (negation)
     {
@@ -172,9 +184,10 @@ static void addComparisonNode(
     }
 }
 
+
 // I don't want to incur the overhead of including <algorithm>
 template <typename T>
-T max(const T& t1, const T& t2)
+static T max(const T& t1, const T& t2)
 {
     return ((t1 > t2) ? t1 : t2);
 }
@@ -1133,28 +1146,62 @@ like_op(A) ::= SOUNDS(OP) LIKE_KW.
 
 expr ::= expr like_op(B) expr. [LIKE_KW]
 {
-    const ExpressionNode* const e =
+    const ExpressionNode* const rightExpr =
         boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());
-    if (e->resultsInString())
+    if (rightExpr->resultsInString())
     {
-        sc->qrPtr->checkRegex(e->getValue());
+        sc->qrPtr->checkRegex(rightExpr->getValue());
+    }
+
+    sc->popNode();
+    const ExpressionNode* const leftExpr =
+        boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());
+    sc->pushNode(const_cast<ExpressionNode*>(rightExpr));
+
+    // Normally we can't know the type of a field from here, but like
+    // statements imply that the field is a string, so we can do an extra
+    // check for hex digits being used as strings.
+    if (
+        (leftExpr->isHex() && rightExpr->isField())
+        || (rightExpr->isHex() && leftExpr->isField())
+    )
+    {
+        ++sc->qrPtr->hexStrings;
     }
 
     addComparisonNode(sc, B.tokenType, B.negation);
 }
 expr ::= expr like_op(B) expr ESCAPE expr. [LIKE_KW]
 {
-    const ExpressionNode* const e =
+    /// @TODO(bskari|2012-07-04) Do I need to do anything with the escape expr?
+    delete sc->getTopNode();
+    sc->popNode();
+
+    const ExpressionNode* const rightExpr =
         boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());
-    if (e->resultsInString())
+
+    sc->popNode();
+    const ExpressionNode* const leftExpr =
+        boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());
+    sc->pushNode(const_cast<ExpressionNode*>(rightExpr));
+
+    if (rightExpr->resultsInString())
     {
-        sc->qrPtr->checkRegex(e->getValue());
+        sc->qrPtr->checkRegex(rightExpr->getValue());
+    }
+
+    // Normally we can't know the type of a field from here, but like
+    // statements imply that the field is a string, so we can do an extra
+    // check for hex digits being used as strings.
+    if (
+        (leftExpr->isHex() && rightExpr->isField())
+        || (rightExpr->isHex() && leftExpr->isField())
+    )
+    {
+        ++sc->qrPtr->hexStrings;
     }
 
     addComparisonNode(sc, B.tokenType, B.negation);
-    /// @TODO(bskari|2012-07-04) Do I need to do anything with the last expr?
-    delete sc->getTopNode();
-    sc->popNode();
 }
 
 expr ::= expr IS NULL_KW.

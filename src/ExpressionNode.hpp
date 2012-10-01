@@ -72,6 +72,11 @@ public:
     virtual bool isField() const WARN_UNUSED_RESULT;
 
     /**
+     * Returns true if this is a hex number.
+     */
+    virtual bool isHex() const WARN_UNUSED_RESULT;
+
+    /**
      * Returns the value of this node.
      */
     virtual std::string getValue() const WARN_UNUSED_RESULT = 0;

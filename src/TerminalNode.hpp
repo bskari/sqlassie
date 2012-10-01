@@ -108,6 +108,12 @@ public:
     std::string getValue() const WARN_UNUSED_RESULT;
 
     /**
+     * Returns true if this is a hex number.
+     * Overridden from ExpressionNode.
+     */
+    virtual bool isHex() const WARN_UNUSED_RESULT;
+
+    /**
      * Determines type.
      */
     ///@{

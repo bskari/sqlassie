@@ -197,6 +197,12 @@ string TerminalNode::getValue() const
 }
 
 
+bool TerminalNode::isHex() const
+{
+    return HEX_NUMBER == type_;
+}
+
+
 bool TerminalNode::isNumber() const
 {
     return HEX_NUMBER == type_ || INTEGER == type_ || FLOAT== type_;

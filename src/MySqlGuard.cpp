@@ -21,7 +21,6 @@
 #include "Logger.hpp"
 #include "nullptr.hpp"
 #include "MySqlConstants.hpp"
-#include "MySqlConstants.hpp"
 #include "MySqlErrorMessageBlocker.hpp"
 #include "MySqlGuard.hpp"
 #include "MySqlGuardObjectContainer.hpp"
@@ -202,10 +201,8 @@ void MySqlGuard::handleMessage(std::vector<uint8_t>& rawMessage) const
             if (!dangerous)
             {
                 // Let the MySqlErrorMessageBlocker know what type the query is
-                if (nullptr != blocker_)
-                {
-                    blocker_->setQueryType(type);
-                }
+                assert(nullptr != blocker_);
+                blocker_->setQueryType(type);
 
                 // If the message has been split into a bunch of parts, then
                 // send those parts first

@@ -28,10 +28,6 @@
 #include "testSqlassie.hpp"
 #include "../warnUnusedResult.h"
 
-// Newer versions of the Boost filesystem (1.44+) changed the interface; to
-// keep compatibility, default to the old version
-#define BOOST_FILESYSTEM_VERSION 2
-#include <boost/filesystem/path.hpp>
 #include <boost/test/unit_test.hpp>
 #include <mysql/mysql.h>
 #include <signal.h>
@@ -149,24 +145,30 @@ void testDangerousSelectsAreBlocked()
         ++i
     )
     {
-        connection.runQuery(dangerousSelects[0], &results);
-        BOOST_CHECK(0 == results.size());
+        connection.runQuery(dangerousSelects[i], &results);
+        BOOST_CHECK_MESSAGE(
+            0 == results.size(),
+            '"' << dangerousSelects[i] << "\" should have been blocked but was not"
+        );
     }
 }
 
 
 void testDangerousCommandsAreBlocked()
 {
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
 }
 
 
 void testSemanticallyInvalidCommandsAreBlocked()
 {
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
 }
 
 
 void testSyntacticallyInvalidCommandsAreBlocked()
 {
+    BOOST_CHECK_MESSAGE(false, "Not implemented");
 }
 
 
@@ -180,7 +182,7 @@ SqlassieTestConnection::SqlassieTestConnection()
     : sqlassiePid_()
     , connection_(mysql_init(nullptr))
 {
-    if(!createTestData())
+    if (!createTestData())
     {
         deleteTestData();
         throw DescribedException("Unable to create test data");
@@ -223,17 +225,9 @@ SqlassieTestConnection::SqlassieTestConnection()
 
     if (nullptr == connection_)
     {
+        mysql_close(connection_);
         throw DescribedException("Unable to allocate space for MySQL connection");
     }
-
-    const char* const host = "localhost";
-    const char* const username = "sqlassie";
-    const char* const password = "";
-    const char* const database = "sqlassie_test";
-    const unsigned int port = 3307;
-    const char* const unixSocket = nullptr;
-    const unsigned long clientFlag = 0;
-    
 
     MYSQL* success;
     // Try a few times to connect in case it takes a while for SQLassie to start
@@ -241,6 +235,14 @@ SqlassieTestConnection::SqlassieTestConnection()
     {
         // Give SQLassie some time to start
         sleep(1);
+
+        const char* const host = "127.0.0.1";
+        const char* const username = "sqlassie";
+        const char* const password = "";
+        const char* const database = "sqlassie_test";
+        const unsigned int port = 3307;
+        const char* const unixSocket = nullptr;
+        const unsigned long clientFlag = 0;
 
         success = mysql_real_connect(
             connection_,
@@ -339,17 +341,12 @@ void SqlassieTestConnection::runQuery(
         BOOST_FAIL("runQuery called with non-query");
     }
 
-    MYSQL_ROW row = mysql_fetch_row(result);
-    if (nullptr == row)
-    {
-        mysql_free_result(result);
-        BOOST_FAIL("Unable to run query \"" << query << "\"");
-    }
 
     const size_t numFields = mysql_num_fields(result);
     rows->clear();
 
     // Parse and save all of the rows
+    MYSQL_ROW row = mysql_fetch_row(result);
     while (nullptr != row)
     {
         vector<string> rowVector;

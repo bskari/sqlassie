@@ -27,4 +27,7 @@ RELEASE_CXXFLAGS = -O3 -DNDEBUG -march=native
 CXX = clang++
 CC = clang
 
+# Custom platform specific options
+-include Makefile.custom
+
 include Makefile.common

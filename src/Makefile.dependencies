@@ -119,7 +119,8 @@ ReadlineStream.o:	ReadlineStream.cpp ReadlineStream.hpp
 
 ScannerContext.o:	ScannerContext.cpp QueryRisk.hpp ScannerContext.hpp
 
-SensitiveNameChecker.o:	SensitiveNameChecker.cpp SensitiveNameChecker.hpp
+SensitiveNameChecker.o:	SensitiveNameChecker.cpp SensitiveNameChecker.hpp \
+	nullptr.hpp
 
 SimpleProxy.o:	SimpleProxy.cpp SimpleProxy.hpp Socket.hpp SocketException.hpp
 
@@ -164,7 +165,8 @@ tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 	accumulator.hpp nullptr.hpp
 
 tests/fuzzer.o:	tests/fuzzer.cpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
-	ScannerContext.hpp nullptr.hpp scanner.yy.hpp sqlParser.h
+	ScannerContext.hpp SensitiveNameChecker.hpp nullptr.hpp \
+	scanner.yy.hpp sqlParser.h
 
 tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp tests/testMySqlConstants.hpp \

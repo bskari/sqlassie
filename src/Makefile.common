@@ -49,6 +49,12 @@ endif
 endif
 endif
 
+# Clang refuses to compile to object code if you include headers, e.g.
+# clang++ main.o Class.o Clas.hpp -o main
+# will generate an error (g++ implicityly ignores them). I still want headers
+# listed as dependencies, so just use this function to filter them out.
+noHeaders = $(filter-out %.h,$(filter-out %.hpp,$(1)))
+
 # Specific Targets
 
 all: $(BINARIES) $(OPTIONAL_STRIP)
@@ -61,7 +67,7 @@ demoDependencies = demo.o sqlParser.o scanner.yy.o QueryRisk.o AstNode.o \
 	initializeSingletons.o MySqlGuardObjectContainer.o BinaryOperatorNode.o \
 	TokenInfo.o BooleanLogicNode.o TerminalNode.o NullNode.o FunctionNode.o
 $(BINARY_DIR)/demo: $(demoDependencies)
-	$(CXX) $(CXXFLAGS) $(demoDependencies) \
+	$(CXX) $(CXXFLAGS) $(call noHeaders,$(demoDependencies)) \
 		-lboost_regex -lboost_thread -lpthread -o $(BINARY_DIR)/demo
 
 fuzzerDependencies = tests/fuzzer.o ParserInterface.o QueryRisk.o \
@@ -71,14 +77,13 @@ fuzzerDependencies = tests/fuzzer.o ParserInterface.o QueryRisk.o \
 	FunctionNode.o BooleanLogicNode.o Logger.o MySqlConstants.o TokenInfo.o \
 	SensitiveNameChecker.o
 $(BINARY_DIR)/fuzzer: $(fuzzerDependencies)
-	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(fuzzerDependencies) \
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(call noHeaders,$(fuzzerDependencies)) \
 		-lboost_regex -o $(BINARY_DIR)/fuzzer
 
-loggerDependencies = logger.o Socket.hpp Socket.o Proxy.hpp Proxy.o \
-	ProxyHalf.o ListenSocket.o MySqlLogger.o MySqlLoggerListenSocket.o \
-	MessageHandler.o Logger.o ProxyHalf.hpp
+loggerDependencies = logger.o Socket.o Proxy.o ProxyHalf.o ListenSocket.o \
+	MySqlLogger.o MySqlLoggerListenSocket.o MessageHandler.o Logger.o
 $(BINARY_DIR)/logger: $(loggerDependencies)
-	$(CXX) $(CXXFLAGS) $(loggerDependencies) \
+	$(CXX) $(CXXFLAGS) $(call noHeaders,$(loggerDependencies)) \
 		-lboost_thread -o $(BINARY_DIR)/logger
 
 parserDependencies = parser.o sqlParser.o scanner.yy.o QueryRisk.o AstNode.o \
@@ -88,7 +93,7 @@ parserDependencies = parser.o sqlParser.o scanner.yy.o QueryRisk.o AstNode.o \
 	NegationNode.o ScannerContext.o SensitiveNameChecker.o BinaryOperatorNode.o \
 	TokenInfo.o BooleanLogicNode.o ReadlineStream.o
 $(BINARY_DIR)/parser: $(parserDependencies)
-	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(parserDependencies) \
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(call noHeaders,$(parserDependencies)) \
 		-lboost_regex -lboost_thread -lm -lreadline -o $(BINARY_DIR)/parser
 
 probabilitiesDependencies = probabilities.o csvParse.hpp
@@ -102,7 +107,7 @@ queryStatisticsDependencies = queryStatistics.o sqlParser.o scanner.yy.o \
 	BinaryOperatorNode.o TokenInfo.o BooleanLogicNode.o QueryRisk.o NullNode.o \
 	TerminalNode.o FunctionNode.o
 $(BINARY_DIR)/queryStatistics: $(queryStatisticsDependencies)
-	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(queryStatisticsDependencies) \
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(call noHeaders,$(queryStatisticsDependencies)) \
 		-lboost_regex -lboost_thread -lm -o $(BINARY_DIR)/queryStatistics
 
 riskAnalyzerDependencies = riskAnalyzer.o sqlParser.o scanner.yy.o AstNode.o \
@@ -113,13 +118,13 @@ riskAnalyzerDependencies = riskAnalyzer.o sqlParser.o scanner.yy.o AstNode.o \
 	SensitiveNameChecker.o BinaryOperatorNode.o TokenInfo.o BooleanLogicNode.o \
 	NullNode.o FunctionNode.o ReadlineStream.o
 $(BINARY_DIR)/riskAnalyzer: $(riskAnalyzerDependencies)
-	$(CXX) $(CXXFLAGS) $(riskAnalyzerDependencies) \
+	$(CXX) $(CXXFLAGS) $(call noHeaders,$(riskAnalyzerDependencies)) \
 		-lboost_regex -lboost_thread -lreadline -o $(BINARY_DIR)/riskAnalyzer
 
 scannerDependencies = scanner.o scanner.yy.o QueryRisk.o sqlParser.h Logger.o \
 	ScannerContext.o ReadlineStream.o
 $(BINARY_DIR)/scanner: $(scannerDependencies)
-	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(scannerDependencies) \
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(call noHeaders,$(scannerDependencies)) \
 		-lboost_regex -lboost_thread -lreadline -o $(BINARY_DIR)/scanner
 
 sqlassieDependencies = sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o \
@@ -134,7 +139,7 @@ sqlassieDependencies = sqlassie.o Socket.hpp Socket.o Proxy.hpp Proxy.o \
 	BinaryOperatorNode.o TokenInfo.o BooleanLogicNode.o ProxyHalf.hpp \
 	TerminalNode.o NullNode.o FunctionNode.o
 $(BINARY_DIR)/sqlassie: $(sqlassieDependencies)
-	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(sqlassieDependencies) \
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(call noHeaders,$(sqlassieDependencies)) \
 		-lboost_program_options -lboost_regex -lboost_thread -lmysqlclient \
 		-lpthread \
 		-o $(BINARY_DIR)/sqlassie
@@ -153,7 +158,7 @@ testDependencies = tests/test.o tests/testNode.o tests/testParser.o \
 	ScannerContext.o SensitiveNameChecker.o BinaryOperatorNode.o TokenInfo.o \
 	BooleanLogicNode.o TerminalNode.o NullNode.o FunctionNode.o
 $(BINARY_DIR)/test: $(testDependencies) $(BINARY_DIR)/sqlassie
-	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(testDependencies) \
+	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(call noHeaders,$(testDependencies)) \
 		-lboost_regex -lboost_thread -lmysqlclient \
 		-lboost_unit_test_framework -lboost_filesystem -lboost_system \
 		-lpthread \
@@ -163,7 +168,7 @@ tunnelDependencies = tunnel.o ProxyListenSocket.hpp \
 	Socket.o Proxy.o ProxyHalf.o ListenSocket.o MySqlPrinter.o \
 	ProxyListenSocket.o MessageHandler.o Logger.o
 $(BINARY_DIR)/tunnel: $(tunnelDependencies)
-	$(CXX) $(CXXFLAGS) $(tunnelDependencies) \
+	$(CXX) $(CXXFLAGS) $(call noHeaders,$(tunnelDependencies)) \
 		-lboost_thread -lboost_program_options -o $(BINARY_DIR)/tunnel
 
 sqlParser.h: sqlParser.c ;

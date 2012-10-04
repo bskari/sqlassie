@@ -25,7 +25,7 @@
 class ParserInterfaceScannerMembers;
 #include "QueryRisk.hpp"
 #include "ScannerContext.hpp"
-class TokenInfo;
+struct TokenInfo;
 
 #include <boost/cstdint.hpp>
 #include <boost/thread/mutex.hpp>

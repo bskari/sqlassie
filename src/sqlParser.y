@@ -269,7 +269,7 @@ id(A) ::= ID_FALLBACK(X).
   LOW_PRIORITY DELAYED HIGH_PRIORITY CONSISTENT SNAPSHOT WORK CHAIN QUICK
   SOUNDS OUTFILE SQL_BIG_RESULT SQL_SMALL_RESULT SQL_BUFFER_RESULT SQL_CACHE
   SQL_NO_CACHE LOCK SHARE MODE BOOLEAN EXPANSION
-  UNION
+  UNION JOIN_KW
   FULL TABLES SCHEMA
   DEFAULT
   SOME ANY
@@ -980,7 +980,6 @@ expr ::= id(X).
     ExpressionNode* e = new TerminalNode(X->scannedString_, X->token_);
     sc->pushNode(e);
 }
-expr ::= JOIN_KW.
 expr ::= nm(X) DOT id(Y).
 {
     sc->qrPtr->checkTable(X->scannedString_);
@@ -1083,15 +1082,8 @@ expr ::= expr XOR(OP) expr.
 {
     addBooleanLogicNode(sc, OP->token_);
 }
-expr ::= expr LT|GT|LE|GE|NE(OP) expr.
+expr ::= expr EQ|LT|GT|LE|GE|NE(OP) expr.
 {
-    addComparisonNode(sc, OP->token_);
-}
-expr ::= expr EQ(OP) expr.
-{
-    const ExpressionNode* const expr2 =
-        boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());
-
     addComparisonNode(sc, OP->token_);
 }
 expr ::= expr BITAND|BITOR|BITXOR|LSHIFT|RSHIFT(OP) expr.

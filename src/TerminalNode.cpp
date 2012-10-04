@@ -133,6 +133,7 @@ bool TerminalNode::isAlwaysTrue() const
             return false;
         }
     case ID:
+    case GLOBAL_VARIABLE:
         // Identifiers may or may not result in true, so they are not
         // necessarily always true
         return false;

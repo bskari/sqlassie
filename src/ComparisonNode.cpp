@@ -154,7 +154,6 @@ bool ComparisonNode::isAlwaysTrue() const
         return false;
     }
 
-    string expr1, expr2;
     if (expr1_->resultsInValue() && expr2_->resultsInValue())
     {
         return compareValues(
@@ -226,8 +225,14 @@ bool ComparisonNode::resultsInValue() const
 string ComparisonNode::getValue() const
 {
     assert(resultsInValue());
-    /// @TODO(bskari|2012-07-28) Implement this
-    return "";
+    if (isAlwaysTrue())
+    {
+        return "1";
+    }
+    else
+    {
+        return "0";
+    }
 }
 
 

@@ -18,6 +18,7 @@
  * along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "nullptr.hpp"
 #include "SensitiveNameChecker.hpp"
 
 #include <boost/regex.hpp>
@@ -50,6 +51,7 @@ void SensitiveNameChecker::initialize()
 
 void SensitiveNameChecker::setPasswordRegex(const string& passwordRegex)
 {
+    assert(nullptr != instance_);
     instance_->passwordRegex_ =
         regex(passwordRegex, regex::perl | regex::icase);
 }
@@ -57,24 +59,28 @@ void SensitiveNameChecker::setPasswordRegex(const string& passwordRegex)
 
 void SensitiveNameChecker::setPasswordSubstring(const string& passwordSubstring)
 {
+    assert(nullptr != instance_);
     instance_->passwordSubstring_ = passwordSubstring;
 }
 
 
 void SensitiveNameChecker::setUserRegex(const string& userRegex)
 {
+    assert(nullptr != instance_);
     instance_->userRegex_ = regex(userRegex, regex::perl | regex::icase);
 }
 
 
 void SensitiveNameChecker::setUserSubstring(const string& userSubstring)
 {
+    assert(nullptr != instance_);
     instance_->userSubstring_ = userSubstring;
 }
 
 
 bool SensitiveNameChecker::isPasswordField(const std::string& field)
 {
+    assert(nullptr != instance_);
     return SensitiveNameChecker::isMatch(
         instance_->passwordRegex_,
         instance_->passwordSubstring_,
@@ -85,6 +91,7 @@ bool SensitiveNameChecker::isPasswordField(const std::string& field)
 
 bool SensitiveNameChecker::isUserTable(const std::string& field)
 {
+    assert(nullptr != instance_);
     return SensitiveNameChecker::isMatch(
         instance_->userRegex_,
         instance_->userSubstring_,

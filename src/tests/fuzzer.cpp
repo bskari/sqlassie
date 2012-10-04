@@ -37,6 +37,7 @@
 #include "../QueryRisk.hpp"
 #include "../scanner.yy.hpp"
 #include "../ScannerContext.hpp"
+#include "../SensitiveNameChecker.hpp"
 #include "../sqlParser.h"
 
 #include <cassert>
@@ -102,6 +103,9 @@ static const int IPC_SIZE = 4096;
 int main(int argc, char* argv[])
 {
     Logger::initialize();
+    SensitiveNameChecker::initialize();
+    SensitiveNameChecker::setUserSubstring("user");
+    SensitiveNameChecker::setPasswordSubstring("password");
 
     if (argc > 1)
     {

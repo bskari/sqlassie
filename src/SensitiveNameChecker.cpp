@@ -52,6 +52,11 @@ void SensitiveNameChecker::initialize()
 void SensitiveNameChecker::setPasswordRegex(const string& passwordRegex)
 {
     assert(nullptr != instance_);
+
+    // We only allow either a regex or a password to be used
+    assert(instance_->passwordSubstring_.empty());
+    instance_->passwordSubstring_.clear();
+
     instance_->passwordRegex_ =
         regex(passwordRegex, regex::perl | regex::icase);
 }
@@ -60,6 +65,12 @@ void SensitiveNameChecker::setPasswordRegex(const string& passwordRegex)
 void SensitiveNameChecker::setPasswordSubstring(const string& passwordSubstring)
 {
     assert(nullptr != instance_);
+
+    // We only allow either a regex or a password to be used
+    assert(instance_->passwordRegex_.str().empty());
+    /// @TODO(bskari|2012-10-12) see if there is a clear function
+    instance_->passwordRegex_ = "";
+
     instance_->passwordSubstring_ = passwordSubstring;
 }
 
@@ -67,6 +78,11 @@ void SensitiveNameChecker::setPasswordSubstring(const string& passwordSubstring)
 void SensitiveNameChecker::setUserRegex(const string& userRegex)
 {
     assert(nullptr != instance_);
+
+    // We only allow either a regex or a password to be used
+    assert(instance_->userSubstring_.empty());
+    instance_->userSubstring_.clear();
+
     instance_->userRegex_ = regex(userRegex, regex::perl | regex::icase);
 }
 
@@ -74,11 +90,17 @@ void SensitiveNameChecker::setUserRegex(const string& userRegex)
 void SensitiveNameChecker::setUserSubstring(const string& userSubstring)
 {
     assert(nullptr != instance_);
+
+    // We only allow either a regex or a password to be used
+    assert(instance_->userRegex_.str().empty());
+    /// @TODO(bskari|2012-10-12) see if there is a clear function
+    instance_->passwordRegex_ = "";
+
     instance_->userSubstring_ = userSubstring;
 }
 
 
-bool SensitiveNameChecker::isPasswordField(const std::string& field)
+bool SensitiveNameChecker::isPasswordField(const string& field)
 {
     assert(nullptr != instance_);
     return SensitiveNameChecker::isMatch(
@@ -89,7 +111,7 @@ bool SensitiveNameChecker::isPasswordField(const std::string& field)
 }
 
 
-bool SensitiveNameChecker::isUserTable(const std::string& field)
+bool SensitiveNameChecker::isUserTable(const string& field)
 {
     assert(nullptr != instance_);
     return SensitiveNameChecker::isMatch(
@@ -101,15 +123,15 @@ bool SensitiveNameChecker::isUserTable(const std::string& field)
 
 
 bool SensitiveNameChecker::isMatch(
-    const boost::regex& re,
-    const std::string& substring,
-    const std::string& field
+    const regex& re,
+    const string& substring,
+    const string& field
 )
 {
     assert(
         (
-            (re.empty() && !substring.empty())
-            || (!re.empty() && substring.empty())
+            (re.str().empty() && !substring.empty())
+            || (!re.str().empty() && substring.empty())
         )
         && "Either substring or regex needs to be set"
     );

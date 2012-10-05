@@ -78,7 +78,7 @@ fuzzerDependencies = tests/fuzzer.o ParserInterface.o QueryRisk.o \
 	SensitiveNameChecker.o
 $(BINARY_DIR)/fuzzer: $(fuzzerDependencies)
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(call noHeaders,$(fuzzerDependencies)) \
-		-lboost_regex -o $(BINARY_DIR)/fuzzer
+		-lboost_regex -lboost_program_options -o $(BINARY_DIR)/fuzzer
 
 loggerDependencies = logger.o Socket.o Proxy.o ProxyHalf.o ListenSocket.o \
 	MySqlLogger.o MySqlLoggerListenSocket.o MessageHandler.o Logger.o

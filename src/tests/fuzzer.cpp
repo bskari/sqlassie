@@ -39,11 +39,16 @@
 #include "../ScannerContext.hpp"
 #include "../SensitiveNameChecker.hpp"
 #include "../sqlParser.h"
+#include "../warnUnusedResult.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
+#include <boost/program_options.hpp>
+#include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <sstream>
 #include <string>
@@ -56,11 +61,15 @@
 #include <utility>
 #include <vector>
 
+namespace options = boost::program_options;
 using std::cerr;
 using std::cout;
 using std::endl;
 using std::ifstream;
 using std::map;
+using std::ofstream;
+using std::ostream;
+using std::ostream_iterator;
 using std::ostringstream;
 using std::pair;
 using std::string;
@@ -79,11 +88,34 @@ static void initializeRandomQueries(const char* filename);
  * using the Markov chain map.
  */
 static string generateRandomQuery(unsigned int* randState);
-
 static unsigned int getRandSeed();
+static options::options_description getCommandLineOptions();
+static char* initializeSharedMemory() WARN_UNUSED_RESULT;
+static void findParseErrors(
+    char* const sharedMemory,
+    const size_t iterations,
+    ostream& out
+);
+void findMemoryLeaks(
+    const size_t iterations,
+    const size_t numQueries,
+    ostream& out
+);
+void printLeakyQueries(
+    const vector<string>::const_iterator begin,
+    const vector<string>::const_iterator end,
+    ostream& out
+);
+bool hasLeakyQueries(
+    const vector<string>::const_iterator begin,
+    const vector<string>::const_iterator end
+);
 
+static const int IPC_SIZE = 4096;
+static const char* const DEFAULT_QUERIES_FILE = "../src/tests/queries/wikidb.sql";
 typedef int token_t;
 typedef float probability_t;
+
 // Mapping from a token to tokens that followed it in the sample file, along
 // with a CPD of that token or one of the previous tokens being used.
 // For example:
@@ -97,8 +129,6 @@ typedef float probability_t;
 static map<token_t, vector<pair<token_t, probability_t> > > tokenToTokenCpd;
 static map<token_t, string> tokenToString;
 
-static const int IPC_SIZE = 4096;
-
 
 int main(int argc, char* argv[])
 {
@@ -107,67 +137,32 @@ int main(int argc, char* argv[])
     SensitiveNameChecker::setUserSubstring("user");
     SensitiveNameChecker::setPasswordSubstring("password");
 
-    if (argc > 1)
+    options::variables_map commandLineVm;
+    options::options_description visibleOptions("Options");
+    visibleOptions.add(getCommandLineOptions());
+
+    store(
+        options::command_line_parser(
+            argc,
+            argv
+        ).options(
+            visibleOptions
+        ).run(),
+        commandLineVm
+    );
+
+    initializeRandomQueries(commandLineVm["queries"].as<string>().c_str());
+
+    if (commandLineVm["valgrind"].as<bool>())
     {
-        initializeRandomQueries(argv[1]);
+        cout << "Looking for memory leaks" << endl;
+        findMemoryLeaks(10, 10, cout);
     }
     else
     {
-        initializeRandomQueries("../src/tests/queries/wikidb.sql");
-    }
-
-    unsigned int randState = getRandSeed();
-
-    const key_t key = rand_r(&randState);
-    const int shmid = shmget(key, IPC_SIZE, IPC_CREAT | 0666);
-    if (shmid < 0)
-    {
-        cerr << "Unable to create shared memory" << endl;
-        exit(EXIT_FAILURE);
-    }
-    char* const sharedMemory = static_cast<char*>(shmat(shmid, nullptr, 0));
-    if (reinterpret_cast<char*>(-1) == sharedMemory)
-    {
-        cerr << "Unable to access shared memory" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < 100; ++i)
-    {
-        // Run the parser in another process so that we can monitor crashes
-        const pid_t pid = fork();
-
-        // Child process
-        if (0 == pid)
-        {
-            // The child needs to reseed so that it doesn't get the same query
-            // every time
-            randState = getRandSeed();
-
-            QueryRisk qr;
-            while (true)
-            {
-                const string query(generateRandomQuery(&randState));
-
-                // Use strncat instead of strncpy to avoid overhead of padding
-                // the rest of the string with '\0's
-                sharedMemory[0] = '\0';
-                strncat(sharedMemory, query.c_str(), query.size());
-                sharedMemory[IPC_SIZE - 1] = '\0';
-
-                ParserInterface parser(query);
-                const bool _ = parser.parse(&qr);
-                if (_) {}  // Silence compiler warning
-            }
-        }
-        // Parent
-        else
-        {
-            int status;
-            waitpid(pid, &status, 0);
-            cout << "Child terminated, last query was:\n";
-            cout << sharedMemory << endl;
-        }
+        cout << "Looking for parse errors" << endl;
+        char* const sharedMemory = initializeSharedMemory();
+        findParseErrors(sharedMemory, 100, cout);
     }
 
     exit(EXIT_SUCCESS);
@@ -331,12 +326,10 @@ string generateRandomQuery(unsigned int* randState)
         }
         else
         {
-            if (tokenToTokenCpd.end() == tokenToTokenCpd.find(token))
-            {
-                cout << "FUCK" << endl;
-                cout << token << " " << tokenToString.at(token) << endl;
-                cout << "what" << endl;
-            }
+            assert(
+                tokenToTokenCpd.end() != tokenToTokenCpd.find(token)
+                && "Unknown token"
+            );
             // Use the Markov chain to choose a value
             const probability_t tokenProbability =
                 static_cast<probability_t>(rand_r(randState)) / RAND_MAX;
@@ -378,4 +371,182 @@ static unsigned int getRandSeed()
     timeb timeStruct;
     ftime(&timeStruct);
     return (timeStruct.time / 1000) * 1000 + timeStruct.millitm;
+}
+
+
+options::options_description getCommandLineOptions()
+{
+    options::options_description cli("Command line options");
+    cli.add_options()
+        (
+            "valgrind,v",
+            options::bool_switch()->default_value(false),
+            "Run valgrind to look for memory leaks."
+        )
+        (
+            "queries,q",
+            options::value<string>()->default_value(DEFAULT_QUERIES_FILE),
+            "File to read sample queries for seeding the Markov chain from."
+        );
+    return cli;
+}
+
+
+char* initializeSharedMemory()
+{
+    unsigned int seed = getRandSeed();
+    const key_t key = rand_r(&seed);
+    const int shmid = shmget(key, IPC_SIZE, IPC_CREAT | 0666);
+    if (shmid < 0)
+    {
+        cerr << "Unable to create shared memory" << endl;
+        exit(EXIT_FAILURE);
+    }
+    char* const sharedMemory = static_cast<char*>(shmat(shmid, nullptr, 0));
+    if (reinterpret_cast<char*>(-1) == sharedMemory)
+    {
+        cerr << "Unable to access shared memory" << endl;
+        exit(EXIT_FAILURE);
+    }
+    return sharedMemory;
+}
+
+
+void findParseErrors(
+    char* const sharedMemory,
+    const size_t iterations,
+    ostream& out
+)
+{
+    for (size_t i = 0; i < iterations; ++i)
+    {
+        // Run the parser in another process so that we can monitor crashes
+        const pid_t pid = fork();
+
+        // Child process
+        if (0 == pid)
+        {
+            // The child needs to reseed so that it doesn't get the same query
+            // every time
+            unsigned int randState = getRandSeed();
+
+            QueryRisk qr;
+            while (true)
+            {
+                const string query(generateRandomQuery(&randState));
+
+                // Use strncat instead of strncpy to avoid overhead of padding
+                // the rest of the string with '\0's
+                sharedMemory[0] = '\0';
+                strncat(sharedMemory, query.c_str(), query.size());
+                sharedMemory[IPC_SIZE - 1] = '\0';
+
+                ParserInterface parser(query);
+                const bool _ = parser.parse(&qr);
+                if (_) {}  // Silence compiler warning
+            }
+        }
+        // Parent
+        else
+        {
+            int status;
+            waitpid(pid, &status, 0);
+            out << "Child terminated, last query was:\n";
+            out << sharedMemory << endl;
+        }
+    }
+}
+
+
+void findMemoryLeaks(
+    const size_t iterations,
+    const size_t numQueries,
+    ostream& out
+)
+{
+    unsigned int randState = getRandSeed();
+    for (size_t i = 0; i < iterations; ++i)
+    {
+        vector<string> queries;
+        for (size_t i = 0; i < numQueries; ++i)
+        {
+            const string query(generateRandomQuery(&randState));
+            queries.push_back(query);
+        }
+        printLeakyQueries(queries.begin(), queries.end(), out);
+    }
+}
+
+
+void printLeakyQueries(
+    const vector<string>::const_iterator begin,
+    const vector<string>::const_iterator end,
+    ostream& out
+)
+{
+    // Any of the queries might be leaky, but try to eliminate half at a time
+    // This isn't a strictly binary search, because both halves might have
+    // leaky queries
+    if (begin >= end)
+    {
+        return;
+    }
+
+    if (begin + 1 == end)
+    {
+        if (hasLeakyQueries(begin, end))
+        {
+            out << *begin << endl;
+        }
+        return;
+    }
+
+    const vector<string>::const_iterator mid((end - begin) / 2 + begin);
+    if (hasLeakyQueries(begin, mid))
+    {
+        printLeakyQueries(begin, mid, out);
+    }
+    if (hasLeakyQueries(mid, end))
+    {
+        printLeakyQueries(mid, end, out);
+    }
+}
+
+
+bool hasLeakyQueries(
+    const vector<string>::const_iterator begin,
+    const vector<string>::const_iterator end
+)
+{
+    assert(begin <= end);
+    if (begin >= end)
+    {
+        return false;
+    }
+
+    char tempFilename[20] = {"/tmp/query-XXXXXX"};
+    mktemp(tempFilename);
+    ofstream queryFile(tempFilename);
+    copy(begin, end, ostream_iterator<string>(queryFile, "\n"));
+    queryFile.close();
+
+    // Valgrind has an --error-exitcode=? option, but I can't get it to
+    // work, so I'll just grep the output for error messages instead of trying
+    // to fork and exec and examining the return code
+    string command("/usr/bin/valgrind ../bin/parser ");
+    command += tempFilename;
+    command += " 2>&1 | grep -q -P \"definitely lost: \\d{2}\"";
+    FILE* const process = popen(command.c_str(), "r");
+    const int popenStatus = pclose(process);
+
+    assert(WIFEXITED(popenStatus));
+    const bool lostMemory = (0 == WEXITSTATUS(popenStatus));
+
+    const int rmStatus = unlink(tempFilename);
+    if (0 != rmStatus)
+    {
+        cerr << "Unable to remove file " << tempFilename << endl;
+    }
+
+    return lostMemory;
 }

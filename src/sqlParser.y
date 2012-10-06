@@ -821,6 +821,7 @@ groupby_opt ::= GROUP BY nexprbegin nexprlist.
 {
     while (sc->isTopNodeFromCurrentDepth())
     {
+        delete sc->getTopNode();
         sc->popNode();
     }
     sc->decreaseNodeDepth();
@@ -843,8 +844,24 @@ having_opt ::= HAVING expr.
 //}
 limit_opt ::= .
 limit_opt ::= LIMIT expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 limit_opt ::= LIMIT expr OFFSET expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+    delete sc->getTopNode();
+    sc->popNode();
+}
 limit_opt ::= LIMIT expr COMMA expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+    delete sc->getTopNode();
+    sc->popNode();
+}
 
 // Subselects have some different semantics.
 // 1) We care about the risks in them, because attackers can use them to
@@ -1045,7 +1062,7 @@ expr ::= id(X) LP distinct exprlist RP.
     }
     sc->decreaseNodeDepth();
 
-    sc->pushNode(new FunctionNode(X->scannedString_));
+    sc->pushNode(fn);
 
     sc->qrPtr->checkFunction(X->scannedString_);
 }

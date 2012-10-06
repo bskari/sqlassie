@@ -565,6 +565,7 @@ oneselect ::= SELECT distinct selcollist from where_opt
         boost::polymorphic_cast<const ExpressionNode*>(sc->getTopNode());
     sc->popNode();
     sc->qrPtr->alwaysTrue = whereNode->isAlwaysTrue();
+    delete whereNode;
 }
 
 // The "distinct" nonterminal is true (1) if the DISTINCT keyword is
@@ -609,6 +610,10 @@ lock_read_opt ::= LOCK IN SHARE MODE.
 sclp ::= selcollist COMMA.
 sclp ::= .
 selcollist ::= sclp expr as.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 selcollist ::= sclp STAR.
 selcollist ::= sclp nm DOT STAR as.
 
@@ -870,6 +875,7 @@ cmd ::= DELETE delete_opt FROM fullname where_opt
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_DELETE;
     // Pop the where_opt node
+    delete sc->getTopNode();
     sc->popNode();
 }
 
@@ -1113,6 +1119,9 @@ expr ::= expr CONCAT expr.
             expr1->getValue() + expr2->getValue()
         )
     );
+
+    delete expr1;
+    delete expr2;
 }
 
 like_op(A) ::= MATCH_KW(OP).

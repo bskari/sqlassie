@@ -93,18 +93,19 @@ static options::options_description getCommandLineOptions();
 static char* initializeSharedMemory() WARN_UNUSED_RESULT;
 static void findParseErrors(
     char* const sharedMemory,
-    const size_t iterations,
+    const size_t numErrorsToFind,
     ostream& out
 );
 void findMemoryLeaks(
-    const size_t iterations,
-    const size_t numQueries,
-    ostream& out
+    const size_t numErrorsToFind,
+    ostream& out,
+    const size_t stepSize=1000
 );
 void printLeakyQueries(
     const vector<string>::const_iterator begin,
     const vector<string>::const_iterator end,
-    ostream& out
+    ostream& out,
+    size_t* const numErrorsFound
 );
 bool hasLeakyQueries(
     const vector<string>::const_iterator begin,
@@ -156,13 +157,13 @@ int main(int argc, char* argv[])
     if (commandLineVm["valgrind"].as<bool>())
     {
         cout << "Looking for memory leaks" << endl;
-        findMemoryLeaks(10, 10, cout);
+        findMemoryLeaks(10, cout);
     }
     else
     {
         cout << "Looking for parse errors" << endl;
         char* const sharedMemory = initializeSharedMemory();
-        findParseErrors(sharedMemory, 100, cout);
+        findParseErrors(sharedMemory, 10, cout);
     }
 
     exit(EXIT_SUCCESS);
@@ -414,11 +415,12 @@ char* initializeSharedMemory()
 
 void findParseErrors(
     char* const sharedMemory,
-    const size_t iterations,
+    const size_t numErrorsToFind,
     ostream& out
 )
 {
-    for (size_t i = 0; i < iterations; ++i)
+    size_t numErrorsFound = 0;
+    while (numErrorsFound < numErrorsToFind)
     {
         // Run the parser in another process so that we can monitor crashes
         const pid_t pid = fork();
@@ -453,27 +455,29 @@ void findParseErrors(
             waitpid(pid, &status, 0);
             out << "Child terminated, last query was:\n";
             out << sharedMemory << endl;
+            ++numErrorsFound;
         }
     }
 }
 
 
 void findMemoryLeaks(
-    const size_t iterations,
-    const size_t numQueries,
-    ostream& out
+    const size_t numErrorsToFind,
+    ostream& out,
+    const size_t stepSize
 )
 {
     unsigned int randState = getRandSeed();
-    for (size_t i = 0; i < iterations; ++i)
+    size_t numErrorsFound = 0;
+    while (numErrorsFound < numErrorsToFind)
     {
         vector<string> queries;
-        for (size_t i = 0; i < numQueries; ++i)
+        for (size_t j = 0; j < stepSize; ++j)
         {
             const string query(generateRandomQuery(&randState));
             queries.push_back(query);
         }
-        printLeakyQueries(queries.begin(), queries.end(), out);
+        printLeakyQueries(queries.begin(), queries.end(), out, &numErrorsFound);
     }
 }
 
@@ -481,7 +485,8 @@ void findMemoryLeaks(
 void printLeakyQueries(
     const vector<string>::const_iterator begin,
     const vector<string>::const_iterator end,
-    ostream& out
+    ostream& out,
+    size_t* const numErrorsFound
 )
 {
     // Any of the queries might be leaky, but try to eliminate half at a time
@@ -497,6 +502,7 @@ void printLeakyQueries(
         if (hasLeakyQueries(begin, end))
         {
             out << *begin << endl;
+            ++(*numErrorsFound);
         }
         return;
     }
@@ -504,11 +510,11 @@ void printLeakyQueries(
     const vector<string>::const_iterator mid((end - begin) / 2 + begin);
     if (hasLeakyQueries(begin, mid))
     {
-        printLeakyQueries(begin, mid, out);
+        printLeakyQueries(begin, mid, out, numErrorsFound);
     }
     if (hasLeakyQueries(mid, end))
     {
-        printLeakyQueries(mid, end, out);
+        printLeakyQueries(mid, end, out, numErrorsFound);
     }
 }
 

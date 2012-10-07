@@ -17,7 +17,7 @@
 # along with SQLassie. If not, see <http://www.gnu.org/licenses/>.
 
 # Default version; this is overridable on the command line by typing:
-# make VERSION=[RELEASE|DEBUG|PROFILE]
+# make VERSION=[RELEASE|DEBUG|PROFILE|COVERAGE]
 
 VERSION = DEBUG
 WARNING_CXXFLAGS = -Wall -Wextra -Weffc++ -Wfloat-equal -Wshadow\
@@ -29,6 +29,7 @@ PROFILE_CXXFLAGS = -pg -O3 -march=native -fexpensive-optimizations -pipe\
 	-DNDEBUG -ffast-math $(CUSTOM_PROFILE_CXXFLAGS)
 RELEASE_CXXFLAGS = -O3 -march=native -fexpensive-optimizations\
 	-fomit-frame-pointer -pipe -DNDEBUG -ffast-math $(CUSTOM_RELEASE_CXXFLAGS)
+COVERAGE_CXXFLAGS = -O0 -fprofile-arcs -ftest-coverage
 
 # Use the GNU C/C++:
 CXX = g++

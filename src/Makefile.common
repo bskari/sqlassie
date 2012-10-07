@@ -36,17 +36,19 @@ LEMON = lemon
 ifeq "$(VERSION)" "PROFILE"
 CXXFLAGS = $(PROFILE_CXXFLAGS) $(WARNING_CXXFLAGS) $(CUSTOM_CXXFLAGS)
 CXXFLAGS_NO_WARNINGS = $(PROFILE_CXXFLAGS)
-else
+endif
 ifeq "$(VERSION)" "DEBUG"
 CXXFLAGS = $(DEBUG_CXXFLAGS) $(WARNING_CXXFLAGS) $(CUSTOM_CXXFLAGS)
 CXXFLAGS_NO_WARNINGS = $(DEBUG_CXXFLAGS)
-else
+endif
+ifeq "$(VERSION)" "COVERAGE"
+CXXFLAGS = $(COVERAGE_CXXFLAGS) $(WARNING_CXXFLAGS) $(CUSTOM_CXXFLAGS)
+CXXFLAGS_NO_WARNINGS = $(COVERAGE_CXXFLAGS)
+endif
 ifeq "$(VERSION)" "RELEASE"
 CXXFLAGS = $(RELEASE_CXXFLAGS) $(WARNING_CXXFLAGS) $(CUSTOM_CXXFLAGS)
 CXXFLAGS_NO_WARNINGS = $(RELEASE_CXXFLAGS)
 OPTIONAL_STRIP = strip
-endif
-endif
 endif
 
 # Clang refuses to compile to object code if you include headers, e.g.
@@ -231,6 +233,8 @@ dependencies: dependencies.py
 clean:
 	rm -f *.o *.gch *~
 	rm -f tests/*.o tests/*~
+	rm -f *.gcov *.gcda *.gcno
+	rm -f tests/*.gcov tests/*.gcda tests/*.gcno
 	rm -f scanner.yy.cpp scanner.yy.hpp \
 	sqlParser.out sqlParser.c sqlParser.h \
 	huginScanner.yy.cpp huginScanner.yy.hpp \

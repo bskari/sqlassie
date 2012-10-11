@@ -48,6 +48,8 @@ InValuesListNode.o:	InValuesListNode.cpp ExpressionNode.hpp \
 	InValuesListNode.hpp QueryRisk.hpp SensitiveNameChecker.hpp \
 	nullptr.hpp
 
+IndeterminateNode.o:	IndeterminateNode.cpp IndeterminateNode.hpp
+
 ListenSocket.o:	ListenSocket.cpp ListenSocket.hpp Logger.hpp \
 	MessageHandler.hpp SocketException.hpp
 
@@ -166,7 +168,7 @@ tunnel.o:	tunnel.cpp DescribedException.hpp Logger.hpp ProxyListenSocket.hpp \
 
 tests/fuzzer.o:	tests/fuzzer.cpp Logger.hpp ParserInterface.hpp QueryRisk.hpp \
 	ScannerContext.hpp SensitiveNameChecker.hpp nullptr.hpp \
-	scanner.yy.hpp sqlParser.h
+	scanner.yy.hpp sqlParser.h warnUnusedResult.h
 
 tests/test.o:	tests/test.cpp Logger.hpp QueryWhitelist.hpp \
 	SensitiveNameChecker.hpp nullptr.hpp tests/testMySqlConstants.hpp \

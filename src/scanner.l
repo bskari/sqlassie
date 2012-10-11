@@ -312,7 +312,6 @@ CONDITIONAL    ("AND"|"OR"|"XOR"|"WHERE")
 "~"     {return BITNOT;}
 "<<"    {return LSHIFT;}
 ">>"    {return RSHIFT;}
-"||"    {return CONCAT;}
 
 ","     {return COMMA;}
 "*"     {return STAR;}

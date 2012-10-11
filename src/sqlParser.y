@@ -1121,25 +1121,6 @@ expr ::= expr STAR|SLASH|REM|INTEGER_DIVIDE(OP) expr.
 {
     addBinaryOperatorNode(sc, OP->token_);
 }
-expr ::= expr CONCAT expr.
-{
-    // Screw it, let's just handle it here
-    ExpressionNode* const expr2 =
-        boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
-    sc->popNode();
-    ExpressionNode* const expr1 =
-        boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
-    sc->popNode();
-
-    sc->pushNode(
-        TerminalNode::createStringTerminalNode(
-            expr1->getValue() + expr2->getValue()
-        )
-    );
-
-    delete expr1;
-    delete expr2;
-}
 
 like_op(A) ::= MATCH_KW(OP).
 {

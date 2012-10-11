@@ -64,7 +64,7 @@ bool AlwaysSomethingNode::isAlwaysTrue() const
 
 bool AlwaysSomethingNode::resultsInValue() const
 {
-    return false;
+    return true;
 }
 
 

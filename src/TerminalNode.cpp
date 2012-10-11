@@ -89,8 +89,10 @@ bool TerminalNode::isAlwaysTrueOrFalse() const
         case ID:
             return false;
         case INTEGER:
+        case FLOAT:
         case HEX_NUMBER:
         case STRING:
+        case GLOBAL_VARIABLE:
             return true;
         default:
             Logger::log(Logger::WARN)

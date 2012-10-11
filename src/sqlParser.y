@@ -564,7 +564,8 @@ oneselect ::= SELECT distinct selcollist from where_opt
     const ExpressionNode* const whereNode =
         boost::polymorphic_cast<const ExpressionNode*>(sc->getTopNode());
     sc->popNode();
-    sc->qrPtr->alwaysTrue = whereNode->isAlwaysTrue();
+    sc->qrPtr->alwaysTrue =
+        whereNode->isAlwaysTrueOrFalse() && whereNode->isAlwaysTrue();
     delete whereNode;
 }
 

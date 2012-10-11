@@ -632,6 +632,21 @@ void testQueryRiskAlwaysTrueConditionals()
 
     qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN 0 - 1 AND 0 + 1");
     BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'skari' SOUNDS LIKE 'scairee'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE ('skari') SOUNDS LIKE ('scairee')");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE ('skari') SOUNDS LIKE ('scairee')");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE NULL IS NULL");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'f' IS NOT NULL");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
 }
 
 
@@ -1095,11 +1110,29 @@ void testQueryRiskAlwaysTrue()
     qr = parseQuery("SELECT * FROM f WHERE -1 BETWEEN -1 AND 1");
     BOOST_CHECK(qr.alwaysTrue);
 
-    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN 1 AND -1");
-    BOOST_CHECK(!qr.alwaysTrue);
-
     qr = parseQuery("SELECT * FROM f WHERE 1 BETWEEN 1 AND 1");
     BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 0 NOT BETWEEN 1 AND -1");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 2 NOT BETWEEN 1 AND 3");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 0 NOT BETWEEN -1 AND 1");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 1 NOT BETWEEN -1 AND 1");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE -1 NOT BETWEEN -1 AND 1");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 1 NOT BETWEEN 1 AND 1");
+    BOOST_CHECK(!qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE 0 BETWEEN 1 AND -1");
+    BOOST_CHECK(!qr.alwaysTrue);
 
     // ------------------------------------------------------------------------
     // mathematical comparisons
@@ -1242,6 +1275,49 @@ void testQueryRiskAlwaysTrue()
     BOOST_CHECK(!qr.alwaysTrue);
 
     qr = parseQuery("SELECT * FROM foo WHERE (1 = 2) XOR (2 = 2)");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // ------------------------------------------------------------------------
+    // CASE statements
+    // ------------------------------------------------------------------------
+    qr = parseQuery("SELECT * FROM f WHERE CASE 1 WHEN 1 THEN 1 END");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery("SELECT * FROM f WHERE CASE 'a' WHEN 'a' THEN 1 END");
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM f WHERE CASE 'a' WHEN 'b' THEN 0 WHEN 'a' THEN 1 END"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    qr = parseQuery(
+        "SELECT * FROM f WHERE CASE 1 > 0 WHEN 1 THEN 1 WHEN 0 THEN 1 END"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // If there is more than one match, then only the first counts
+    qr = parseQuery(
+        "SELECT * FROM f WHERE CASE 1 WHEN 1 THEN 1 WHEN 1 THEN 0 END"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // If there is no CASE provided, then it defaults to 1
+    qr = parseQuery(
+        "SELECT * FROM f WHERE CASE WHEN 1 THEN 1 WHEN 1 THEN 0 END"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // If there is no CASE provided, then it defaults to 1
+    qr = parseQuery(
+        "SELECT * FROM f WHERE CASE WHEN 1 THEN 1 WHEN 1 THEN 0 END"
+    );
+    BOOST_CHECK(qr.alwaysTrue);
+
+    // If there is no matching case, then it results in NULL
+    qr = parseQuery(
+        "SELECT * FROM f WHERE (CASE 1 WHEN 0 THEN 0 END) IS NULL"
+    );
     BOOST_CHECK(qr.alwaysTrue);
 }
 

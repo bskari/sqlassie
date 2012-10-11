@@ -76,6 +76,7 @@ test::test_suite* init_unit_test_suite(int, char*[])
         // Tests from testParser.cpp
         FD(testParseKnownGoodQueries),
         FD(testQueryType),
+        FD(testInvalidQueries),
         // Tests from testQueryRisk.cpp
         FD(testQueryRiskSafe),
         FD(testQueryRiskComments),

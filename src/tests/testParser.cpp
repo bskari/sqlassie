@@ -54,6 +54,10 @@ static void checkQueryType(
     const QueryRisk::QueryType type,
     const bool checkSuccessfullyParsed = true
 );
+/**
+ * Tests that a query does not parse correctly.
+ */
+static void checkQueryIsInvalid(const string& query);
 
 
 void testParseKnownGoodQueries()
@@ -189,6 +193,16 @@ void testQueryType()
 }
 
 
+void testInvalidQueries()
+{
+    // ON statements can only happen after a JOIN
+    checkQueryIsInvalid("SELECT * FROM user u /* JOIN user u */ ON u.age > 5");
+
+    // ESCAPE statements can only have a single character
+    checkQueryIsInvalid("SELECT * FROM u WHERE 'foo' LIKE 'bar' ESCAPE 'baz'");
+}
+
+
 void checkQueryType(
     const string& query,
     const QueryRisk::QueryType type,
@@ -217,5 +231,17 @@ void checkQueryType(
             << type
             << " but instead found "
             << qr.queryType
+    );
+}
+
+
+void checkQueryIsInvalid(const string& query)
+{
+    QueryRisk qr;
+    ParserInterface parser(query);
+    const bool successfullyParsed = parser.parse(&qr);
+    BOOST_CHECK_MESSAGE(
+        !successfullyParsed,
+        '"' << query << "\" should have been marked invalid but was not"
     );
 }

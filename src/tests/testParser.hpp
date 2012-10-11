@@ -31,4 +31,10 @@ void testParseKnownGoodQueries();
  */
 void testQueryType();
 
+/**
+ * Test that syntactically valid but semantically invalid queries are
+ * identified as invalid.
+ */
+void testInvalidQueries();
+
 #endif  // SRC_TESTS_TESTPARSER_HPP_

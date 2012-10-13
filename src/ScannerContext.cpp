@@ -25,6 +25,10 @@
 #include <string>
 #include <utility>
 
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 using std::pair;
 
 
@@ -39,6 +43,24 @@ ScannerContext::ScannerContext(QueryRisk* const qrToModify)
 
 ScannerContext::~ScannerContext()
 {
+    // All of the nodes should have been removed if parsing was successful
+#ifndef NDEBUG
+    if (qrPtr->valid && !nodes_.empty())
+    {
+        std::cerr << "The following nodes are still on the stack:\n";
+        while (!nodes_.empty())
+        {
+            std::cerr << *nodes_.top().first;
+            nodes_.pop();
+        }
+        std::cerr << std::flush;
+        assert(
+            false
+            && "All nodes should be deleted when parsing is successful"
+        );
+    }
+#endif
+
     while (!nodes_.empty())
     {
         delete nodes_.top().first;

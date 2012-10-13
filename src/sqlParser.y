@@ -346,7 +346,8 @@ signed ::= minus_num.
 cmd ::= SHOW DATABASES where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    // Pop the where_opt node
+    // Clean up the where_opt node
+    delete sc->getTopNode();
     sc->popNode();
 }
 // MySQL doesn't allow NOT LIKE statements here, so don't use like_op
@@ -359,7 +360,8 @@ cmd ::= SHOW global_opt VARIABLES where_opt.
 {
     /// @TODO(bskari|2012-07-08) Are any global variables risky?
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    // Pop the where_opt node
+    // Clean up the where_opt node
+    delete sc->getTopNode();
     sc->popNode();
 }
 cmd ::= SHOW global_opt VARIABLES LIKE_KW string.
@@ -391,6 +393,8 @@ cmd ::= SHOW id.
 cmd ::= SHOW id like_op expr.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    delete sc->getTopNode();
+    sc->popNode();
 }
 cmd ::= SHOW id id.
 {
@@ -399,19 +403,23 @@ cmd ::= SHOW id id.
 cmd ::= SHOW id id like_op expr.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
+    delete sc->getTopNode();
+    sc->popNode();
 }
 
 // Using full_opt here wasn't working, so just copy/paste
 cmd ::= SHOW TABLES show_from_in_id_opt where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    // Pop the where_opt node
+    // Clean up the where_opt node
+    delete sc->getTopNode();
     sc->popNode();
 }
 cmd ::= SHOW FULL TABLES show_from_in_id_opt where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    // Pop the where_opt node
+    // Clean up the where_opt node
+    delete sc->getTopNode();
     sc->popNode();
 }
 cmd ::= SHOW TABLES show_from_in_id_opt LIKE_KW string.
@@ -426,7 +434,8 @@ cmd ::= SHOW FULL TABLES show_from_in_id_opt LIKE_KW string.
 cmd ::= SHOW full_opt COLUMNS where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    // Pop the where_opt node
+    // Clean up the where_opt node
+    delete sc->getTopNode();
     sc->popNode();
 }
 cmd ::= SHOW full_opt COLUMNS LIKE_KW string.
@@ -437,7 +446,8 @@ cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt
     where_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_SHOW;
-    // Pop the where_opt node
+    // Clean up the where_opt node
+    delete sc->getTopNode();
     sc->popNode();
 }
 cmd ::= SHOW full_opt COLUMNS from_in show_columns_id show_from_in_id_opt
@@ -503,17 +513,37 @@ cmd ::= SET set_assignments.    {sc->qrPtr->queryType = QueryRisk::TYPE_SET;}
 set_assignments ::= set_assignment.
 set_assignments ::= set_assignments COMMA set_assignment.
 set_assignment ::= set_opt id EQ expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 set_assignment ::= set_opt id expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 set_assignment ::= GLOBAL_VARIABLE EQ expr.
 {
     ++sc->qrPtr->globalVariables;
+    delete sc->getTopNode();
+    sc->popNode();
 }
 set_assignment ::= GLOBAL_VARIABLE DOT nm EQ expr.
 {
     ++sc->qrPtr->globalVariables;
+    delete sc->getTopNode();
+    sc->popNode();
 }
 set_assignment ::= VARIABLE EQ expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 set_assignment ::= VARIABLE DOT nm EQ expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 // MySQL also has some long SET statements, like:
 // SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ UNCOMMITTED
 cmd ::= SET set_opt TRANSACTION bunch_of_ids.
@@ -638,6 +668,10 @@ from ::= FROM seltablist.
 //
 mysql_match ::= MATCH_KW LP inscollist RP
             AGAINST LP expr againstmodifier_opt RP.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 againstmodifier_opt ::= .
 againstmodifier_opt ::= IN NATURAL LANGUAGE MODE.
 againstmodifier_opt ::= IN BOOLEAN MODE.
@@ -747,12 +781,14 @@ on_opt ::= ON expr.
         // modulo the JOIN type's behavior when dealing with NULL values.
         ExpressionNode* const expr =
             boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
-        sc->popNode();
         if (expr->isAlwaysTrue())
         {
             ++sc->qrPtr->crossJoinStatements;
         }
     }
+
+    delete sc->getTopNode();
+    sc->popNode();
 }
 on_opt ::= .
 {
@@ -799,6 +835,9 @@ orderby_opt ::= ORDER BY expr sortorder sortlistremainder.
     {
         sc->qrPtr->orderByNumber = true;
     }
+
+    delete sc->getTopNode();
+    sc->popNode();
 }
 sortlistremainder ::= .
 sortlistremainder ::= COMMA sortlist.
@@ -831,6 +870,10 @@ groupby_opt ::= GROUP BY nexprbegin nexprlist.
 
 having_opt ::= .
 having_opt ::= HAVING expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 
 // The destructor for limit_opt will never fire in the current grammar.
 // The limit_opt non-terminal only occurs at the end of a single production
@@ -892,7 +935,7 @@ cmd ::= DELETE delete_opt FROM fullname where_opt
         orderby_opt limit_opt.
 {
     sc->qrPtr->queryType = QueryRisk::TYPE_DELETE;
-    // Pop the where_opt node
+    // Clean up the where_opt node
     delete sc->getTopNode();
     sc->popNode();
 }
@@ -918,10 +961,23 @@ where_opt ::= WHERE expr.
 //
 cmd ::= UPDATE update_opt fullname SET setlist
     where_opt orderby_opt limit_opt.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_UPDATE;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_UPDATE;
+    // Clean up the where_opt node
+    delete sc->getTopNode();
+    sc->popNode();
+}
 
 setlist ::= setlist COMMA nm EQ expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 setlist ::= nm EQ expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 
 update_opt ::= .
 update_opt ::= LOW_PRIORITY.
@@ -934,11 +990,17 @@ update_opt ::= IGNORE.
  * Handle 'ON DUPLICATE KEY UPDATE col_name=expr [, col_name=expr] ...
  */
 cmd ::= insert_cmd insert_opt into_opt fullname inscollist_opt valuelist.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;
+}
 cmd ::= insert_cmd insert_opt into_opt fullname inscollist_opt select.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;
+}
 cmd ::= insert_cmd insert_opt into_opt fullname inscollist_opt DEFAULT VALUES.
-    {sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;}
+{
+    sc->qrPtr->queryType = QueryRisk::TYPE_INSERT;
+}
 
 into_opt ::= .
 into_opt ::= INTO.

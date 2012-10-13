@@ -125,7 +125,7 @@ $(BINARY_DIR)/riskAnalyzer: $(riskAnalyzerDependencies)
 		-lboost_regex -lboost_thread -lreadline -o $(BINARY_DIR)/riskAnalyzer
 
 scannerDependencies = scanner.o scanner.yy.o QueryRisk.o sqlParser.h Logger.o \
-	ScannerContext.o ReadlineStream.o
+	ScannerContext.o ReadlineStream.o AstNode.o
 $(BINARY_DIR)/scanner: $(scannerDependencies)
 	$(CXX) $(CXXFLAGS_NO_WARNINGS) $(call noHeaders,$(scannerDependencies)) \
 		-lboost_regex -lboost_thread -lreadline -o $(BINARY_DIR)/scanner

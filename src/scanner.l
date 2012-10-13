@@ -302,7 +302,7 @@ CONDITIONAL    ("AND"|"OR"|"XOR"|"WHERE")
 
 "div"   {return INTEGER_DIVIDE;}
 "/"     {return SLASH;}
-"%"     {return REM;}
+"%"|"mod"   {return REM;}
 "+"     {return PLUS;}
 "-"     {return MINUS;}
 

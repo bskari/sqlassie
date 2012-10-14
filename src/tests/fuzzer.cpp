@@ -116,6 +116,7 @@ static bool hasLeakyQueries(
 );
 static bool isQueryLeaky(const string& query);
 static string queryWithFirstNTokens(const string& query, const size_t n);
+static bool isQueryBroken(const string& query);
 
 static const int IPC_SIZE = 4096;
 static const char* const DEFAULT_QUERIES_FILE = "../src/tests/queries/fuzzer.mysql";
@@ -433,6 +434,10 @@ void findParseErrors(
         // Child process
         if (0 == pid)
         {
+            // Close stout and stderr
+            close(1);
+            close(2);
+
             // The child needs to reseed so that it doesn't get the same query
             // every time
             unsigned int randState = getRandSeed();
@@ -452,14 +457,41 @@ void findParseErrors(
                 const bool _ = parser.parse(&qr);
                 if (_) {}  // Silence compiler warning
             }
+            assert(false && "Unexpected break from loop");
+            exit(EXIT_FAILURE);
         }
         // Parent
         else
         {
             int status;
             waitpid(pid, &status, 0);
-            out << "Child terminated, last query was:\n";
-            out << sharedMemory << endl;
+            // I could do a binary search here, but it takes so little time to
+            // fork a process and parse a query in comparison to how often the
+            // parser actually crashes that I don't think it's worth the
+            // effort. A linear search will work fine.
+            string query(sharedMemory);
+            size_t numTokens = count(query.begin(), query.end(), ' ') + 1;
+            while (
+                numTokens > 0
+                && isQueryBroken(queryWithFirstNTokens(query, numTokens))
+            )
+            {
+                --numTokens;
+            }
+
+            // Parse the query too so that we it'll print the error
+            const pid_t pid2 = fork();
+            if (0 == pid2)
+            {
+                QueryRisk qr;
+                ParserInterface parser(query);
+                const bool _ = parser.parse(&qr);
+                if (_) {}  // Silence compiler warning
+                exit(EXIT_FAILURE);
+            }
+            waitpid(pid, &status, 0);
+            out << queryWithFirstNTokens(query, numTokens) << endl;
+
             ++numErrorsFound;
         }
     }
@@ -599,4 +631,38 @@ string queryWithFirstNTokens(const string& query, const size_t n)
     iterator_range<string::const_iterator> nthToken(find_nth(query, " ", n - 1));
     const size_t spacePosition = distance(query.begin(), nthToken.begin());
     return query.substr(0, spacePosition);
+}
+
+
+bool isQueryBroken(const string& query)
+{
+    const pid_t pid = fork();
+
+    // Child process
+    if (0 == pid)
+    {
+        // Close stdout and stderr
+        close(1);
+        close(2);
+
+        QueryRisk qr;
+        ParserInterface parser(query);
+        const bool _ = parser.parse(&qr);
+        if (_) {}  // Silence compiler warning
+        exit(EXIT_SUCCESS);
+    }
+    // Parent
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }

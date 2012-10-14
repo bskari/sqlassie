@@ -72,6 +72,7 @@ bool BooleanLogicNode::isAlwaysTrueOrFalse() const
 
 bool BooleanLogicNode::isAlwaysTrue() const
 {
+    assert(isAlwaysTrueOrFalse());
     switch (logicalOperator_)
     {
     case AND:

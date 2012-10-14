@@ -70,11 +70,9 @@ AstNode* BinaryOperatorNode::copy() const
 
 bool BinaryOperatorNode::isAlwaysTrueOrFalse() const
 {
-    if (resultsInValue())
-    {
-        return true;
-    }
-    return false;
+    return expr1_->isAlwaysTrueOrFalse()
+        && expr2_->isAlwaysTrueOrFalse()
+        && resultsInValue();
 }
 
 

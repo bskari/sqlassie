@@ -218,7 +218,10 @@ bool ComparisonNode::resultsInValue() const
             return false;
         }
     }
-    return expr1_->resultsInValue() && expr2_->resultsInValue();
+    else
+    {
+        return expr1_->resultsInValue() && expr2_->resultsInValue();
+    }
 }
 
 
@@ -315,6 +318,19 @@ bool compareValues(
             return s1 >= s2;
         case NE:
             return s1 != s2;
+        case LIKE_KW:
+            // Empty compares are always false
+            if (s2.size() == 0)
+            {
+                return false;
+            }
+            else
+            {
+                regex perl(MySqlConstants::mySqlRegexToPerlRegex(s2));
+                return regex_match(s1, perl);
+            }
+        case SOUNDS:
+            return MySqlConstants::soundex(s1) == MySqlConstants::soundex(s2);
         default:
             Logger::log(Logger::ERROR)
                 << "Unknown comparison operator "

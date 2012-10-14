@@ -92,8 +92,10 @@ bool TerminalNode::isAlwaysTrueOrFalse() const
         case FLOAT:
         case HEX_NUMBER:
         case STRING:
-        case GLOBAL_VARIABLE:
             return true;
+        case VARIABLE:
+        case GLOBAL_VARIABLE:
+            return false;
         default:
             Logger::log(Logger::WARN)
                 << "Unexpected case " << type_ << " in TerminalNode::isAlwaysTrueOrFalse";
@@ -109,6 +111,7 @@ bool TerminalNode::isAlwaysTrueOrFalse() const
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 bool TerminalNode::isAlwaysTrue() const
 {
+    assert(isAlwaysTrueOrFalse());
     switch (type_)
     {
     case INTEGER:
@@ -136,6 +139,7 @@ bool TerminalNode::isAlwaysTrue() const
         }
     case ID:
     case GLOBAL_VARIABLE:
+    case VARIABLE:
         // Identifiers may or may not result in true, so they are not
         // necessarily always true
         return false;

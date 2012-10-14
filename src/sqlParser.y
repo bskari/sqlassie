@@ -1108,7 +1108,11 @@ term ::= GLOBAL_VARIABLE DOT id(X).
 }
 /* MySQL allows date intervals */
 term ::= INTERVAL expr TIME_UNIT RP.
-expr ::= VARIABLE.
+term ::= VARIABLE(X).
+{
+    ExpressionNode* const ex = new TerminalNode(X->scannedString_, X->token_);
+    sc->pushNode(ex);
+}
 expr ::= expr COLLATE ids.
 expr ::= CAST LP expr AS typetoken RP.
 expr ::= id(X) LP distinct exprlist RP.

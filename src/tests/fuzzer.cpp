@@ -84,8 +84,14 @@ extern YY_DECL;
 /**
  * Loads a file full of legitimate queries (one per line) and prepares the
  * Markov chain map for use with generateRandomQuery.
+ * @param filename The file to read queries from to seed the Markov chain.
+ * @param equal Use equal probabilities of n-grams when generating queries
+ *  queries instead of having them linked their respective proportions.
  */
-static void initializeRandomQueries(const char* const filename);
+static void initializeRandomQueries(
+    const char* const filename,
+    const bool equal = true
+);
 /**
  * Generates a (possibly invalid) random query. Queries will be generated
  * using the Markov chain map.
@@ -158,7 +164,10 @@ int main(int argc, char* argv[])
         commandLineVm
     );
 
-    initializeRandomQueries(commandLineVm["queries"].as<string>().c_str());
+    initializeRandomQueries(
+        commandLineVm["queries"].as<string>().c_str(),
+        commandLineVm["equal"].as<bool>()
+    );
 
     if (commandLineVm["valgrind"].as<bool>())
     {
@@ -176,7 +185,10 @@ int main(int argc, char* argv[])
 }
 
 
-void initializeRandomQueries(const char* const filename)
+void initializeRandomQueries(
+    const char* const filename,
+    const bool equal
+)
 {
     ifstream fin(filename);
     if (!fin)
@@ -268,14 +280,18 @@ void initializeRandomQueries(const char* const filename)
 
         // Now fill in the cpd
         probability_t cumulativeProbability = 0.0;
+        size_t tokenCount = 0;
         for (
             map<token_t, size_t>::const_iterator j(i->second.begin());
             j != end2;
             ++j
         )
         {
+            ++tokenCount;
             const probability_t tokenProbability =
-                static_cast<probability_t>(j->second) / numTokensFollowing;
+                equal
+                ? static_cast<probability_t>(j->second) / numTokensFollowing
+                : static_cast<probability_t>(tokenCount) / i->second.size();
             tokenToTokenCpd[i->first].push_back(
                 pair<token_t, probability_t>(
                     j->first,
@@ -394,6 +410,13 @@ options::options_description getCommandLineOptions()
             "queries,q",
             options::value<string>()->default_value(DEFAULT_QUERIES_FILE),
             "File to read sample queries for seeding the Markov chain from."
+        )
+        (
+            "equal,p",
+            options::bool_switch()->default_value(true),
+            "Seed Markov chain n-grams with equal probabilities instead of"
+                " their respective proportions from the seed file"
+            "File to read sample queries for seeding the Markov chain from."
         );
     return cli;
 }
@@ -490,6 +513,8 @@ void findParseErrors(
                 exit(EXIT_FAILURE);
             }
             waitpid(pid, &status, 0);
+            // Give some time for the child process to flush its output
+            usleep(1000000 / 10);
             out << queryWithFirstNTokens(query, numTokens) << endl;
 
             ++numErrorsFound;

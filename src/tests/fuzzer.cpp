@@ -45,6 +45,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string/find.hpp>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -61,6 +62,8 @@
 #include <utility>
 #include <vector>
 
+using boost::find_nth;
+using boost::iterator_range;
 namespace options = boost::program_options;
 using std::cerr;
 using std::cout;
@@ -82,7 +85,7 @@ extern YY_DECL;
  * Loads a file full of legitimate queries (one per line) and prepares the
  * Markov chain map for use with generateRandomQuery.
  */
-static void initializeRandomQueries(const char* filename);
+static void initializeRandomQueries(const char* const filename);
 /**
  * Generates a (possibly invalid) random query. Queries will be generated
  * using the Markov chain map.
@@ -112,6 +115,7 @@ static bool hasLeakyQueries(
     const vector<string>::const_iterator end
 );
 static bool isQueryLeaky(const string& query);
+static string queryWithFirstNTokens(const string& query, const size_t n);
 
 static const int IPC_SIZE = 4096;
 static const char* const DEFAULT_QUERIES_FILE = "../src/tests/queries/fuzzer.mysql";
@@ -171,7 +175,7 @@ int main(int argc, char* argv[])
 }
 
 
-void initializeRandomQueries(const char* filename)
+void initializeRandomQueries(const char* const filename)
 {
     ifstream fin(filename);
     if (!fin)
@@ -500,9 +504,33 @@ void printLeakyQueries(
 
     if (begin + 1 == end)
     {
-        if (hasLeakyQueries(begin, end))
+        if (isQueryLeaky(*begin))
         {
-            out << *begin << endl;
+            const string query(*begin);
+            // Let's find the exact token that caused the leak
+            const size_t numTokens = count(query.begin(), query.end(), ' ') + 1;
+            size_t lower = 0;
+            size_t upper = numTokens;
+            while (lower < upper)
+            {
+                // Overflow shouldn't be a problem here
+                const size_t mid = (upper + lower) / 2;
+                if (0 == mid)
+                {
+                    break;
+                }
+                const string partial(queryWithFirstNTokens(query, mid));
+                if (isQueryLeaky(partial))
+                {
+                    upper = mid;
+                }
+                else
+                {
+                    lower = mid + 1;
+                }
+            }
+
+            out << queryWithFirstNTokens(query, upper) << endl;
             ++(*numErrorsFound);
         }
         return;
@@ -563,4 +591,12 @@ bool isQueryLeaky(const string& query)
 {
     vector<string> v(1, query);
     return hasLeakyQueries(v.begin(), v.end());
+}
+
+
+string queryWithFirstNTokens(const string& query, const size_t n)
+{
+    iterator_range<string::const_iterator> nthToken(find_nth(query, " ", n - 1));
+    const size_t spacePosition = distance(query.begin(), nthToken.begin());
+    return query.substr(0, spacePosition);
 }

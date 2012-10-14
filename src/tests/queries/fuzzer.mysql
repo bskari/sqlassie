@@ -1,0 +1,326 @@
+/* A hopefully comprehensive list of MySQL queries for seeding the fuzzer's */
+/* Markov chain query generator. As of 2012-10-13, the Markov chain */
+/* generator uses 1-grams, so I'll try to make sure all possibilities are */
+/* represented here. */
+
+/* SELECT -> ? */
+SELECT 'quote'
+SELECT ident
+SELECT 1
+SELECT 1.0
+SELECT @local
+SELECT @@global
+/* LEFT_PARENTHESIS -> ? */
+SELECT ( 'quote' )
+SELECT ( ident )
+SELECT ( 1 )
+SELECT ( 1.0 )
+SELECT ident ( )
+SELECT ( @local )
+SELECT ( @@global )
+SELECT ( ( 'quote' ) )
+/* COMMA -> ? */
+SELECT 'quote', ident, 1, 1.0, 'quote', ident, 1, 1.0, ( 'quote' )
+/* ? -> FROM */
+SELECT 'quote' FROM ident
+SELECT ident FROM ident
+SELECT 1 FROM ident
+SELECT 1.0 FROM ident
+SELECT @local FROM ident
+/* ident -> ident */
+SELECT 'quote' FROM ident ident
+
+NOT LIKE
+SOUNDS LIKE
+BETWEEN
+NOT BETWEEN
+
+/* Binary functions, e.g. ? -> +, + -> ? */
+/* These will bias SELECTS to be followed by idents, but that should be fine */
+SELECT ident + 'quote' + 'quote'
+SELECT ident + ident + ident
+SELECT ident + 1 + 1
+SELECT ident + 1.0 + 1.0
+SELECT ident + ( 1 ) + (
+SELECT ident + @local + @local
+SELECT ident + @@global + @@global
+SELECT ident - 'quote' - 'quote'
+SELECT ident - ident - ident
+SELECT ident - 1 - 1
+SELECT ident - 1.0 - 1.0
+SELECT ident - ( 1 ) - (
+SELECT ident - @local - @local
+SELECT ident - @@global - @@global
+SELECT ident * 'quote' * 'quote'
+SELECT ident * ident * ident
+SELECT ident * 1 * 1
+SELECT ident * 1.0 * 1.0
+SELECT ident * ( 1 ) * (
+SELECT ident * @local * @local
+SELECT ident * @@global * 'quote'
+SELECT ident / 'quote' / 'quote'
+SELECT ident / ident / ident
+SELECT ident / 1 / 1
+SELECT ident / 1.0 / 1.0
+SELECT ident / ( 1 ) / )
+SELECT ident / @local / @local
+SELECT ident / @@global / @@global
+SELECT ident DIV 'quote' DIV 'quote'
+SELECT ident DIV ident DIV ident
+SELECT ident DIV 1 DIV 1
+SELECT ident DIV 1.0 DIV 1.0
+SELECT ident DIV ( 1 ) DIV (
+SELECT ident DIV @local DIV @local
+SELECT ident DIV @@global DIV @@global
+SELECT ident % 'quote' % 'quote'
+SELECT ident % ident % ident
+SELECT ident % 1 % 1
+SELECT ident % 1.0 % 1.0
+SELECT ident % ( 1 ) % (
+SELECT ident % @local % @local
+SELECT ident % @@global % @@global
+SELECT ident AND 'quote' AND 'quote'
+SELECT ident AND ident AND ident
+SELECT ident AND 1 AND 1
+SELECT ident AND 1.0 AND 1.0
+SELECT ident AND ( 1 ) AND (
+SELECT ident AND @local AND @local
+SELECT ident AND @@global AND @@global
+SELECT ident OR 'quote' OR 'quote'
+SELECT ident OR ident OR ident
+SELECT ident OR 1 OR 1
+SELECT ident OR 1.0 OR 1.0
+SELECT ident OR ( 1 ) OR (
+SELECT ident OR @local OR @local
+SELECT ident OR @@global OR @@global
+SELECT ident XOR 'quote' XOR 'quote'
+SELECT ident XOR ident XOR ident
+SELECT ident XOR 1 XOR 1
+SELECT ident XOR 1.0 XOR 1.0
+SELECT ident XOR ( 1 ) XOR (
+SELECT ident XOR @local XOR @local
+SELECT ident XOR @@global XOR @@global
+SELECT ident < 'quote' < 'quote'
+SELECT ident < ident < ident
+SELECT ident < 1 < 1
+SELECT ident < 1.0 < 1.0
+SELECT ident < ( 1 ) < (
+SELECT ident < @local < @local
+SELECT ident < @@global < @@global
+SELECT ident <= 'quote' <= 'quote'
+SELECT ident <= ident <= ident
+SELECT ident <= 1 <= 1
+SELECT ident <= 1.0 <= 1.0
+SELECT ident <= ( 1 ) <= (
+SELECT ident <= @local <= @local
+SELECT ident <= @@global <= @@global
+SELECT ident > 'quote' > 'quote'
+SELECT ident > ident > ident
+SELECT ident > 1 > 1
+SELECT ident > 1.0 > 1.0
+SELECT ident > ( 1 ) > (
+SELECT ident > @local > @local
+SELECT ident > @@global > @@global
+SELECT ident >= 'quote' >= 'quote'
+SELECT ident >= ident >= ident
+SELECT ident >= 1 >= 1
+SELECT ident >= 1.0 >= 1.0
+SELECT ident >= ( 1 ) >= (
+SELECT ident >= @local >= @local
+SELECT ident >= @@global >= @@global
+SELECT ident = 'quote' = 'quote'
+SELECT ident = ident = ident
+SELECT ident = 1 = 1
+SELECT ident = 1.0 = 1.0
+SELECT ident = ( 1 ) = (
+SELECT ident = @local = @local
+SELECT ident = @@global = @@global
+SELECT ident != 'quote' != 'quote'
+SELECT ident != ident != ident
+SELECT ident != 1 != 1
+SELECT ident != 1.0 != 1.0
+SELECT ident != ( 1 ) != (
+SELECT ident != @local != @local
+SELECT ident != @@global != @@global
+SELECT ident & 'quote' & 'quote'
+SELECT ident & ident & ident
+SELECT ident & 1 & 1
+SELECT ident & 1.0 & 1.0
+SELECT ident & ( 1 ) & (
+SELECT ident & @local & @local
+SELECT ident & @@global & @@global
+SELECT ident | 'quote' | 'quote'
+SELECT ident | ident | ident
+SELECT ident | 1 | 1
+SELECT ident | 1.0 | 1.0
+SELECT ident | ( 1 ) | (
+SELECT ident | @local | @local
+SELECT ident | @@global | @@global
+SELECT ident ^ 'quote' ^ 'quote'
+SELECT ident ^ ident ^ ident
+SELECT ident ^ 1 ^ 1
+SELECT ident ^ 1.0 ^ 1.0
+SELECT ident ^ ( 1 ) ^ )
+SELECT ident ^ @local ^ @local
+SELECT ident ^ @@global ^ @@global
+SELECT ident << 'quote' << 'quote'
+SELECT ident << ident << ident
+SELECT ident << 1 << 1
+SELECT ident << 1.0 << 1.0
+SELECT ident << ( 1 ) << (
+SELECT ident << @local << @local
+SELECT ident << @@global << @@global
+SELECT ident >> 'quote' >> 'quote'
+SELECT ident >> ident >> ident
+SELECT ident >> 1 >> 1
+SELECT ident >> 1.0 >> 1.0
+SELECT ident >> ( 1 ) >> (
+SELECT ident >> @local >> @local
+SELECT ident >> @@global >> @@global
+SELECT ident LIKE 'quote' LIKE 'quote'
+SELECT ident LIKE ident LIKE ident
+SELECT ident LIKE 1 LIKE 1
+SELECT ident LIKE 1.0 LIKE 1.0
+SELECT ident LIKE ( 1 ) LIKE )
+SELECT ident LIKE @local LIKE @local
+SELECT ident LIKE @@global LIKE @@global
+SELECT ident REGEXP 'quote' REGEXP 'quote'
+SELECT ident REGEXP ident REGEXP ident
+SELECT ident REGEXP 1 REGEXP 1
+SELECT ident REGEXP 1.0 REGEXP 1.0
+SELECT ident REGEXP ( 1 ) REGEXP )
+SELECT ident REGEXP @local REGEXP @local
+SELECT ident REGEXP @@global REGEXP @@global
+
+/* Other basic commands */
+INSERT INTO ident VALUES ( 'quote' )
+UPDATE ident SET ident = ident
+DELETE FROM ident WHERE ident
+
+/* Where clauses */
+DELETE FROM ident WHERE ident
+DELETE FROM ident WHERE 'quote'
+DELETE FROM ident WHERE ident
+DELETE FROM ident WHERE 1
+DELETE FROM ident WHERE 1.0
+DELETE FROM ident WHERE ( 1 )
+DELETE FROM ident WHERE @local
+DELETE FROM ident WHERE @@global
+
+/* Transaction stuff */
+START TRANSACTION
+START TRANSACTION WITH CONSISTENT SNAPSHOT
+BEGIN
+BEGIN WORK
+COMMIT
+COMMIT AND CHAIN
+COMMIT AND NO CHAIN
+COMMIT RELEASE
+COMMIT NO RELEASE
+COMMIT AND CHAIN RELEASE
+COMMIT AND NO CHAIN RELEASE
+COMMIT AND NO CHAIN RELEASE
+COMMIT AND NO CHAIN NO RELEASE
+COMMIT WORK
+COMMIT WORK AND CHAIN
+COMMIT WORK AND NO CHAIN
+COMMIT WORK RELEASE
+COMMIT WORK NO RELEASE
+COMMIT WORK AND CHAIN RELEASE
+COMMIT WORK AND NO CHAIN RELEASE
+COMMIT WORK AND NO CHAIN RELEASE
+COMMIT WORK AND NO CHAIN NO RELEASE
+
+/* Ordering */
+SELECT ident FROM ident ORDER BY 'quote'
+SELECT ident FROM ident ORDER BY ident
+SELECT ident FROM ident ORDER BY 1
+SELECT ident FROM ident ORDER BY 1.0
+SELECT ident FROM ident ORDER BY @local
+SELECT ident FROM ident ORDER BY @@global
+SELECT ident FROM ident ORDER BY 'quote' ASC
+SELECT ident FROM ident ORDER BY ident ASC
+SELECT ident FROM ident ORDER BY 1 ASC
+SELECT ident FROM ident ORDER BY 1.0 ASC
+SELECT ident FROM ident ORDER BY @local ASC
+SELECT ident FROM ident ORDER BY @@global ASC
+SELECT ident FROM ident ORDER BY 'quote' DESC
+SELECT ident FROM ident ORDER BY ident DESC
+SELECT ident FROM ident ORDER BY 1 DESC
+SELECT ident FROM ident ORDER BY 1.0 DESC
+SELECT ident FROM ident ORDER BY @local DESC
+SELECT ident FROM ident ORDER BY @@global DESC
+
+/* EXPLAIN and DESCRIBE */
+EXPLAIN SELECT 1
+EXPLAIN INSERT INTO ident VALUES ( 1 )
+EXPLAIN UPDATE ident SET ident = 1
+EXPLAIN DELETE FROM ident
+DESCRIBE SELECT 1
+DESCRIBE INSERT INTO ident VALUES ( 1 )
+DESCRIBE UPDATE ident SET ident = 1
+DESCRIBE DELETE FROM ident
+DESCRIBE ident
+DESCRIBE ident ident
+DESC SELECT 1
+DESC INSERT INTO ident VALUES ( 1 )
+DESC UPDATE ident SET ident = 1
+DESC DELETE FROM ident
+DESC ident
+DESC ident ident
+
+/* SHOW TABLES */
+SHOW TABLES
+SHOW FULL TABLES
+SHOW TABLES FROM ident
+SHOW FULL TABLES FROM ident
+SHOW TABLES IN ident
+SHOW FULL TABLES IN ident
+SHOW TABLES LIKE 'quote'
+SHOW FULL TABLES LIKE 'quote'
+SHOW TABLES FROM ident LIKE 'quote'
+SHOW FULL TABLES FROM ident LIKE 'quote'
+SHOW TABLES IN ident LIKE 'quote'
+SHOW FULL TABLES IN ident LIKE 'quote'
+SHOW TABLES WHERE 1
+SHOW FULL TABLES WHERE 1
+SHOW TABLES FROM ident WHERE 1
+SHOW FULL TABLES FROM ident WHERE 1
+SHOW TABLES IN ident WHERE 1
+SHOW FULL TABLES IN ident WHERE 1
+
+/* SHOW COLUMNS */
+SHOW COLUMNS FROM ident
+SHOW FULL COLUMNS FROM ident
+SHOW COLUMNS IN ident
+SHOW FULL COLUMNS IN ident
+SHOW COLUMNS FROM ident FROM ident
+SHOW FULL COLUMNS FROM ident FROM ident
+SHOW COLUMNS IN ident FROM ident
+SHOW FULL COLUMNS IN ident FROM ident
+SHOW COLUMNS FROM ident LIKE 'quote'
+SHOW FULL COLUMNS FROM ident LIKE 'quote'
+SHOW COLUMNS IN ident LIKE 'quote'
+SHOW FULL COLUMNS IN ident LIKE 'quote'
+SHOW COLUMNS FROM ident FROM ident LIKE 'quote'
+SHOW FULL COLUMNS FROM ident FROM ident LIKE 'quote'
+SHOW COLUMNS IN ident FROM ident LIKE 'quote'
+SHOW FULL COLUMNS IN ident FROM ident LIKE 'quote'
+SHOW COLUMNS FROM ident WHERE 1
+SHOW FULL COLUMNS FROM ident WHERE 1
+SHOW COLUMNS IN ident WHERE 1
+SHOW FULL COLUMNS IN ident WHERE 1
+SHOW COLUMNS FROM ident FROM ident WHERE 1
+SHOW FULL COLUMNS FROM ident FROM ident WHERE 1
+SHOW COLUMNS IN ident FROM ident WHERE 1
+SHOW FULL COLUMNS IN ident FROM ident WHERE 1
+
+/* Miscellaneous SHOW commands */
+SHOW GLOBAL VARIABLES
+SHOW GLOBAL VARIABLES LIKE 'quote'
+
+/* SET */
+SET @local = 1
+SET @@global = 1
+SET GLOBAL @@global = 1
+SET SESSION @@global = 1

@@ -96,24 +96,25 @@ static void findParseErrors(
     const size_t numErrorsToFind,
     ostream& out
 );
-void findMemoryLeaks(
+static void findMemoryLeaks(
     const size_t numErrorsToFind,
     ostream& out,
     const size_t stepSize=1000
 );
-void printLeakyQueries(
+static void printLeakyQueries(
     const vector<string>::const_iterator begin,
     const vector<string>::const_iterator end,
     ostream& out,
     size_t* const numErrorsFound
 );
-bool hasLeakyQueries(
+static bool hasLeakyQueries(
     const vector<string>::const_iterator begin,
     const vector<string>::const_iterator end
 );
+static bool isQueryLeaky(const string& query);
 
 static const int IPC_SIZE = 4096;
-static const char* const DEFAULT_QUERIES_FILE = "../src/tests/queries/wikidb.sql";
+static const char* const DEFAULT_QUERIES_FILE = "../src/tests/queries/fuzzer.mysql";
 typedef int token_t;
 typedef float probability_t;
 
@@ -555,4 +556,11 @@ bool hasLeakyQueries(
     }
 
     return lostMemory;
+}
+
+
+bool isQueryLeaky(const string& query)
+{
+    vector<string> v(1, query);
+    return hasLeakyQueries(v.begin(), v.end());
 }

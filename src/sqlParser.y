@@ -518,6 +518,11 @@ set_assignment ::= set_opt id EQ expr.
     delete sc->getTopNode();
     sc->popNode();
 }
+set_assignment ::= set_opt id expr.
+{
+    delete sc->getTopNode();
+    sc->popNode();
+}
 set_assignment ::= GLOBAL_VARIABLE EQ expr.
 {
     ++sc->qrPtr->globalVariables;
@@ -674,6 +679,8 @@ mysql_match ::= MATCH_KW LP inscollist RP
 {
     delete sc->getTopNode();
     sc->popNode();
+
+    sc->pushNode(new IndeterminateNode);
 }
 againstmodifier_opt ::= .
 againstmodifier_opt ::= IN NATURAL LANGUAGE MODE.

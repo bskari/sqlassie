@@ -68,7 +68,7 @@ bool IndeterminateNode::resultsInValue() const
 string IndeterminateNode::getValue() const
 {
     assert(resultsInValue());
-    return false;
+    return "";
 }
 
 

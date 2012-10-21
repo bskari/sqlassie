@@ -60,6 +60,7 @@
 #include "ComparisonNode.hpp"
 #include "ExpressionNode.hpp"
 #include "FunctionNode.hpp"
+#include "IndeterminateNode.hpp"
 #include "InValuesListNode.hpp"
 #include "NegationNode.hpp"
 #include "NullNode.hpp"
@@ -158,7 +159,7 @@ static void addComparisonNode(
         rightExpr
     );
 
-    if (c->isAlwaysTrue())
+    if (c->isAlwaysTrueOrFalse() && c->isAlwaysTrue())
     {
         ++sc->qrPtr->alwaysTrueConditionals;
     }
@@ -780,7 +781,7 @@ on_opt ::= ON expr.
         // modulo the JOIN type's behavior when dealing with NULL values.
         ExpressionNode* const expr =
             boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
-        if (expr->isAlwaysTrue())
+        if (expr->isAlwaysTrueOrFalse() && expr->isAlwaysTrue())
         {
             ++sc->qrPtr->crossJoinStatements;
         }
@@ -912,12 +913,13 @@ limit_opt ::= LIMIT expr COMMA expr.
 // appropriately.
 // 2) They are considered an expression, because they return some values.
 // We can't really determine what that expression is, so we'll default to
-// returning a fummy identifier, so that comparisons won't be mistakenly
+// returning a dummy identifier, so that comparisons won't be mistakenly
 // assumed as true.
 subselect ::= subselectbegin select.
 {
     while (sc->isTopNodeFromCurrentDepth())
     {
+        delete sc->getTopNode();
         sc->popNode();
     }
     sc->decreaseNodeDepth();
@@ -1356,7 +1358,7 @@ expr ::= expr between_op(N) expr AND expr. [BETWEEN]
         // The counting of alwaysTrueConditionals is normally handled in the
         // addComparisonNode function, but BETWEEN doesn't use that function
         // because it has three expressions instead of two
-        if (negationNode->isAlwaysTrue())
+        if (negationNode->isAlwaysTrueOrFalse() && negationNode->isAlwaysTrue())
         {
             ++sc->qrPtr->alwaysTrueConditionals;
         }
@@ -1368,7 +1370,10 @@ expr ::= expr between_op(N) expr AND expr. [BETWEEN]
         // The counting of alwaysTrueConditionals is normally handled in the
         // addComparisonNode function, but BETWEEN doesn't use that function
         // because it has three expressions instead of two
-        if (comparisonNode->isAlwaysTrue())
+        if (
+            comparisonNode->isAlwaysTrueOrFalse()
+            && comparisonNode->isAlwaysTrue()
+        )
         {
             ++sc->qrPtr->alwaysTrueConditionals;
         }
@@ -1403,7 +1408,7 @@ expr ::= expr in_op(N) LP exprlist RP. [IN]
     {
         ExpressionNode* negationNode = new NegationNode(inValuesListNode);
         sc->pushNode(negationNode);
-        if (negationNode->isAlwaysTrue())
+        if (negationNode->isAlwaysTrueOrFalse() && negationNode->isAlwaysTrue())
         {
             ++sc->qrPtr->alwaysTrueConditionals;
         }
@@ -1411,13 +1416,21 @@ expr ::= expr in_op(N) LP exprlist RP. [IN]
     else
     {
         sc->pushNode(inValuesListNode);
-        if (inValuesListNode->isAlwaysTrue())
+        if (
+            inValuesListNode->isAlwaysTrueOrFalse()
+            && inValuesListNode->isAlwaysTrue()
+        )
         {
             ++sc->qrPtr->alwaysTrueConditionals;
         }
     }
 }
 expr ::= expr in_op LP subselect RP.
+{
+    // We can't really test anything with subselects, so just clean up the expr
+    delete sc->getTopNode();
+    sc->popNode();
+}
 expr ::= expr in_op nm dbnm. [IN]
 //// MySQL ANY/SOME operators: = > < >= <= <> !=
 //anyOrSome(A) ::= ANY|SOME.
@@ -1425,14 +1438,30 @@ expr ::= expr in_op nm dbnm. [IN]
 //expr(A) ::= expr(X) LT|GT|LE|GT(OP1) anyOrSome(OP2) LP select(Y) RP(E). [IN]
 
 /* CASE expressions */
-expr ::= CASE case_operand case_exprlist case_else END.
+expr ::= CASE case_begin case_operand case_exprlist case_else END.
 {
+    /// @TODO(2012-10-14|bskari) Handle CASE expressions properly
+    while (sc->isTopNodeFromCurrentDepth())
+    {
+        delete sc->getTopNode();
+        sc->popNode();
+    }
     sc->decreaseNodeDepth();
+
+    sc->pushNode(new IndeterminateNode);
+}
+case_begin ::= .
+{
+    sc->increaseNodeDepth();
 }
 case_exprlist ::= case_exprlist WHEN expr THEN expr.
 {
+    /// @TODO(2012-10-21|bskari) Handle CASE expressions properly
 }
 case_exprlist ::= WHEN expr THEN expr.
+{
+    /// @TODO(2012-10-21|bskari) Handle CASE expressions properly
+}
 case_else ::=  ELSE expr.
 case_else ::=  .
 case_operand ::= expr.

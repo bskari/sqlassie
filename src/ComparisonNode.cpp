@@ -102,19 +102,36 @@ bool ComparisonNode::isAlwaysTrueOrFalse() const
     }
     else
     {
-        return (
-            expr1_->resultsInValue()
-            && expr2_->resultsInValue()
-        ) || (
-            expr1_->resultsInString()
-            && expr2_->resultsInString()
-        );
+        // Both expressions have to be isAlwaysTrueOrFalse, and they both need
+        // to result in the same thing
+        if (
+            expr1_->isAlwaysTrueOrFalse()
+            && expr2_->isAlwaysTrueOrFalse()
+        )
+        {
+            if (
+                expr1_->resultsInValue()
+                && expr2_->resultsInValue()
+            )
+            {
+                return true;
+            }
+            if (
+                expr1_->resultsInString()
+                && expr2_->resultsInString()
+            )
+            {
+                return true;
+            }
+        }
     }
+    return false;
 }
 
 
 bool ComparisonNode::isAlwaysTrue() const
 {
+    assert(isAlwaysTrueOrFalse());
     if (BETWEEN == compareType_)
     {
         // BETWEEN is logically equivalent to
@@ -218,10 +235,7 @@ bool ComparisonNode::resultsInValue() const
             return false;
         }
     }
-    else
-    {
-        return expr1_->resultsInValue() && expr2_->resultsInValue();
-    }
+    return expr1_->resultsInValue() && expr2_->resultsInValue();
 }
 
 

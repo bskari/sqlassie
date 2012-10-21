@@ -54,10 +54,6 @@ ScannerContext::~ScannerContext()
             nodes_.pop();
         }
         std::cerr << std::flush;
-        assert(
-            false
-            && "All nodes should be deleted when parsing is successful"
-        );
     }
 #endif
 

@@ -1264,8 +1264,18 @@ expr ::= expr expr_like_op(B) expr. [LIKE_KW]
 expr ::= expr expr_like_op(B) expr ESCAPE expr. [LIKE_KW]
 {
     /// @TODO(bskari|2012-07-04) Do I need to do anything with the escape expr?
-    delete sc->getTopNode();
+    ExpressionNode* escapeExpr =
+        boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
     sc->popNode();
+    // The escape expression needs to be a one character string
+    if (escapeExpr->resultsInString())
+    {
+        if (1 != escapeExpr->getValue().length())
+        {
+            sc->qrPtr->valid = false;
+        }
+    }
+    delete escapeExpr;
 
     const ExpressionNode* const rightExpr =
         boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());

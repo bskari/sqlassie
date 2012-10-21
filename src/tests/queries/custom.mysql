@@ -145,7 +145,7 @@ SET NAMES utf8
 /* MySQL lets you do extra stuff if there are duplicate keys */ SELECT 1
 INSERT INTO ident (ident, ident) VALUES (1, 'quote') ON DUPLICATE KEY UPDATE ident = ident + 1
 
-/* Transaction stuff */
+/* Transaction stuff */ SELECT 1
 BEGIN
 BEGIN WORK
 START TRANSACTION

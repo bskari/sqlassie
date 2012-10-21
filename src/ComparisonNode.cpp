@@ -300,6 +300,12 @@ bool compareStrings(
                 regex perl(MySqlConstants::mySqlRegexToPerlRegex(s2));
                 return regex_match(s1, perl);
             }
+        case REGEXP:
+            /// @TODO(bskari|2012-10-21) Empty regexps result in a MySQL error
+            {
+                regex posixExtended(s2, regex::extended);
+                return regex_match(s1, posixExtended);
+            }
         case SOUNDS:
             return MySqlConstants::soundex(s1) == MySqlConstants::soundex(s2);
         default:

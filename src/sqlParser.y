@@ -32,6 +32,7 @@
 %extra_argument {ScannerContext* sc}
 
 %type like_op       {LikeOpInfo}
+%type expr_like_op       {LikeOpInfo}
 %type in_op         {InOpInfo}
 %type between_op    {BetweenOpInfo}
 
@@ -296,7 +297,7 @@ id(A) ::= ID_FALLBACK(X).
 %left XOR.
 %left AND.
 %right NOT SOME ANY.
-%left IS MATCH_KW LIKE_KW SOUNDS BETWEEN IN NE EQ.
+%left IS MATCH_KW LIKE_KW REGEXP SOUNDS BETWEEN IN NE EQ.
 %left GT LE LT GE.
 %right ESCAPE.
 %left BITAND BITOR BITXOR LSHIFT RSHIFT.
@@ -517,11 +518,6 @@ set_assignment ::= set_opt id EQ expr.
     delete sc->getTopNode();
     sc->popNode();
 }
-set_assignment ::= set_opt id expr.
-{
-    delete sc->getTopNode();
-    sc->popNode();
-}
 set_assignment ::= GLOBAL_VARIABLE EQ expr.
 {
     ++sc->qrPtr->globalVariables;
@@ -529,6 +525,13 @@ set_assignment ::= GLOBAL_VARIABLE EQ expr.
     sc->popNode();
 }
 set_assignment ::= GLOBAL_VARIABLE DOT nm EQ expr.
+{
+    ++sc->qrPtr->globalVariables;
+    delete sc->getTopNode();
+    sc->popNode();
+}
+// SET @@local.sort_buffer_size = 10
+set_assignment ::= GLOBAL_VARIABLE DOT GLOBAL_VARIABLE EQ expr.
 {
     ++sc->qrPtr->globalVariables;
     delete sc->getTopNode();
@@ -1211,7 +1214,20 @@ like_op(A) ::= SOUNDS(OP) LIKE_KW.
     A.negation = false; A.tokenType = OP->token_;
 }
 
-expr ::= expr like_op(B) expr. [LIKE_KW]
+expr_like_op(A) ::= like_op(OP).
+{
+    A.negation = false; A.tokenType = OP.tokenType;
+}
+expr_like_op(A) ::= REGEXP(OP).
+{
+    A.negation = false; A.tokenType = OP->token_;
+}
+expr_like_op(A) ::= NOT REGEXP(OP).
+{
+    A.negation = true; A.tokenType = OP->token_;
+}
+
+expr ::= expr expr_like_op(B) expr. [LIKE_KW]
 {
     const ExpressionNode* const rightExpr =
         boost::polymorphic_downcast<const ExpressionNode*>(sc->getTopNode());
@@ -1238,7 +1254,7 @@ expr ::= expr like_op(B) expr. [LIKE_KW]
 
     addComparisonNode(sc, B.tokenType, B.negation);
 }
-expr ::= expr like_op(B) expr ESCAPE expr. [LIKE_KW]
+expr ::= expr expr_like_op(B) expr ESCAPE expr. [LIKE_KW]
 {
     /// @TODO(bskari|2012-07-04) Do I need to do anything with the escape expr?
     delete sc->getTopNode();

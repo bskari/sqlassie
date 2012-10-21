@@ -296,9 +296,10 @@ CONDITIONAL    ("AND"|"OR"|"XOR"|"WHERE")
    @TODO(bskari|2012-07-21) != is a nonstandard MySQL extension and should be
    counted in the QueryRisk for MySQL specific statements.
   */
-("!="|"<>")     {return NE;}
-"like"          {return LIKE_KW;}
-"escape"        {return ESCAPE;}
+("!="|"<>")         {return NE;}
+"like"              {return LIKE_KW;}
+"escape"            {return ESCAPE;}
+("regexp"|"rlike")  {return REGEXP;}
 
 "div"   {return INTEGER_DIVIDE;}
 "/"     {return SLASH;}

@@ -69,6 +69,11 @@ public:
     bool resultsInValue() const WARN_UNUSED_RESULT;
 
     /**
+     * Overridden from ExpressionNode.
+     */
+    bool isNull() const WARN_UNUSED_RESULT;
+
+    /**
      * Returns the value of this node.
      */
     std::string getValue() const WARN_UNUSED_RESULT;

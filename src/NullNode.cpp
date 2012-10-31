@@ -49,6 +49,12 @@ AstNode* NullNode::copy() const
 }
 
 
+bool NullNode::isNull() const
+{
+    return true;
+}
+
+
 bool NullNode::isAlwaysTrueOrFalse() const
 {
     return true;

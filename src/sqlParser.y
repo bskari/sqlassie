@@ -32,9 +32,10 @@
 %extra_argument {ScannerContext* sc}
 
 %type like_op       {LikeOpInfo}
-%type expr_like_op       {LikeOpInfo}
+%type expr_like_op  {LikeOpInfo}
 %type in_op         {InOpInfo}
 %type between_op    {BetweenOpInfo}
+%type not_op        {NotOpInfo}
 
 %type id    {TokenInfo*}
 %type ids   {TokenInfo*}
@@ -84,6 +85,10 @@ struct InOpInfo
 {
     int inOpType;
     int comparisonType;  // Used for ANY and SOME
+    bool negation;
+};
+struct NotOpInfo
+{
     bool negation;
 };
 
@@ -1304,31 +1309,56 @@ expr ::= expr expr_like_op(B) expr ESCAPE expr. [LIKE_KW]
     addComparisonNode(sc, B.tokenType, B.negation);
 }
 
-expr ::= expr IS NULL_KW.
+not_op(A) ::= .
 {
-    const ExpressionNode* const ex =
-        boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
-    // NULL IS NULL is always true, everything else is false, or safe enough
-    // to always be considered false
-    const bool alwaysTrue = (ex->resultsInValue() && "NULL" != ex->getValue());
-    AstNode* const asn = new AlwaysSomethingNode(alwaysTrue);
-    asn->addChild(sc->getTopNode());
-    sc->popNode();
-    asn->addChild(new NullNode);
-    sc->pushNode(asn);
+    A.negation = false;
 }
-expr ::= expr IS NOT NULL_KW.
+not_op(A) ::= NOT.
+{
+    A.negation = true;
+}
+expr ::= expr IS not_op(OP) NULL_KW.
 {
     const ExpressionNode* const ex =
         boost::polymorphic_downcast<ExpressionNode*>(sc->getTopNode());
-    // NULL IS NOT NULL is always false, everything else is true, or safe
-    // enough to always be considered false
-    const bool alwaysTrue = !(!ex->resultsInValue() && "NULL" != ex->getValue());
-    AstNode* const asn = new AlwaysSomethingNode(alwaysTrue);
-    asn->addChild(sc->getTopNode());
+
+    // NULL IS NULL is always true, value IS NULL is false, other things (like
+    // field IS NULL) are indeterminate
+    ExpressionNode* asn = nullptr;
+    if (ex->isNull())
+    {
+        asn = new AlwaysSomethingNode(true);
+    }
+    else if (ex->resultsInString() || ex->resultsInValue())
+    {
+        asn = new AlwaysSomethingNode(false);
+    }
+    else
+    {
+       asn = new IndeterminateNode;
+    }
+    assert(nullptr != asn);
+
+    delete ex;
     sc->popNode();
-    asn->addChild(new NullNode);
-    sc->pushNode(asn);
+
+    ExpressionNode* pushNode = nullptr;
+    if (OP.negation)
+    {
+        pushNode = new NegationNode(asn);
+    }
+    else
+    {
+        pushNode = asn;
+    }
+    sc->pushNode(pushNode);
+
+    // The counting of alwaysTrueConditionals is normally handled in the
+    // addComparisonNode function, but we don't use that for NULLs
+    if (pushNode->isAlwaysTrueOrFalse() && pushNode->isAlwaysTrue())
+    {
+        ++sc->qrPtr->alwaysTrueConditionals;
+    }
 }
 expr ::= NOT expr.
 {

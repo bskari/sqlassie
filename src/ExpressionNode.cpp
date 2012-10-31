@@ -59,6 +59,12 @@ bool ExpressionNode::isField() const
 }
 
 
+bool ExpressionNode::isNull() const
+{
+    return false;
+}
+
+
 bool ExpressionNode::isHex() const
 {
     return false;

@@ -72,6 +72,13 @@ public:
     virtual bool isField() const WARN_UNUSED_RESULT;
 
     /**
+     * Determines if this expression is NULL keyword.
+     * ExpressionNode defines this as returning false. Most nodes won't need
+     * to override this unless the default of false is inappropriate.
+     */
+    virtual bool isNull() const WARN_UNUSED_RESULT;
+
+    /**
      * Returns true if this is a hex number.
      */
     virtual bool isHex() const WARN_UNUSED_RESULT;

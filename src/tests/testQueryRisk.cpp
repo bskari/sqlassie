@@ -647,6 +647,133 @@ void testQueryRiskAlwaysTrueConditionals()
 
     qr = parseQuery("SELECT * FROM f WHERE 'f' IS NOT NULL");
     BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'f' LIKE 'f'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'f' LIKE 'f'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'f' LIKE '%'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'f' LIKE '_'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'food' LIKE 'f%d'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'food' LIKE 'f_%_d'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'f' NOT LIKE 'g'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'food' NOT LIKE '_f%'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'f' REGEXP '.'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'f' REGEXP '.*'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'food' REGEXP 'oo'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'food' REGEXP '^f..d$'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'food' REGEXP '^fo{2}d$'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    qr = parseQuery("SELECT * FROM f WHERE 'food' REGEXP 'o{1,10}'");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+
+    // These REGEXP examples taken from
+    // http://dev.mysql.com/doc/refman/5.1/en/regexp.html
+    qr = parseQuery("SELECT 'fo\\nfo' NOT REGEXP '^fo$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'fofo' REGEXP '^fo';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'fo\\\no' REGEXP '^fo\no$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'fo\\no' NOT REGEXP '^fo$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'fofo' REGEXP '^f.*$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'fo\\r\\nfo' REGEXP '^f.*$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'Ban' REGEXP '^Ba*n';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'Baaan' REGEXP '^Ba*n';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'Bn' REGEXP '^Ba*n';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'Ban' REGEXP '^Ba+n';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'Bn' NOT REGEXP '^Ba+n';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'Bn' REGEXP '^Ba?n';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'Ban' REGEXP '^Ba?n';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'Baan' NOT REGEXP '^Ba?n';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'pi' REGEXP 'pi|apa';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'axe' NOT REGEXP 'pi|apa';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'apa' REGEXP 'pi|apa';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'apa' REGEXP '^(pi|apa)$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'pi' REGEXP '^(pi|apa)$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'pix' NOT REGEXP '^(pi|apa)$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'pi' REGEXP '^(pi)*$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'pip' NOT REGEXP '^(pi)*$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'pipi' REGEXP '^(pi)*$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'abcde' NOT REGEXP 'a[bcd]{2}e';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'abcde' REGEXP 'a[bcd]{3}e';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'abcde' REGEXP 'a[bcd]{1,10}e';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'aXbc' REGEXP '[a-dXYZ]';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'aXbc' NOT REGEXP '^[a-dXYZ]$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'aXbc' REGEXP '^[a-dXYZ]+$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'aXbc' NOT REGEXP '^[^a-dXYZ]+$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'gheis' REGEXP '^[^a-dXYZ]+$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'gheisa' NOT REGEXP '^[^a-dXYZ]+$';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT '~' REGEXP '[[.~.]]';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT '~' REGEXP '[[.tilde.]]';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'justalnums' REGEXP '[[:alnum:]]+';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT '!!' NOT REGEXP '[[:alnum:]]+';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'a word a' REGEXP '[[:<:]]word[[:>:]]';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT 'a xword a' NOT REGEXP '[[:<:]]word[[:>:]]';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT '1+2' NOT REGEXP '1+2';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT '1+2' NOT REGEXP '1\\+2';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
+    qr = parseQuery("SELECT '1+2' REGEXP '1\\\\+2';");
+    BOOST_CHECK(1 == qr.alwaysTrueConditionals);
 }
 
 
